@@ -1,0 +1,8 @@
+site_name: Scheduler Log Analyzer
+nav:
+  - 'index.md'
+  - 'LSFLogParser.md'
+  - 'SlurmLogParser.md'
+  - 'AcceleratorLogParser.md'
+  - 'JobAnalyzer.md'
+  - 'todo.md'
