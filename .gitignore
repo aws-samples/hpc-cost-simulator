@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__
+output/*
+venv
+.venv/
+/*.pickle
+.requirements_installed
+/docs-sphinx/output/
+instance_type_info.csv

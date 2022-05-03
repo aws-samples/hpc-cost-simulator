@@ -1,0 +1,946 @@
+
+Accounting information about jobs that are: 
+  - submitted by all users.
+  - accounted on all projects.
+  - completed normally or exited
+  - completed between   Sat Jan  1 00:00:00 2022
+                  and   Mon Feb 21 23:59:00 2022
+  - executed on all hosts.
+  - submitted to all queues.
+  - accounted on all service classes.
+  - accounted to all RC accounts.
+------------------------------------------------------------------------------
+
+Job <101>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s200p1 200>
+Thu Feb  3 17:40:37: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:40:38: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:40:38: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0107     0M      0M
+------------------------------------------------------------------------------
+
+Job <102>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s200p1 200>
+Thu Feb  3 17:40:38: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:40:38: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:40:39: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              1     exit         0.0102     0M      0M
+------------------------------------------------------------------------------
+
+Job <103>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s200p1 200>
+Thu Feb  3 17:40:39: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:40:39: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:40:39: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              0     exit         0.0000     1M      0M
+------------------------------------------------------------------------------
+
+Job <104>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s200p1 200>
+Thu Feb  3 17:40:39: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:40:40: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:40:41: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0048     0M      0M
+------------------------------------------------------------------------------
+
+Job <105>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 17:55:41: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:55:42: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:55:47: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              6     done         0.0021     2M      0M
+------------------------------------------------------------------------------
+
+Job <106>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 17:55:43: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:55:43: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:55:48: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              5     done         0.0025     2M      0M
+------------------------------------------------------------------------------
+
+Job <107>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 17:55:44: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:55:45: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:55:50: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              6     done         0.0021     2M      0M
+------------------------------------------------------------------------------
+
+Job <108>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 17:55:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:55:47: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:55:53: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              6     done         0.0019     2M      0M
+------------------------------------------------------------------------------
+
+Job <110>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s5p1 /bin/sleep 5>
+Thu Feb  3 17:56:06: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:56:06: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:56:06: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              0     exit         0.0000     0M      0M
+------------------------------------------------------------------------------
+
+Job <109>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s5p1 /bin/sleep 5>
+Thu Feb  3 17:56:04: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:56:05: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:56:07: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              3     exit         0.0036     0M      0M
+------------------------------------------------------------------------------
+
+Job <111>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s5p1 /bin/sleep 5>
+Thu Feb  3 17:56:07: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:56:08: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:56:09: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0049     0M      0M
+------------------------------------------------------------------------------
+
+Job <115>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 160>
+Thu Feb  3 17:57:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:48: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0096     0M      0M
+------------------------------------------------------------------------------
+
+Job <113>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 120>
+Thu Feb  3 17:57:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:48: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0099     0M      0M
+------------------------------------------------------------------------------
+
+Job <112>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 100>
+Thu Feb  3 17:57:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:48: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0098     0M      0M
+------------------------------------------------------------------------------
+
+Job <114>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 140>
+Thu Feb  3 17:57:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:50: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              3     exit         0.0033     0M      0M
+------------------------------------------------------------------------------
+
+Job <119>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 240>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:50: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              2     exit         0.0050     0M      0M
+------------------------------------------------------------------------------
+
+Job <118>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 220>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              3     exit         0.0034     0M      0M
+------------------------------------------------------------------------------
+
+Job <117>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 200>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:57:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              3     exit         0.0034     0M      0M
+------------------------------------------------------------------------------
+
+Job <122>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 300>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:49: Job <122> forwarded to cluster <lsf1> as Job <104>;
+Thu Feb  3 17:58:50: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 17:58:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01       62             63     exit         0.0002     0M      0M
+------------------------------------------------------------------------------
+
+Job <120>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 260>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:49: Job <120> forwarded to cluster <lsf1> as Job <102>;
+Thu Feb  3 17:58:50: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 17:58:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01       62             63     exit         0.0002     0M      0M
+------------------------------------------------------------------------------
+
+Job <116>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 180>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:48: Job <116> forwarded to cluster <lsf1> as Job <101>;
+Thu Feb  3 17:58:50: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 17:58:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01       62             63     exit         0.0002     0M      0M
+------------------------------------------------------------------------------
+
+Job <121>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 280>
+Thu Feb  3 17:57:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:57:49: Job <121> forwarded to cluster <lsf1> as Job <103>;
+Thu Feb  3 17:58:50: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 17:58:51: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01       62             63     exit         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <126>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 160>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:23: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0098     0M      0M
+------------------------------------------------------------------------------
+
+Job <125>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 140>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:24: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0052     0M      0M
+------------------------------------------------------------------------------
+
+Job <124>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 120>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:24: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0053     0M      0M
+------------------------------------------------------------------------------
+
+Job <123>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 100>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:24: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0056     0M      0M
+------------------------------------------------------------------------------
+
+Job <129>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 220>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Job <129> forwarded to cluster <lsf1> as Job <107>;
+Thu Feb  3 18:02:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:02:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        3              3     exit         0.0033     0M      0M
+------------------------------------------------------------------------------
+
+Job <128>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 200>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Job <128> forwarded to cluster <lsf1> as Job <106>;
+Thu Feb  3 18:02:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:02:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        3              3     exit         0.0033     0M      0M
+------------------------------------------------------------------------------
+
+Job <127>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 180>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Job <127> forwarded to cluster <lsf1> as Job <105>;
+Thu Feb  3 18:02:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:02:26: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        3              4     exit         0.0024     0M      0M
+------------------------------------------------------------------------------
+
+Job <130>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 240>
+Thu Feb  3 18:02:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Job <130> forwarded to cluster <lsf1> as Job <108>;
+Thu Feb  3 18:02:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:02:26: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        3              4     exit         0.0024     0M      0M
+------------------------------------------------------------------------------
+
+Job <132>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 280>
+Thu Feb  3 18:02:23: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:26: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              3     exit         0.0033     0M      0M
+------------------------------------------------------------------------------
+
+Job <131>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 260>
+Thu Feb  3 18:02:23: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:23: Job <131> forwarded to cluster <lsf1> as Job <109>;
+Thu Feb  3 18:02:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:02:27: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        2              4     exit         0.0025     0M      0M
+------------------------------------------------------------------------------
+
+Job <133>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 300>
+Thu Feb  3 18:02:23: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:02:24: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:02:27: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              4     exit         0.0023     0M      0M
+------------------------------------------------------------------------------
+
+Job <134>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 100>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:22: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:22: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              0     exit         0.0000     0M      0M
+------------------------------------------------------------------------------
+
+Job <135>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 120>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:22: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:22: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              0     exit         0.0000     0M      0M
+------------------------------------------------------------------------------
+
+Job <138>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 180>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:23: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0108     0M      0M
+------------------------------------------------------------------------------
+
+Job <136>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 140>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:22: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:24: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              2     exit         0.0054     0M      0M
+------------------------------------------------------------------------------
+
+Job <137>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 160>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:24: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              2     exit         0.0052     1M      0M
+------------------------------------------------------------------------------
+
+Job <139>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 200>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:03:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              3     exit         0.0034     0M      0M
+------------------------------------------------------------------------------
+
+Job <143>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 280>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Job <143> forwarded to cluster <lsf1> as Job <113>;
+Thu Feb  3 18:03:24: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:03:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        2              3     exit         0.0031     0M      0M
+------------------------------------------------------------------------------
+
+Job <142>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 260>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Job <142> forwarded to cluster <lsf1> as Job <112>;
+Thu Feb  3 18:03:24: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:03:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        2              3     exit         0.0032     0M      0M
+------------------------------------------------------------------------------
+
+Job <141>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 240>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Job <141> forwarded to cluster <lsf1> as Job <111>;
+Thu Feb  3 18:03:24: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:03:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        2              3     exit         0.0031     0M      0M
+------------------------------------------------------------------------------
+
+Job <140>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 220>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Job <140> forwarded to cluster <lsf1> as Job <110>;
+Thu Feb  3 18:03:24: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:03:25: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        2              3     exit         0.0032     0M      0M
+------------------------------------------------------------------------------
+
+Job <144>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s /bin/sleep 300>
+Thu Feb  3 18:03:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:23: Job <144> forwarded to cluster <lsf1> as Job <114>;
+Thu Feb  3 18:03:25: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:03:26: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        3              4     exit         0.0021     0M      0M
+------------------------------------------------------------------------------
+
+Job <145>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:53: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:05:33: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.05        0            100     done         0.0005     2M      0M
+------------------------------------------------------------------------------
+
+Job <146>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 120>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:05:55: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.05        1            122     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <147>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 140>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:06:15: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.06        1            142     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <148>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 160>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:06:35: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.06        1            162     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <149>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 180>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <149> forwarded to cluster <lsf1> as Job <115>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:06:58: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.06        1            185     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <150>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 200>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <150> forwarded to cluster <lsf1> as Job <116>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:07:14: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.06        1            201     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <151>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 220>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <151> forwarded to cluster <lsf1> as Job <117>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:07:37: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.07        1            224     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <152>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 240>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <152> forwarded to cluster <lsf1> as Job <118>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:07:54: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.07        1            241     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <153>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 260>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <153> forwarded to cluster <lsf1> as Job <119>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:08:14: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.08        1            261     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <154>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 280>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <154> forwarded to cluster <lsf1> as Job <120>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:08:34: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.08        1            281     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <155>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 300>
+Thu Feb  3 18:03:53: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 18:03:54: Job <155> forwarded to cluster <lsf1> as Job <121>;
+Thu Feb  3 18:03:54: Dispatched 1 Task(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-68-231.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:08:54: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.09        1            301     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <157>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 18:08:20: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:08:20: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:10:01: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.05        0            101     done         0.0005     2M      0M
+------------------------------------------------------------------------------
+
+Job <158>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 18:09:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:09:23: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:11:03: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.05        1            101     done         0.0005     2M      0M
+------------------------------------------------------------------------------
+
+Job <159>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 18:09:56: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:09:57: Job <159> forwarded to cluster <lsf1> as Job <122>;
+Thu Feb  3 18:09:58: Dispatched 4 Task(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Allocated 4 Slot(s) on Host(s) <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1> <ip-172-30-79-108.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:11:38: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.03        2            102     done         0.0003     2M      0M
+------------------------------------------------------------------------------
+
+Job <160>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 18:29:16: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:29:16: Job <160> forwarded to cluster <lsf1> as Job <123>;
+Thu Feb  3 18:30:24: Dispatched 6 Task(s) on Host(s) <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1>, Allocated 6 Slot(s) on Host(s) <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:32:04: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.04       68            168     done         0.0002     2M      0M
+------------------------------------------------------------------------------
+
+Job <161>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 50>
+Thu Feb  3 18:32:08: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:32:09: Job <161> forwarded to cluster <lsf1> as Job <124>;
+Thu Feb  3 18:33:20: Dispatched 30 Task(s) on Host(s) <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-83-140.eu-west-1.compute.internal@lsf1> <ip-172-30-83-140.eu-west-1.compute.internal@lsf1>, Allocated 30 Slot(s) on Host(s) <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-69-251.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-37.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-67-62.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-74-195.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-76-181.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-85-135.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-91-148.eu-west-1.compute.internal@lsf1> <ip-172-30-83-140.eu-west-1.compute.internal@lsf1> <ip-172-30-83-140.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 18:34:11: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.03       72            123     done         0.0002     2M      0M
+------------------------------------------------------------------------------
+
+Job <162>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 50>
+Thu Feb  3 18:34:22: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 18:34:23: Dispatched 3 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 3 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 18:35:14: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.03        1             52     done         0.0005     2M      0M
+------------------------------------------------------------------------------
+
+Job <163>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 20:09:54: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:09:54: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:11:34: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.04        0            100     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <164>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 100>
+Thu Feb  3 20:10:20: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:10:21: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:12:01: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.04        1            101     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <165>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 40>
+Thu Feb  3 20:11:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:15:23: Dispatched 4 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 4 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:16:03: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.02      215            255     done         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <167>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 200>
+Thu Feb  3 20:13:46: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:20:48: Job <167> forwarded to cluster <lsf1> as Job <131>;
+Thu Feb  3 20:23:32: Dispatched 12 Task(s) on Host(s) <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1>, Allocated 12 Slot(s) on Host(s) <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-65-126.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-74-37.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1> <ip-172-30-91-152.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 20:26:51: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.06      586            785     done         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <166>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 300>
+Thu Feb  3 20:12:31: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:19:22: Job <166> forwarded to cluster <lsf1> as Job <130>;
+Thu Feb  3 20:22:11: Dispatched 8 Task(s) on Host(s) <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1>, Allocated 8 Slot(s) on Host(s) <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-82-230.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1> <ip-172-30-91-164.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 20:27:11: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.08      580            880     done         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <168>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 20:47:07: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:47:08: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:47:13: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              6     done         0.0020     2M      0M
+------------------------------------------------------------------------------
+
+Job <169>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 20:47:34: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:47:34: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:47:39: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              5     done         0.0024     2M      0M
+------------------------------------------------------------------------------
+
+Job <270>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 5>
+Thu Feb  3 20:50:37: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:50:37: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:50:42: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              5     done         0.0024     2M      0M
+------------------------------------------------------------------------------
+
+Job <271>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 500>
+Thu Feb  3 20:51:19: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:51:20: Dispatched 4 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 4 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 20:59:41: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.18        1            502     done         0.0004     2M      0M
+------------------------------------------------------------------------------
+
+Job <272>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 500>
+Thu Feb  3 20:52:49: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 20:59:52: Dispatched 4 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 4 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 21:08:13: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.18      423            924     done         0.0002     2M      0M
+------------------------------------------------------------------------------
+
+Job <273>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 500>
+Thu Feb  3 20:54:48: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 21:01:51: Job <273> forwarded to cluster <lsf1> as Job <236>;
+Thu Feb  3 21:04:29: Dispatched 6 Task(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Allocated 6 Slot(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 21:12:49: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.13      581           1081     done         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <276>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 2000 10>
+Thu Feb  3 21:22:24: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD <$HOME>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 21:22:24: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 21:22:58: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      3.69        0             34     done         0.1085   1.9G      0M
+------------------------------------------------------------------------------
+
+Job <277>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 2000 10>
+Thu Feb  3 21:24:23: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD <$HOME>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 21:24:23: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 21:24:38: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      3.69        0             15     done         0.2461   1.9G      0M
+------------------------------------------------------------------------------
+
+Job <274>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 500>
+Thu Feb  3 21:16:25: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD <$HOME>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 21:16:26: Job <274> forwarded to cluster <lsf1> as Job <237>;
+Thu Feb  3 21:16:27: Dispatched 8 Task(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Allocated 8 Slot(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 21:24:47: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.12        2            502     done         0.0002     2M      0M
+------------------------------------------------------------------------------
+
+Job <278>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 2000 10>
+Thu Feb  3 21:27:20: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tmp>, Output File </tools/output/output.log>, Error File </tools/output/error.log>;
+Thu Feb  3 21:27:20: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 21:27:34: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      3.68        0             14     done         0.2631   1.9G      0M
+------------------------------------------------------------------------------
+
+Job <279>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 2000 10>
+Thu Feb  3 21:28:17: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tools>, Output File </tools/output/output.log>, Error File </tools/output/error.log>;
+Thu Feb  3 21:28:18: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 21:28:33: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      3.69        1             16     done         0.2308   1.9G      0M
+------------------------------------------------------------------------------
+
+Job <280>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 2000 10>
+Thu Feb  3 21:28:47: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tools>, Output File </tools/output/output.log>, Error File </tools/output/error.log>;
+Thu Feb  3 21:28:48: Job <280> forwarded to cluster <lsf1> as Job <241>;
+Thu Feb  3 21:28:49: Dispatched 8 Task(s) on Host(s) <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Allocated 8 Slot(s) on Host(s) <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 21:29:01: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      2.79        2             14     done         0.1990   1.9G      0M
+------------------------------------------------------------------------------
+
+Job <275>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 300>
+Thu Feb  3 21:17:41: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD <$HOME>, Specified CWD </tmp>, Error File </tmp/sleep.err>;
+Thu Feb  3 21:24:40: Job <275> forwarded to cluster <lsf1> as Job <240>;
+Thu Feb  3 21:27:25: Dispatched 12 Task(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1>, Allocated 12 Slot(s) on Host(s) <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 21:32:26: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.08      584            885     done         0.0001     2M      0M
+------------------------------------------------------------------------------
+
+Job <281>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/py-mem.py 1500 10>
+Thu Feb  3 21:33:15: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>, Specified CWD </tools>, Output File </tools/output/output.log>, Error File </tools/output/error.log>;
+Thu Feb  3 21:33:15: Job <281> forwarded to cluster <lsf1> as Job <242>;
+Thu Feb  3 21:33:15: Dispatched 20 Task(s) on Host(s) <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Allocated 20 Slot(s) on Host(s) <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-80-145.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-73-16.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-89-14.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-88-163.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1> <ip-172-30-74-138.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Thu Feb  3 21:33:28: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      2.09        0             13     done         0.1610   1.4G      0M
+------------------------------------------------------------------------------
+
+Job <282>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <2 15>
+Thu Feb  3 22:17:09: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>;
+Thu Feb  3 22:17:09: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 22:17:09: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        0              0     exit         0.0000     0M      0M
+------------------------------------------------------------------------------
+
+Job <283>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command <#/bin/bash;date > /dev/null;echo "asdfasdfasdf" > /dev/null>
+Thu Feb  3 22:19:07: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>;
+Thu Feb  3 22:19:08: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 22:19:09: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.02        1              2     done         0.0075     0M      0M
+------------------------------------------------------------------------------
+
+Job <384>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <600 10>
+Sun Feb  6 07:16:58: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>;
+Sun Feb  6 07:24:09: Job <384> forwarded to cluster <lsf1> as Job <246>;
+Sun Feb  6 07:26:42: Dispatched 1 Task(s) on Host(s) <ip-172-30-68-135.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-68-135.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Sun Feb  6 07:26:46: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01      584            588     exit         0.0000     0M      0M
+------------------------------------------------------------------------------
+
+Job <385>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command <#!/usr/bin/python; import sys;import time; count = 600; megabyte = (0,) * (1024 * 1024 / 8); data = megabyte * count; for i in range(10):;    time.sleep(1)>
+Sun Feb  6 07:22:18: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>;
+Sun Feb  6 07:25:49: Job <385> forwarded to cluster <lsf1> as Job <247>;
+Sun Feb  6 07:26:42: Dispatched 1 Task(s) on Host(s) <ip-172-30-68-135.eu-west-1.compute.internal@lsf1>, Allocated 1 Slot(s) on Host(s) <ip-172-30-68-135.eu-west-1.compute.internal@lsf1>, Effective RES_REQ <select[(aws) && (type == any)] order[r15s:pg] >;
+Sun Feb  6 07:26:59: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.87      264            281     done         0.0031   605M      0M
+------------------------------------------------------------------------------
+
+Job <386>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </bin/sleep 3>
+Mon Feb 14 08:15:45: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Mon Feb 14 08:15:46: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Mon Feb 14 08:15:49: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              4     done         0.0028     2M      0M
+------------------------------------------------------------------------------
+
+Job <387>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/100m.py>
+Mon Feb 14 08:16:51: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>, Output File </tools/output/100.txt>;
+Mon Feb 14 08:16:52: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Mon Feb 14 08:17:08: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.21        1             17     done         0.0125   106M      0M
+------------------------------------------------------------------------------
+
+Job <388>, User <simuser>, Project <default>, Status <DONE>, Queue <sender>, Command </tools/3g.py>
+Mon Feb 14 08:24:41: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </tools>, Output File </tools/output/3g.txt>;
+Mon Feb 14 08:24:41: Dispatched 2 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 2 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal> <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Mon Feb 14 08:25:05: Completed <done>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      5.43        0             24     done         0.2263   2.9G      0M
+------------------------------------------------------------------------------
+
+Job <101>, User <simuser>, Project <default>, Status <EXIT>, Queue <sender>, Command <s200p1 200>
+Thu Feb  3 17:40:37: Submitted from host <ip-10-30-14-225.eu-west-1.compute.internal>, CWD </root>;
+Thu Feb  3 17:40:38: Dispatched 1 Task(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Allocated 1 Slot(s) on Host(s) <ip-10-30-66-253.eu-west-1.compute.internal>, Effective RES_REQ <select[type == any] order[r15s:pg] >;
+Thu Feb  3 17:40:38: Completed <exit>.
+
+Accounting information about this job:
+     CPU_T     WAIT     TURNAROUND   STATUS     HOG_FACTOR    MEM    SWAP
+      0.01        1              1     exit         0.0107     0M      0M
+------------------------------------------------------------------------------
+
+SUMMARY:      ( time unit: second ) 
+ Total number of done jobs:      45      Total number of exited jobs:    42
+ Total CPU time consumed:      28.6      Average CPU time consumed:     0.3
+ Maximum CPU time of a job:     5.4      Minimum CPU time of a job:     0.0
+ Total wait time in queues:  4274.0
+ Average wait time in queue:   49.1
+ Maximum wait time in queue:  586.0      Minimum wait time in queue:    0.0
+ Average turnaround time:       118 (seconds/job)
+ Maximum turnaround time:      1081      Minimum turnaround time:         0
+ Average hog factor of a job:  0.02 ( cpu time / turnaround time )
+ Maximum hog factor of a job:  0.26      Minimum hog factor of a job:  0.00
+ Average expansion factor of a job:  6.22 ( turnaround time / run time )
+ Maximum expansion factor of a job:  147.00
+ Minimum expansion factor of a job:  0.00
+ Total Run time consumed:      6001      Average Run time consumed:      68
+ Maximum Run time of a job:     501      Minimum Run time of a job:       0
+ Total throughput:             0.20 (jobs/hour)  during  438.31 hours
+ Beginning time:       Feb  3 17:40      Ending time:          Feb 21 23:59
+ Scheduler Efficiency for 88 jobs
+ Slot Utilization:          100.00%  Memory Utilization:            100.00% 

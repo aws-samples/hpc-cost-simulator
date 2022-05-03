@@ -1,0 +1,2 @@
+start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Total Cost
+2022-03-20T14:22:57,1182,1,179.6167,500.0,0.0,x2iezn.4xlarge,x2iezn,False,4.0,11.974447

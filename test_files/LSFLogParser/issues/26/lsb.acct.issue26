@@ -1,0 +1,28 @@
+
+# ERROR:2022-04-28 13:02:12,275: /home/string1/lsb.acct.13, line 1896156: Bad record: Not enough fields to get value for numHostRusage.
+"JOB_FINISH" "7.06" 1357860113 447138 3876 33554451 1 1357860110 0 0 1357860113 "string2" "string3" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860110.447138" 0 1 "string6" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string8" 0.143978 0.044993 11536 0 -1 0 0 10876 0 0 0 0 -1 0 0 0 418 42 -1 "" "default" 0 1 "" "" 0 2848 30356 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860113 "" "" 0
+
+# ERROR:2022-04-28 13:02:12,275: /home/string1/lsb.acct.13, line 1896157: Bad record: Not enough fields to get value for numHostRusage.
+"JOB_FINISH" "7.06" 1357860114 447116 3876 33554451 1 1357860027 0 0 1357860032 "string2" "string9" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860027.447116" 0 1 "string10" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string11" 62.723464 22.971507 720692 0 -1 0 0 1774446 0 0 0 0 -1 0 0 0 1121251 33614 -1 "" "default" 0 1 "" "" 0 581436 807216 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860032 "" "" 0
+
+# ERROR:2022-04-28 13:02:12,275: /home/string1/lsb.acct.13, line 1896158: Bad record: Not enough fields to get value for numHostRusage.
+"JOB_FINISH" "7.06" 1357860118 447124 3876 33554451 1 1357860052 0 0 1357860058 "string2" "string12" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860052.447124" 0 1 "pv19" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string13" 40.637822 20.258920 587980 0 -1 0 0 1741023 0 0 0 0 -1 0 0 0 1044100 21813 -1 "" "default" 0 1 "" "" 0 77028 563360 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860058 "" "" 0
+
+# ERROR:2022-04-28 13:02:12,275: /home/string1/lsb.acct.13, line 1896159: Bad record: Not enough fields to get value for numHostRusage.
+"JOB_FINISH" "7.06" 1357860120 447128 3876 33554451 1 1357860075 0 0 1357860078 "string2" "string3" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860075.447128" 0 1 "sj006" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string14" 28.347690 10.853350 187432 0 -1 0 0 1641624 0 0 0 0 -1 0 0 0 915128 18119 -1 "" "default" 0 1 "" "" 0 141472 448368 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860078 "" "" 0
+
+# ERROR:2022-04-28 13:02:12,276: /home/string1/lsb.acct.13, line 1896160: Bad record: Not enough fields to get value for numHostRusage.
+"JOB_FINISH" "7.06" 1357860124 447140 3876 33554451 1 1357860121 0 0 1357860123 "string2" "string12" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860121.447140" 0 1 "string10" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string15" 0.290955 0.084987 11536 0 -1 0 0 10881 0 0 0 0 -1 0 0 0 189 98 -1 "" "default" 0 1 "" "" 0 3128 30216 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860123 "" "" 0
+
+# ERROR:2022-04-28 13:02:12,279: parse_jobs failed
+# Traceback (most recent call last):
+#   File "./LSFLogParser.py", line 521, in main
+#     lsfLogParser.parse_jobs()
+#   File "./LSFLogParser.py", line 71, in parse_jobs
+#     job = self.parse_job()
+#   File "./LSFLogParser.py", line 94, in parse_job
+#     line = self._lsb_acct_fh.readline()
+#   File "/usr/local/python/ActivePython-3.8.2/lib/python3.8/codecs.py", line 322, in decode
+#     (result, consumed) = self._buffer_decode(data, self.errors, final)
+# UnicodeDecodeError: 'utf-8' codec can't decode byte 0xa1 in position 4197: invalid start byte
+"JOB_FINISH" ¡  "7.06" 1357860124 447140 3876 33554451 1 1357860121 0 0 1357860123 "string2" "string12" "" "" "" "string4" "/projects/string5" "" "/dev/null" "" "1357860121.447140" 0 1 "string10" 64 10.0 "string2_regression_1_10" "/projects/string7.pl string16" 0.290955 0.084987 11536 0 -1 0 0 10881 0 0 0 0 -1 0 0 0 189 98 -1 "" "default" 0 1 "" "" 0 3128 30216 "" "" "" "" 0 "" 0 "" -1 "/string2" "default" "" "" -1 "" "" 2104336 "" 1357860123 "" "" 0
