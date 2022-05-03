@@ -12,4 +12,4 @@ requests==2.25.1
 sphinx
 #turtle
 types-PyYAML
-urllib3==1.26.4
+urllib3==1.26.5
