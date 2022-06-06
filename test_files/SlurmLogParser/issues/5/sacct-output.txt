@@ -1,0 +1,9 @@
+
+PENDING|31259618|1|5G|1||2022-04-21T11:24:28|2022-04-21T11:24:28|Unknown|00:00:00|00:00:00|Unknown|0:0|0:0|0|1||||||00:00:00|00:00:00|00:00:00|00:00:00
+
+# Errors
+#ERROR:2022-06-06 16:01:52,775: test_files/SlurmLogParser/issues/5/sacct-output.txt, line 12: Unable to convert field Start to format dt: Unknown: time data 'Unknown' does not match format '%Y-%m-%dT%H:%M:%S'
+#PENDING|31259618|1|5G|1||2022-04-21T11:24:28|2022-04-21T11:24:28|Unknown|00:00:00|00:00:00|Unknown|0:0|0:0|0|1||||||00:00:00|00:00:00|00:00:00|00:00:00
+#ERROR:2022-06-06 16:01:52,775: test_files/SlurmLogParser/issues/5/sacct-output.txt, line 12: Unable to convert field End to format dt: Unknown: time data 'Unknown' does not match format '%Y-%m-%dT%H:%M:%S'
+#PENDING|31259618|1|5G|1||2022-04-21T11:24:28|2022-04-21T11:24:28|Unknown|00:00:00|00:00:00|Unknown|0:0|0:0|0|1||||||00:00:00|00:00:00|00:00:00|00:00:00
+#ERROR:2022-06-06 16:01:52,775: 2 errors while parsing jobs

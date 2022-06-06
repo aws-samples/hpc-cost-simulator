@@ -104,6 +104,21 @@ class TestSlurmLogParser:
         assert(filecmp.cmp(expected_jobs_csv, output_csv, shallow=False))
 
     @pytest.mark.order(after=['test_main_issue_20]'])
+    def test_main_issue_5(self):
+        self.cleanup_files()
+        test_files_dir = 'test_files/SlurmLogParser/issues/20'
+        sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
+        output_csv = 'output/SlurmLogParser/jobs.csv'
+        try:
+            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        assert(filecmp.cmp(expected_jobs_csv, output_csv, shallow=False))
+
+    @pytest.mark.order(after=['test_main_issue_5]'])
     def test_main_sacct_input_file(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
