@@ -4,12 +4,13 @@ boto3==1.20.38
 colored==1.4.2
 mkdocs
 mypy
+openpyxl
 psutil
 pytest
 pytest-order
 PyYAML==5.4.1
 requests==2.25.1
+schema
 sphinx
-#turtle
 types-PyYAML
 urllib3==1.26.5
