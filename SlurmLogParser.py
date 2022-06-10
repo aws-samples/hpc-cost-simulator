@@ -252,6 +252,11 @@ class SlurmLogParser(SchedulerLogParser):
                         self.errors.append((self._sacct_input_file, self._line_number, msg))
                 logger.debug(f"    {field_name}: '{field_value}' {type(field_value)}")
                 job_fields[field_name] = field_value
+                if field_name == 'State':
+                    # Need to stop processing lines with invalid states since following fields may be invalid and cause errors.
+                    if job_fields['State'] in self.SLURM_STATE_CODES_TO_IGNORE:
+                        logger.debug(f"    Ignored state: {field_value}")
+                        return None
         except Exception as e:
             field_errors += 1
             msg = f"Exception while processing fields, {field_name} ({field_format}): {e}\n{line}"
