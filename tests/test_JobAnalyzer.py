@@ -9,6 +9,7 @@ from CSVLogParser import CSVLogParser
 import filecmp
 from JobAnalyzer import JobAnalyzer, JobCost
 import json
+import unittest
 import os
 from os import environ, getenv, listdir, path, system
 from os.path import abspath, dirname
@@ -16,7 +17,8 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
-import unittest
+
+order = 0
 
 @pytest.mark.order(7, after=['tests/test_SortJobs.py::TestSortJobs::test_random'])
 class TestJobAnalyzer(unittest.TestCase):
@@ -44,11 +46,15 @@ class TestJobAnalyzer(unittest.TestCase):
     def get_jobAnalyzer(self):
         if self._jobAnalyzer:
             return self._jobAnalyzer
+        self._use_static_instance_type_info()
         self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR)
         return self._jobAnalyzer
 
     def _remove_instance_type_info(self):
         system(f"rm -f {dirname(__file__)+'/../instance_type_info.json'}")
+
+    def _use_static_instance_type_info(self):
+        system(f"cp {self.REPO_DIR}/test_files/instance_type_info.json {self.REPO_DIR}/instance_type_info.json")
 
     def _restore_instance_type_info(self):
         system(f"git restore {dirname(__file__)+'/../instance_type_info.json'}")
@@ -94,11 +100,14 @@ class TestJobAnalyzer(unittest.TestCase):
         output_files.sort()
         return output_files
 
+    order += 1
+    @pytest.mark.order(order)
     def test_get_ranges(self):
         self.assertEqual(self.get_jobAnalyzer().get_ranges([1,2,3,4,5]),['0-1','1-2','2-3','3-4','4-5','5-'+str(self.get_jobAnalyzer().range_max)])
         self.assertEqual(self.get_jobAnalyzer().get_ranges([50]),['0-50','50-'+str(self.get_jobAnalyzer().range_max)])
 
-    @pytest.mark.order(after='test_get_ranges')
+    order += 1
+    @pytest.mark.order(order)
     def test_read_configuration(self):
         # Test bad filename
         with pytest.raises(FileNotFoundError) as excinfo:
@@ -116,7 +125,8 @@ class TestJobAnalyzer(unittest.TestCase):
         self.assertGreaterEqual(len(config["instance_mapping"]["runtime_ranges_minutes"]), 2)
         self.assertTrue(type(config["instance_mapping"]["instance_prefix_list"]) == list)   # makes sures edits don't change to a string
 
-    @pytest.mark.order(after='test_read_configuration')
+    order += 1
+    @pytest.mark.order(order)
     def test_select_range(self):
         jobAnalyzer = self.get_jobAnalyzer()
 
@@ -125,7 +135,8 @@ class TestJobAnalyzer(unittest.TestCase):
         self.assertEqual(jobAnalyzer.select_range(14,[1,5,10,20]),'10-20')
         self.assertEqual(jobAnalyzer.select_range(25,[1,5,10,20]),'20-'+str(jobAnalyzer.range_max))
 
-    @pytest.mark.order(after='test_select_range')
+    order += 1
+    @pytest.mark.order(order)
     def test_add_job_to_hourly_bucket(self):
         self.cleanup_output_files()
         jobAnalyzer = self.get_jobAnalyzer()
@@ -162,7 +173,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for i in range(1,batch_size):
             self.assertEqual(lines[i], job_log)
 
-    @pytest.mark.order(after='test_log_job_to_file')
+    order += 1
+    @pytest.mark.order(order)
     def test_missing_parser(self):
         self.cleanup_output_files()
         with pytest.raises(CalledProcessError) as excinfo:
@@ -172,7 +184,8 @@ class TestJobAnalyzer(unittest.TestCase):
         assert('The following arguments are required: parser' in excinfo.value.output)
         assert(excinfo.value.returncode == 2)
 
-    @pytest.mark.order(after='test_missing_parser')
+    order += 1
+    @pytest.mark.order(order)
     def test_csv_bad_credentials(self):
         self.cleanup_output_files()
         self.maxDiff = None
@@ -192,7 +205,8 @@ class TestJobAnalyzer(unittest.TestCase):
         self._remove_instance_type_info()
         self._restore_instance_type_info()
 
-    @pytest.mark.order(after='test_csv_bad_credentials')
+    order += 1
+    @pytest.mark.order(order)
     def test_add_job_to_collector(self):
         '''
             * Tests the empty job_data_collector
@@ -213,7 +227,11 @@ class TestJobAnalyzer(unittest.TestCase):
                 self.assertEqual(jobs[key][value]['total_wait_minutes'], 0)
 
         # Fill collected with jobs and test results
-        job = SchedulerJobInfo(job_id=1, num_cores=1, max_mem_gb=0.8, num_hosts=1, submit_time=0, start_time=0, finish_time=3*60, wait_time=2*60)
+        submit_time = 0
+        start_time = 2*60
+        wait_time = start_time - submit_time
+        finish_time = start_time + 3*60
+        job = SchedulerJobInfo(job_id=1, num_cores=1, max_mem_gb=0.8, num_hosts=1, submit_time=submit_time, start_time=start_time, finish_time=finish_time, wait_time=wait_time)
         jobAnalyzer._add_job_to_collector(job)
         try:
             self.assertEqual(jobs['0-1']['1-5']['number_of_jobs'], 1)
@@ -257,8 +275,11 @@ class TestJobAnalyzer(unittest.TestCase):
             print(json.dumps(jobs, indent=4))
             raise
 
-    @pytest.mark.order(after='test_add_job_to_collector')
+    order += 1
+    @pytest.mark.order(order)
     def test_get_lowest_priced_instance(self):
+        self._use_static_instance_type_info()
+
         jobAnalyzer = self.get_jobAnalyzer()
 
         (t1, price1) = jobAnalyzer.get_lowest_priced_instance(['c5.large'], False)
@@ -272,12 +293,18 @@ class TestJobAnalyzer(unittest.TestCase):
         assert(instance_type, 'c5.large')
         assert(price == price1)
 
-    def check_get_instance_by_spec(self, min_mem_gb, min_cores, min_freq, exp_num_instance_types):
+    def check_get_instance_by_spec(self, min_mem_gb: float, min_cores: int, min_freq: float, exp_instance_types: [str]):
         jobAnalyzer = self.get_jobAnalyzer()
 
         instance_type_info = jobAnalyzer.instance_type_info.instance_type_info[self.region]
 
+        print(f"min_mem_gb: {min_mem_gb}")
+        print(f"min_cores:  {min_cores}")
+        print(f"min_freq:   {min_freq}")
+        print(f"exp_num_instance_types: {len(exp_instance_types)}")
         instance_types = jobAnalyzer.get_instance_by_spec(min_mem_gb, min_cores, min_freq)
+        print(f"instance_types: {json.dumps(instance_types, indent=4)}")
+        print(f"num_instance_types: {len(instance_types)}")
         for instance_type in instance_types:
             mem_gb = instance_type_info[instance_type]['MemoryInMiB'] / 1024
             cores = instance_type_info[instance_type]['CoreCount']
@@ -286,85 +313,237 @@ class TestJobAnalyzer(unittest.TestCase):
             assert(mem_gb >= min_mem_gb)
             assert(cores >= min_cores)
             assert(freq >= min_freq)
-        assert(len(instance_types) == exp_num_instance_types)
+            assert(instance_type in exp_instance_types)
+        for instance_type in exp_instance_types:
+            assert(instance_type in instance_types)
+        assert(len(instance_types) == len(exp_instance_types))
 
-    @pytest.mark.order(after='test_get_lowest_priced_instance')
+    order += 1
+    @pytest.mark.order(order)
     def test_get_instance_by_spec(self):
+        self._use_static_instance_type_info()
+
         jobAnalyzer = self.get_jobAnalyzer()
 
         if not jobAnalyzer.instance_type_info:
             jobAnalyzer.get_instance_type_info()
-
-        min_mem_gb = 1537
-        min_cores = 17
-        min_freq = 4.5
-        exp_num_instance_types = 0
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 1536
-        min_cores = 17
-        min_freq = 4.5
-        exp_num_instance_types = 1
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 1535
-        min_cores = 17
-        min_freq = 4.5
-        exp_num_instance_types = 1
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 768
-        min_cores = 16
-        min_freq = 4.5
-        exp_num_instance_types = 2
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 768
-        min_cores = 1
-        min_freq = 3
-        exp_num_instance_types = 11
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 32
-        min_cores = 24
-        min_freq = 2
-        exp_num_instance_types = 21
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
-
-        min_mem_gb = 1
-        min_cores = 47
-        min_freq = 1
-        exp_num_instance_types = 9
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
 
         # all instance types in the allowlist
         min_mem_gb = 1
         min_cores = 1
         min_freq = 1
-        exp_num_instance_types = 54
-        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_num_instance_types)
+        exp_instance_types = [
+            "c5.12xlarge",
+            "c5.18xlarge",
+            "c5.24xlarge",
+            "c5.2xlarge",
+            "c5.4xlarge",
+            "c5.9xlarge",
+            "c5.large",
+            "c5.xlarge",
+            "c6i.12xlarge",
+            "c6i.16xlarge",
+            "c6i.24xlarge",
+            "c6i.2xlarge",
+            "c6i.32xlarge",
+            "c6i.4xlarge",
+            "c6i.8xlarge",
+            "c6i.large",
+            "c6i.xlarge",
+            "c6id.12xlarge",
+            "c6id.16xlarge",
+            "c6id.24xlarge",
+            "c6id.2xlarge",
+            "c6id.32xlarge",
+            "c6id.4xlarge",
+            "c6id.8xlarge",
+            "c6id.large",
+            "c6id.xlarge",
+            "m5.12xlarge",
+            "m5.16xlarge",
+            "m5.24xlarge",
+            "m5.2xlarge",
+            "m5.4xlarge",
+            "m5.8xlarge",
+            "m5.large",
+            "m5.xlarge",
+            "r5.12xlarge",
+            "r5.16xlarge",
+            "r5.24xlarge",
+            "r5.2xlarge",
+            "r5.4xlarge",
+            "r5.8xlarge",
+            "r5.large",
+            "r5.xlarge",
+            "x2idn.16xlarge",
+            "x2idn.24xlarge",
+            "x2idn.32xlarge",
+            "x2iedn.16xlarge",
+            "x2iedn.24xlarge",
+            "x2iedn.2xlarge",
+            "x2iedn.32xlarge",
+            "x2iedn.4xlarge",
+            "x2iedn.8xlarge",
+            "x2iedn.xlarge",
+            "x2iezn.12xlarge",
+            "x2iezn.2xlarge",
+            "x2iezn.4xlarge",
+            "x2iezn.6xlarge",
+            "x2iezn.8xlarge",
+            "z1d.12xlarge",
+            "z1d.2xlarge",
+            "z1d.3xlarge",
+            "z1d.6xlarge",
+            "z1d.large",
+            "z1d.xlarge"
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
 
-    @pytest.mark.order(after='test_get_instance_by_spec')
+        min_mem_gb = 1537
+        min_cores = 17
+        min_freq = 4.5
+        exp_instance_types = [
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 1536
+        min_cores = 17
+        min_freq = 4.5
+        exp_num_instance_types = 1
+        exp_instance_types = [
+            "x2iezn.12xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 1535
+        min_cores = 17
+        min_freq = 4.5
+        exp_num_instance_types = 1
+        exp_instance_types = [
+            "x2iezn.12xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 768
+        min_cores = 16
+        min_freq = 4.5
+        exp_num_instance_types = 2
+        exp_instance_types = [
+            "x2iezn.12xlarge",
+            "x2iezn.8xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 768
+        min_cores = 1
+        min_freq = 3
+        exp_num_instance_types = 11
+        exp_instance_types = [
+            "r5.24xlarge",
+            "x2idn.16xlarge",
+            "x2idn.24xlarge",
+            "x2idn.32xlarge",
+            "x2iedn.16xlarge",
+            "x2iedn.24xlarge",
+            "x2iedn.32xlarge",
+            "x2iedn.8xlarge",
+            "x2iezn.12xlarge",
+            "x2iezn.6xlarge",
+            "x2iezn.8xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 32
+        min_cores = 24
+        min_freq = 2
+        exp_num_instance_types = 25
+        exp_instance_types = [
+            "c5.12xlarge",
+            "c5.18xlarge",
+            "c5.24xlarge",
+            "c6i.12xlarge",
+            "c6i.16xlarge",
+            "c6i.24xlarge",
+            "c6i.32xlarge",
+            "c6id.12xlarge",
+            "c6id.16xlarge",
+            "c6id.24xlarge",
+            "c6id.32xlarge",
+            "m5.12xlarge",
+            "m5.16xlarge",
+            "m5.24xlarge",
+            "r5.12xlarge",
+            "r5.16xlarge",
+            "r5.24xlarge",
+            "x2idn.16xlarge",
+            "x2idn.24xlarge",
+            "x2idn.32xlarge",
+            "x2iedn.16xlarge",
+            "x2iedn.24xlarge",
+            "x2iedn.32xlarge",
+            "x2iezn.12xlarge",
+            "z1d.12xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+        min_mem_gb = 1
+        min_cores = 47
+        min_freq = 1
+        exp_num_instance_types = 11
+        exp_instance_types = [
+            "c5.24xlarge",
+            "c6i.24xlarge",
+            "c6i.32xlarge",
+            "c6id.24xlarge",
+            "c6id.32xlarge",
+            "m5.24xlarge",
+            "r5.24xlarge",
+            "x2idn.24xlarge",
+            "x2idn.32xlarge",
+            "x2iedn.24xlarge",
+            "x2iedn.32xlarge",
+        ]
+        self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
+
+    order += 1
+    @pytest.mark.order(order)
     def test_get_instance_by_pricing(self):
+        self._use_static_instance_type_info()
+
         jobAnalyzer = self.get_jobAnalyzer()
 
         if not jobAnalyzer.instance_type_info:
             jobAnalyzer.get_instance_type_info()
 
-        self.assertEqual(len(jobAnalyzer.instance_types), 54)
-        counter = {}
+        exp_instance_family_counts = {
+            'c5': 8,
+            'c6i': 9,
+            'c6id': 9,
+            'm5': 8,
+            'r5': 8,
+            'z1d': 6,
+            'x2idn': 3,
+            'x2iedn': 7,
+            'x2iezn': 5,
+        }
+        act_instance_family_counts = {}
         for instance_type in jobAnalyzer.instance_types:
             instance_family = instance_type.split('.')[0]
-            counter[instance_family] = counter.get(instance_family, 0) + 1
-        assert(len(counter.keys()) == 8)
-        self.assertEqual(counter['c5'], 8)
-        self.assertEqual(counter['r5'], 8)
-        self.assertEqual(counter['m5'],8)
-        self.assertEqual(counter['c6i'],9)
-        self.assertEqual(counter['z1d'],6)
-        self.assertEqual(counter['x2iezn'], 5)
-        self.assertEqual(counter['x2idn'], 3)
-        self.assertEqual(counter['x2iedn'], 7)
+            act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
+        missing_exp_instance_families = {}
+        for instance_family, act_count in act_instance_family_counts.items():
+            if instance_family not in exp_instance_family_counts:
+                missing_exp_instance_families[instance_family] = act_count
+                continue
+            assert(act_count == exp_instance_family_counts[instance_family])
+        missing_act_instance_families = {}
+        for instance_family, exp_count in exp_instance_family_counts.items():
+            if instance_family not in act_instance_family_counts:
+                missing_act_instance_families[instance_family] = exp_count
+                continue
+            assert(instance_family in act_instance_family_counts)
+        assert len(missing_exp_instance_families) == 0
+        assert len(missing_act_instance_families) == 0
 
         (instance_type1, price1) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large'], False)
         self.assertEqual(instance_type1,'c6i.large')
@@ -374,7 +553,8 @@ class TestJobAnalyzer(unittest.TestCase):
         self.assertTrue(instance_type2, 'c6i.8xlarge')
         self.assertGreater(price2, 0.9)
 
-    @pytest.mark.order(after='test_get_instance_by_pricing')
+    order += 1
+    @pytest.mark.order(order)
     def test_multi_hour_jobs(self):
         '''
         Test JobAnalyzer when jobs are longer than an hour.
@@ -403,7 +583,8 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_multi_hour_jobs')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_accelerator(self):
         '''
         Test JobAnalyzer when parsing jobs from Accelerator logs.
@@ -428,6 +609,8 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._remove_credentials()
 
+        self._use_static_instance_type_info()
+
         self.cleanup_output_files()
         test_files_dir = 'test_files/AcceleratorLogParser'
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
@@ -451,12 +634,15 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_accelerator')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_accelerator_sql_file(self):
         '''
         Test JobAnalyzer when parsing jobs from Accelerator sql output.
         '''
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         self.cleanup_output_files()
 
@@ -494,9 +680,12 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_accelerator')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_accelerator_csv(self):
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         self.cleanup_output_files()
         test_files_dir = 'test_files/AcceleratorLogParser'
@@ -526,16 +715,19 @@ class TestJobAnalyzer(unittest.TestCase):
             'summary.csv'
             ]
         for csv_file in csv_files:
-            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_accelerator_csv')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_lsf(self):
         '''
         Test JobAnalyzer when parsing jobs from LSF logs.
         '''
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         self.cleanup_output_files()
         test_files_dir = 'test_files/LSFLogParser'
@@ -563,13 +755,16 @@ class TestJobAnalyzer(unittest.TestCase):
             'summary.csv'
             ]
         for csv_file in csv_files:
-            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_lsf')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_lsf_csv(self):
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         self.cleanup_output_files()
         test_files_dir = 'test_files/LSFLogParser'
@@ -602,9 +797,12 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_lsf_csv')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_slurm_sacct_file(self):
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         self.cleanup_output_files()
         sacct_input_file = 'test_files/SlurmLogParser/sacct-output.txt'
@@ -629,11 +827,12 @@ class TestJobAnalyzer(unittest.TestCase):
             'summary.csv'
             ]
         for csv_file in csv_files:
-            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_slurm_sacct_file')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_slurm(self):
         # Only run this test if sacct is in the path so can run tests on instances without slurm
         try:
@@ -643,6 +842,8 @@ class TestJobAnalyzer(unittest.TestCase):
             return
 
         self._remove_credentials()
+
+        self._use_static_instance_type_info()
 
         output = check_output(['./JobAnalyzer.py', '--output-dir', 'output/JobAnalyzer/slurm', 'slurm'], stderr=subprocess.STDOUT, encoding='utf8')
 
@@ -657,7 +858,7 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_credentials()
 
-    @pytest.mark.order(after='test_from_slurm')
+    @pytest.mark.order(-3)
     def test_get_instances(self):
         jobAnalyzer = self.get_jobAnalyzer()
 
@@ -666,36 +867,64 @@ class TestJobAnalyzer(unittest.TestCase):
 
         jobAnalyzer.get_instance_type_info()
 
-        self.assertEqual(len(jobAnalyzer.instance_types), 54)
-        counter = {}
+        exp_instance_family_counts = {
+            'c5': 8,
+            'c6i': 9,
+            'c6id': 9,
+            'm5': 8,
+            'r5': 8,
+            'z1d': 6,
+            'x2idn': 3,
+            'x2iedn': 7,
+            'x2iezn': 5,
+        }
+        act_instance_family_counts = {}
         for instance_type in jobAnalyzer.instance_types:
             instance_family = instance_type.split('.')[0]
-            counter[instance_family] = counter.get(instance_family, 0) + 1
-        self.assertEqual(counter['c5'], 8)
-        self.assertEqual(counter['r5'], 8)
-        self.assertEqual(counter['m5'],8)
-        self.assertEqual(counter['c6i'],9)
-        self.assertEqual(counter['z1d'],6)
-        self.assertEqual(counter['x2iezn'],5)
+            act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
+        missing_exp_instance_families = {}
+        for instance_family, act_count in act_instance_family_counts.items():
+            if instance_family not in exp_instance_family_counts:
+                missing_exp_instance_families[instance_family] = act_count
+                continue
+            assert(act_count == exp_instance_family_counts[instance_family])
+        missing_act_instance_families = {}
+        for instance_family, exp_count in exp_instance_family_counts.items():
+            if instance_family not in act_instance_family_counts:
+                missing_act_instance_families[instance_family] = exp_count
+                continue
+            assert(instance_family in act_instance_family_counts)
+        assert len(missing_exp_instance_families) == 0
+        assert len(missing_act_instance_families) == 0
+        len(jobAnalyzer.instance_types) == 63
 
+        # Make sure get same result with cached instance_type_info.json
         jobAnalyzer.get_instance_type_info()
 
-        self.assertEqual(len(jobAnalyzer.instance_types), 54)
-        counter = {}
+        act_instance_family_counts = {}
         for instance_type in jobAnalyzer.instance_types:
             instance_family = instance_type.split('.')[0]
-            counter[instance_family] = counter.get(instance_family, 0) + 1
-        self.assertEqual(counter['c5'], 8)
-        self.assertEqual(counter['r5'], 8)
-        self.assertEqual(counter['m5'],8)
-        self.assertEqual(counter['c6i'],9)
-        self.assertEqual(counter['z1d'],6)
-        self.assertEqual(counter['x2iezn'],5)
+            act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
+        missing_exp_instance_families = {}
+        for instance_family, act_count in act_instance_family_counts.items():
+            if instance_family not in exp_instance_family_counts:
+                missing_exp_instance_families[instance_family] = act_count
+                continue
+            assert(act_count == exp_instance_family_counts[instance_family])
+        missing_act_instance_families = {}
+        for instance_family, exp_count in exp_instance_family_counts.items():
+            if instance_family not in act_instance_family_counts:
+                missing_act_instance_families[instance_family] = exp_count
+                continue
+            assert(instance_family in act_instance_family_counts)
+        assert len(missing_exp_instance_families) == 0
+        assert len(missing_act_instance_families) == 0
+        len(jobAnalyzer.instance_types) == 63
 
         self._remove_instance_type_info()
         self._restore_instance_type_info()
 
-    @pytest.mark.order(after='test_get_instances')
+    @pytest.mark.order(-2)
     def test_get_instance_type_info_region(self):
         self.cleanup_output_files()
         self._remove_instance_type_info()
@@ -710,7 +939,7 @@ class TestJobAnalyzer(unittest.TestCase):
         self._remove_instance_type_info()
         self._restore_instance_type_info()
 
-    @pytest.mark.order(after='test_get_instance_type_info_region')
+    @pytest.mark.order(-1)
     def test_get_instance_type_info(self):
         '''
         Generate instance_type_info.json to make sure it is up to date
