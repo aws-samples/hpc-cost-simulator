@@ -17,11 +17,13 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_SortJobs import order as last_order
 
-order = 0
+order = last_order // 100 * 100 + 100
+assert order == 600
 
-@pytest.mark.order(7, after=['tests/test_SortJobs.py::TestSortJobs::test_random'])
 class TestJobAnalyzer(unittest.TestCase):
+    global order
 
     def __init__(self, name):
         super().__init__(name)
@@ -167,7 +169,7 @@ class TestJobAnalyzer(unittest.TestCase):
             self.assertEqual(i,count)
         jobAnalyzer._add_job_to_hourly_bucket(job_cost_data)
         self.assertEqual(jobAnalyzer.jobs_by_hours, {})
-        with open(path.join(jobAnalyzer._output_dir, 'hourly-1643900400.csv'), 'r') as job_log_file:
+        with open(path.join(jobAnalyzer._output_dir, 'hourly-456639.csv'), 'r') as job_log_file:
             lines = job_log_file.readlines()
         self.assertEqual(len(lines), batch_size+1)
         for i in range(1,batch_size):
@@ -574,7 +576,7 @@ class TestJobAnalyzer(unittest.TestCase):
             raise
         csv_files_dir = output_dir
         csv_files = [
-            'hourly-1647784800.csv',
+            'hourly-457718.csv',
             'hourly_stats.csv',
             'summary.csv'
             ]

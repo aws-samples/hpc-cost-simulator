@@ -26,7 +26,7 @@ import json
 from LSFLogParser import LSFLogParser, logger as LSFLogParser_logger
 import logging
 from math import ceil
-from os import listdir, makedirs, path, system
+from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
 from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
 from SchedulerLogParser import logger as SchedulerLogParser_logger
@@ -256,7 +256,7 @@ class JobAnalyzer:
         This prevents a file open, write, close for each job.
         '''
         job = job_cost_data.job
-        round_hour = int(job.start_time_dt.timestamp()//3600)*3600
+        round_hour = int(job.start_time_dt.timestamp()//3600)
         if round_hour not in self.jobs_by_hours:
             self.jobs_by_hours[round_hour] = [job_cost_data]
         else:
@@ -290,7 +290,7 @@ class JobAnalyzer:
         '''
             Dumps the job_data_collector dict into a CSV file with similar name to the job's .out file
         '''
-        logger.debug(f"Final job_data collector:{self.job_data_collector}")
+        logger.debug(f"Final job_data collector:{json.dumps(self.job_data_collector, indent=4)}")
         try:
             filename = path.join(self._output_dir, f"summary.csv")
             with open (filename, 'w+') as output_file:
@@ -338,6 +338,19 @@ class JobAnalyzer:
         output_files.sort()
         return output_files
 
+    def _cleanup_hourly_files(self):
+        '''
+        Delete the hourly output files so old results aren't included in new run.
+
+        Input: none
+
+        Output:
+            Sorted list of output filenames
+        '''
+        hourly_files = self.get_hourly_files()
+        for hourly_file in hourly_files:
+            remove(hourly_file)
+
     def _clear_job_stats(self):
         for ram in self.job_data_collector:
             for runtime in self.job_data_collector[ram]:
@@ -349,16 +362,17 @@ class JobAnalyzer:
         '''
         Update the hourly stats dict with a portion of the cost of a job that fits within a round hour.
 
-        A single job's cost may complete within the smae round hour or span beyond it to multiple hours.
+        A single job's cost may complete within the same round hour or span beyond it to multiple hours.
         Jobs are broken down by the Spot threshold.
         Args:
-            round_hour (int): the epoch timestamp of the HH:00:00 start
+            round_hour (int): the hour of the HH:00:00 start
             minutes_within_hour (float): number of minutes the job ran within that round hour
             total_cost_per_hour (float): the total cost of all instances used to run the job if they ran for a full hour.
             spot (bool): True if spot instance
             instance_family (str): Instance family used for the job
         '''
         if round_hour not in self.hourly_stats:
+            logger.debug(f"Added {round_hour} to hourly_stats")
             self.hourly_stats[round_hour] = {}
             self.hourly_stats[round_hour]['spot'] = 0
             self.hourly_stats[round_hour]['on_demand'] = {}
@@ -371,21 +385,23 @@ class JobAnalyzer:
             self.hourly_stats[round_hour][purchase_option]['total'] += cost
             self.hourly_stats[round_hour][purchase_option][instance_family] = cost + self.hourly_stats[round_hour][purchase_option].get(instance_family, 0)
 
-    def _write_hourly_stats(self):
+    def _process_hourly_jobs(self) -> None:
         '''
-        Process hourly job CSV files to create hourly stats CSV file
+        Process hourly job CSV files
 
         Sequentially processes the hourly output files to build an hourly-level cost simulation
         '''
-        logger.info(f"\n\nPost processing hourly jobs data:\n")
+        logger.info('')
+        logger.info(f"Post processing hourly jobs data:\n")
 
-        files = self.get_hourly_files()
-        if len(files) == 0:
+        hourly_files = self.get_hourly_files()
+        if len(hourly_files) == 0:
             logger.error(f"No hourly jobs files found")
             exit(2)
-        for file in files:
-            logger.info(f"Processing {file}")
-            with open(file, 'r') as hourly_job_file_fh:
+
+        for hourly_file in hourly_files:
+            logger.info(f"Processing {hourly_file}")
+            with open(hourly_file, 'r') as hourly_job_file_fh:
                 csv_reader = csv.reader(hourly_job_file_fh, dialect='excel')
                 field_names = next(csv_reader)
                 num_jobs = 0
@@ -407,57 +423,77 @@ class JobAnalyzer:
                     instance_type = job_field_values['Instance type']
                     instance_family = job_field_values['Instance Family']
                     spot_eligible = job_field_values['Spot'] == 'True'
-                    instance_hourly_cost = float(job_field_values['Hourly Rate'])
-                    total_cost = job_field_values['Total Cost']
+                    on_demand_rate = float(job_field_values['Hourly Rate'])
+                    total_on_demand_cost = job_field_values['Total Cost']
 
                     end_time = start_time + job_runtime_minutes * 60
-                    total_hourly_rate = instance_hourly_cost * num_hosts
+                    total_hourly_rate = on_demand_rate * num_hosts
 
-                    logger.debug(f"    job {job_id}:")
+                    logger.debug(f"    job {job_id}: line {line_number}")
+                    logger.debug(f"        start_time={start_time}")
                     logger.debug(f"        start_time={start_time}")
                     logger.debug(f"        end_time  ={end_time}")
                     logger.debug(f"        instance_family={instance_family}")
-                    logger.debug(f"        total cost={total_cost}")
+                    logger.debug(f"        total cost={total_on_demand_cost}")
                     logger.debug(f"        spot_eligible={spot_eligible}")
                     logger.debug(f"        job_runtime_minutes={job_runtime_minutes}")
                     logger.debug(f"        total_hourly_rate={total_hourly_rate}")
 
-                    round_hour = int(start_time//3600)*3600
-                    next_round_hour = round_hour + 3600
-                    while round_hour < end_time:
-                        if round_hour <= start_time < next_round_hour:           # Job started in this hour
-                            if end_time <= next_round_hour:                      # job ended within hour
+                    round_hour = int(start_time//3600)
+                    round_hour_seconds = round_hour * 3600
+                    logger.debug(f"        round_hour: {round_hour}")
+                    logger.debug(f"        round_hour_seconds: {round_hour_seconds}")
+                    while round_hour_seconds <= end_time:
+                        next_round_hour = round_hour + 1
+                        next_round_hour_seconds = next_round_hour * 3600
+                        if round_hour_seconds <= start_time < next_round_hour_seconds:
+                            logger.debug(f"        Job started in this hour")
+                            if end_time <= next_round_hour_seconds:
+                                logger.debug(f"        job ended within hour")
                                 runtime_minutes = (end_time - start_time)/60
                             else:
-                                runtime_minutes = (next_round_hour-start_time)/60
-                        elif start_time <= round_hour and end_time > next_round_hour:      # Job runs throughout the hour
+                                logger.debug(f"        job spills into the next hour")
+                                runtime_minutes = (next_round_hour_seconds - start_time)/60
+                        elif start_time <= round_hour_seconds and end_time > next_round_hour_seconds:
+                            logger.debug(f"        Job started before this hour and runs throughout the hour")
                             runtime_minutes = 60
-                        elif start_time < round_hour and end_time <= next_round_hour:      # Job started in prev hour, ends on this one
-                            runtime_minutes = (end_time - round_hour)/60
+                        elif start_time < round_hour_seconds and end_time <= next_round_hour_seconds:
+                            logger.debug(f"        Job started in prev hour, ends in this one")
+                            runtime_minutes = (end_time - round_hour_seconds)/60
                         else:
                             logger.error(f"{file}, line {line_number}: Record failed to process correctly: {','.join(job_field_values_array)}")
                         self._update_hourly_stats(round_hour, runtime_minutes, total_hourly_rate, spot_eligible, instance_family)
-                        round_hour = next_round_hour
-                        next_round_hour += 3600
+                        round_hour += 1
+                        round_hour_seconds = round_hour * 3600
             logger.info(f"    Finished processing ({num_jobs} jobs)")
+
+    def _write_hourly_stats_csv(self):
+        '''
+        Write hourly stats to CSV file
+        '''
+        hourly_stats_csv = path.join(self._output_dir, 'hourly_stats.csv')
+        logger.info('')
+        logger.info(f"Writing hourly stats to {hourly_stats_csv}")
+
         hour_list = list(self.hourly_stats.keys())
         hour_list.sort()
-        logger.info(f"Dumping hourly stats to file")
-        with open (path.join(self._output_dir, 'hourly_stats.csv'), 'w+') as hourly_stats_fh:
+        with open(hourly_stats_csv, 'w+') as hourly_stats_fh:
             # convert from absolute hour to relative one (obfuscation)
             csv_writer = csv.writer(hourly_stats_fh, dialect='excel')
             instance_families = sorted(self._instance_families_used['on_demand'].keys())
             field_names = ['Relative Hour','Total OnDemand Costs','Total Spot Costs'] + instance_families
             csv_writer.writerow(field_names)
-            first_hour = min(hour_list)
-            prev_relative_hour = -1
+            first_hour = hour_list[0]
+            prev_relative_hour = 0
             for hour in hour_list:
-                relative_hour = (hour - first_hour)//3600
+                relative_hour = hour - first_hour
+                logger.debug(f"    relative_hour: {relative_hour}")
                 while prev_relative_hour < relative_hour - 1:   # add zero values for all missing hours
-                    field_values = [prev_relative_hour, 0, 0]
+                    field_values = [prev_relative_hour + 1, 0, 0]
                     for instance_family in instance_families:
                         field_values.append(0)
                     csv_writer.writerow(field_values)
+                    logger.debug(f"    empty hour: {field_values}")
                     prev_relative_hour += 1
                 field_values = [relative_hour, round(self.hourly_stats[hour]['on_demand']['total'], 6), round(self.hourly_stats[hour]['spot'], 6)]
                 for instance_family in instance_families:
@@ -483,6 +519,9 @@ class JobAnalyzer:
         if not self.instance_type_info:
             self.get_instance_type_info()
 
+        self._clear_job_stats()   # allows calling multiple times in testing
+        self._cleanup_hourly_files()
+
         total_jobs = 0
         total_failed_jobs = 0
         while True:
@@ -503,9 +542,9 @@ class JobAnalyzer:
         # Dump pending jobs and summary to output files
         self._write_hourly_jobs_buckets_to_file()
         self._dump_job_collector_to_csv()
-        self._clear_job_stats()   # allows calling multiple times in testing
 
-        self._write_hourly_stats()
+        self._process_hourly_jobs()
+        self._write_hourly_stats_csv()
 
     def analyze_job(self, job: SchedulerJobInfo) -> JobCost:
         '''

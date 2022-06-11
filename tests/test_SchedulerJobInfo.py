@@ -5,9 +5,16 @@ SPDX-License-Identifier: MIT-0
 import pytest
 import SchedulerJobInfo
 
-@pytest.mark.order(1)
+order = 0
+
 class TestSchedulerJobInfo:
+    global order
+    order += 1
+    assert order == 1
+    @pytest.mark.order(order)
     def test_fix_datetime(self):
+        global order
+        assert order == 7
         assert(SchedulerJobInfo.SchedulerJobInfo.fix_datetime(None)  == (None, None))
         assert(SchedulerJobInfo.SchedulerJobInfo.fix_datetime(-1)  == (None, None))
         assert(SchedulerJobInfo.SchedulerJobInfo.fix_datetime(0)[0]  == '1970-01-01T00:00:00')
@@ -22,6 +29,8 @@ class TestSchedulerJobInfo:
         with pytest.raises(ValueError):
             SchedulerJobInfo.SchedulerJobInfo.fix_datetime('1970-01')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_fix_duration(self):
         fix_duration = SchedulerJobInfo.SchedulerJobInfo.fix_duration
 
@@ -85,6 +94,8 @@ class TestSchedulerJobInfo:
 
     # timestamp_to_datetime tested by fix_datetime
 
+    order += 1
+    @pytest.mark.order(order)
     def test_str_to_datetime(self):
         # str_to_datetime used by constructor to compare different times to get durations
         assert(SchedulerJobInfo.SchedulerJobInfo.datetime_to_str(SchedulerJobInfo.SchedulerJobInfo.str_to_datetime('1970-01-01T00:00:00')) == '1970-01-01T00:00:00')
@@ -98,6 +109,8 @@ class TestSchedulerJobInfo:
         with pytest.raises(ValueError):
             SchedulerJobInfo.SchedulerJobInfo.str_to_datetime('1970-01')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_datetime_to_str(self):
         # Valid cases tested by test_str_to_datetime
         with pytest.raises(AttributeError):
@@ -109,6 +122,8 @@ class TestSchedulerJobInfo:
         with pytest.raises(AttributeError):
             SchedulerJobInfo.SchedulerJobInfo.datetime_to_str('')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_str_to_timedelta(self):
         # This function is already tested by test_fix_duration which converts string to timedelta and back again to fix formatting.
         # Test invalid types and values
@@ -125,6 +140,8 @@ class TestSchedulerJobInfo:
         with pytest.raises(ValueError):
             SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta('0-0')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_timedelta_to_string(self):
         # This function is already tested by test_fix_duration which converts string to timedelta and back again to fix formatting.
         # Test invalid types and values
@@ -141,6 +158,9 @@ class TestSchedulerJobInfo:
         with pytest.raises(AttributeError):
             SchedulerJobInfo.SchedulerJobInfo.timedelta_to_string('0-0')
 
+    order += 1
+    assert order == 7
+    @pytest.mark.order(order)
     def test_init(self):
         with pytest.raises(TypeError):
             job = SchedulerJobInfo.SchedulerJobInfo()

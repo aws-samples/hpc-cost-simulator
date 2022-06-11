@@ -9,12 +9,18 @@ from os.path import dirname
 import pytest
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_SchedulerJobInfo import order as last_order
 
-@pytest.mark.order(2, after=['tests/test_SchedulerJobInfo.py::TestSchedulerJobInfo::test_init'])
+order = last_order // 100 * 100 + 100
+assert order == 100
+
 class TestAcceleratorLogParser:
     def cleanup_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
+    global order
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_args(self):
         with pytest.raises(CalledProcessError) as excinfo:
             check_output(['./AcceleratorLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
@@ -22,7 +28,8 @@ class TestAcceleratorLogParser:
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
 
-    #@pytest.mark.order(after=['test_main_no_args]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_sql_file_arg(self):
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
@@ -31,7 +38,8 @@ class TestAcceleratorLogParser:
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: one of the arguments --sql-output-file --sql-input-file is required" in excinfo.value.output)
 
-    #@pytest.mark.order(after=['test_main_no_sql_file_arg]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_both_sql_file_args(self):
         sql_output_file = 'output/sql_output.txt'
         sql_input_file = 'test_files/sql_output.txt'
@@ -42,7 +50,8 @@ class TestAcceleratorLogParser:
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: argument --sql-input-file: not allowed with argument --sql-output-file" in excinfo.value.output)
 
-    #@pytest.mark.order(after=['test_main_both_sql_file_args]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_output_csv_file_args(self):
         sql_output_file = 'output/sql_output.txt'
         with pytest.raises(CalledProcessError) as excinfo:
@@ -51,7 +60,8 @@ class TestAcceleratorLogParser:
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
 
-    #@pytest.mark.order(after=['test_main_no_output_csv_file_args]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_sql_input_file(self):
         self.cleanup_files()
         sql_input_file = 'test_files/AcceleratorLogParser/sql_output.txt'
@@ -66,7 +76,8 @@ class TestAcceleratorLogParser:
         print(f"output:\n{output}")
         assert(filecmp.cmp(output_csv, exp_output_csv, shallow=False))
 
-    #@pytest.mark.order(after=['test_main_sql_input_file]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_sql_input_file_default_mem_1GB(self):
         self.cleanup_files()
         sql_input_file = 'test_files/AcceleratorLogParser/sql_output.txt'
@@ -81,7 +92,8 @@ class TestAcceleratorLogParser:
         print(f"output:\n{output}")
         assert(filecmp.cmp(output_csv, exp_output_csv, shallow=False))
 
-    #@pytest.mark.order(after=['test_main_sql_input_file_default_mem_1GB]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_sql_output_file(self):
         self.cleanup_files()
         try:
