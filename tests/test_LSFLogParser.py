@@ -15,9 +15,13 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_CSVLogParser import order as last_order
 
-@pytest.mark.order(4, after=['tests/test_CSVLogParser.py::TestCSVLogParser::test_main'])
+order = last_order // 100 * 100 + 100
+assert order == 300
+
 class TestLSFLogParser:
+    global order
 
     testdir = dirname(realpath(__file__))
     repodir = realpath(f"{testdir}/..")
@@ -26,6 +30,8 @@ class TestLSFLogParser:
     def cleanup_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
+    order += 1
+    @pytest.mark.order(order)
     def test_get_field(self):
         test_files_dir = 'test_files/LSFLogParser/bad-records'
         output_dir = 'output/LSFLogParser/bad-records'
@@ -68,6 +74,8 @@ class TestLSFLogParser:
         assert(field == '123')
         assert(record_line == '')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_get_fields(self):
         test_files_dir = 'test_files/LSFLogParser/bad-records'
         output_dir = 'output/LSFLogParser/bad-records'
@@ -86,6 +94,8 @@ class TestLSFLogParser:
         assert(fields[3] == '123 "echo this"')
         assert(fields[4] == '123')
 
+    order += 1
+    @pytest.mark.order(order)
     def test_parse_record(self):
         test_files_dir = 'test_files/LSFLogParser/bad-records'
         output_dir = 'output/LSFLogParser/bad-records'
@@ -258,22 +268,30 @@ class TestLSFLogParser:
     #     assert(parser.parse_logs())
     #     assert(parser.num_input_jobs() == 87)
 
+    order += 1
+    @pytest.mark.order(order)
     def test_missing_args(self):
         self.cleanup_files()
         with pytest.raises(CalledProcessError):
             check_output([self.lsfLogParser])
 
+    order += 1
+    @pytest.mark.order(order)
     def test_missing_logfile_dir(self):
         self.cleanup_files()
         with pytest.raises(CalledProcessError):
             check_output([self.lsfLogParser, 'output'])
 
+    order += 1
+    @pytest.mark.order(order)
     def test_missing_output_csv(self):
         self.cleanup_files()
         test_files_dir = 'test_files/LSFLogParser/acct'
         with pytest.raises(CalledProcessError):
             check_output([self.lsfLogParser, '--logfile-dir', test_files_dir])
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_acct_empty_output_dir(self):
         '''
         Reproduces https://gitlab.aws.dev/cartalla/schedulerloganalyzer/-/issues/3
@@ -294,6 +312,8 @@ class TestLSFLogParser:
         expected_results_dir = 'test_files/LSFLogParser'
         assert(filecmp.cmp(path.join(output_dir, output_csv), path.join(expected_results_dir, 'exp_jobs.csv'), shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_not_enough_fields(self):
         '''
         Test for fields starting with storageInfoC missing.
@@ -314,6 +334,8 @@ class TestLSFLogParser:
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_hostFactor_is_not_a_float(self):
         '''
         Test for issue 9: Bad record: hostFactor(%f)=sj074 is not a float
@@ -333,6 +355,8 @@ class TestLSFLogParser:
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_16(self):
         '''
         Test for issue 16
@@ -350,6 +374,8 @@ class TestLSFLogParser:
             raise
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_19(self):
         '''
         Test for issue 19
@@ -368,6 +394,8 @@ class TestLSFLogParser:
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
         assert('Unsupported logfile format version 9.13.' in excinfo.value.output)
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_22(self):
         '''
         Test for issue 22
@@ -386,6 +414,8 @@ class TestLSFLogParser:
         print(f"output:\n{output}")
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_26(self):
         '''
         Test for issue 26
@@ -404,6 +434,8 @@ class TestLSFLogParser:
         assert('6 invalid records were found in 1 files' in excinfo.value.output)
         assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_acct(self):
         self.cleanup_files()
         test_files_dir = 'test_files/LSFLogParser/acct'
@@ -418,6 +450,8 @@ class TestLSFLogParser:
         expected_results_dir = 'test_files/LSFLogParser'
         assert(filecmp.cmp(output_csv, path.join(expected_results_dir, 'exp_jobs.csv'), shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main(self):
         self.cleanup_files()
         test_files_dir = 'test_files/LSFLogParser'

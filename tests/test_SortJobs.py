@@ -17,10 +17,14 @@ from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
 from SortJobs import JobSorter, logger as JobSorter_logger
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_SlurmLogParser import order as last_order
 import unittest
 
-@pytest.mark.order(6, after=['tests/test_SlurmLogParser.py::TestSlurmLogParser::test_main_from_slurm'])
+order = last_order // 100 * 100 + 100
+assert order == 500
+
 class TestSortJobs(unittest.TestCase):
+    global order
 
     REPO_DIR = abspath(f"{dirname(__file__)}/..")
 
@@ -31,6 +35,8 @@ class TestSortJobs(unittest.TestCase):
     def _cleanup_output_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
+    order += 1
+    @pytest.mark.order(order)
     def test_no_args(self):
         self._cleanup_output_files()
         with pytest.raises(CalledProcessError) as excinfo:
@@ -40,7 +46,8 @@ class TestSortJobs(unittest.TestCase):
         assert('the following arguments are required: --input-csv, --output-csv' in excinfo.value.output)
         assert(excinfo.value.returncode == 2)
 
-    @pytest.mark.order(after='test_no_args')
+    order += 1
+    @pytest.mark.order(order)
     def test_from_accelerator(self):
         '''
         Test SortJobs.py when parsing jobs from Accelerator logs.
@@ -58,7 +65,8 @@ class TestSortJobs(unittest.TestCase):
             raise
         assert(filecmp.cmp(sorted_jobs_csv, expected_sorted_jobs_csv, shallow=False))
 
-    @pytest.mark.order(after='test_no_args')
+    order += 1
+    @pytest.mark.order(order)
     def test_random(self):
         '''
         Test SortJobs.py when parsing jobs with random start times.

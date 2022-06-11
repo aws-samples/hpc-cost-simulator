@@ -1,7 +1,6 @@
 Relative Hour,Total OnDemand Costs,Total Spot Costs
 0,0,0.403134
 1,0,0.010696
-1,0,0
 2,0,0
 3,0,0
 4,0,0
@@ -170,10 +169,10 @@ Relative Hour,Total OnDemand Costs,Total Spot Costs
 167,0,0
 168,0,0
 169,0,0
+170,0,0
 171,0,0.134063
 172,0,0.206954
 173,0,0.095755
-173,0,0
 174,0,0
 175,0,0
 176,0,0
@@ -288,7 +287,8 @@ Relative Hour,Total OnDemand Costs,Total Spot Costs
 285,0,0
 286,0,0
 287,0,0
+288,0,0
 289,0,0.03744
-289,0,0
+290,0,0
 291,0,0.000104
 292,0,0.050468

@@ -15,9 +15,14 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_JobAnalyzer import order as last_order
 
-@pytest.mark.order(7, after=['tests/test_JobAnalyzer.py::TestJobAnalyzer::test_from_slurm'])
+order = last_order // 100 * 100 + 100
+assert order == 700
+
 class TestScaling:
+    global order
+
     def cleanup_output_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
@@ -29,8 +34,8 @@ class TestScaling:
             for idx in range(number_of_tests):
                 input_csv_fh.write(f"{csv_line}\n")
 
-    # @pytest.mark.skipif((virtual_memory().total + swap_memory().total)/MEM_GB < 75,
-    #     reason='Less than 75GiB of memory')
+    order += 1
+    @pytest.mark.order(order)
     def test_10k(self):
         ''''
         Analyze 10,000 jobs to see what memory utilization and run time does.
@@ -59,6 +64,8 @@ class TestScaling:
             raise
         print(f"output:\n{output}")
 
+    order += 1
+    @pytest.mark.order(order)
     @pytest.mark.skip(reason='Runs too long')
     def test_100k(self):
         ''''
@@ -88,6 +95,8 @@ class TestScaling:
             raise
         print(f"output:\n{output}")
 
+    order += 1
+    @pytest.mark.order(order)
     @pytest.mark.skip(reason='Runs too long')
     def test_1M(self):
         ''''
@@ -117,6 +126,8 @@ class TestScaling:
             raise
         print(f"output:\n{output}")
 
+    order += 1
+    @pytest.mark.order(order)
     @pytest.mark.skip(reason='Runs too long')
     def test_15M(self):
         ''''
@@ -140,6 +151,8 @@ class TestScaling:
             raise
         print(f"output:\n{output}")
 
+    order += 1
+    @pytest.mark.order(order)
     @pytest.mark.skip(reason='Runs too long')
     def test_150M(self):
         ''''

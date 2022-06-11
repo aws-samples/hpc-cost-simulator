@@ -10,13 +10,18 @@ import pytest
 from MemoryUtils import mem_string_to_float, mem_string_to_int, MEM_KB, MEM_MB, MEM_GB, MEM_TB, MEM_PB
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_LSFLogParser import order as last_order
 
-@pytest.mark.order(5, after=['tests/test_LSFLogParser.py::TestLSFLogParser::test_main'])
+order = last_order // 100 * 100 + 100
+assert order == 400
+
 class TestSlurmLogParser:
+    global order
     def cleanup_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
-    #@pytest.mark.order(after=['tests/test_LSFLogParser.py::TestLSFLogParser::test_main'])
+    order += 1
+    @pytest.mark.order(order)
     def test_convert_int(self):
         assert(mem_string_to_int('1000000') == 1000000)
         assert(mem_string_to_int('2K')/MEM_KB == 2)
@@ -55,7 +60,8 @@ class TestSlurmLogParser:
             print(excinfo.value)
             assert(str(excinfo.value) == f"could not convert string to float: '{value}'")
 
-    #@pytest.mark.order(after=['test_convert_int]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_args(self):
         self.cleanup_files()
         with pytest.raises(CalledProcessError) as excinfo:
@@ -64,7 +70,8 @@ class TestSlurmLogParser:
         print(excinfo.value.output)
         assert("SlurmLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
 
-    @pytest.mark.order(after=['test_missing_args]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_slurm(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
@@ -76,7 +83,8 @@ class TestSlurmLogParser:
         print(excinfo.value.output)
         assert("SlurmLogParser.py: error: one of the arguments --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
 
-    @pytest.mark.order(after=['test_main_no_slurm]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_missing_sacct_input_file(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
@@ -88,7 +96,8 @@ class TestSlurmLogParser:
         print(excinfo.value.output)
         assert(f"Sacct file doesn't exist: {sacct_input_file}" in excinfo.value.output)
 
-    @pytest.mark.order(after=['test_main_missing_sacct_input_file]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_20(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser/issues/20'
@@ -103,7 +112,8 @@ class TestSlurmLogParser:
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(expected_jobs_csv, output_csv, shallow=False))
 
-    @pytest.mark.order(after=['test_main_issue_20]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_issue_5(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser/issues/20'
@@ -118,7 +128,8 @@ class TestSlurmLogParser:
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(expected_jobs_csv, output_csv, shallow=False))
 
-    @pytest.mark.order(after=['test_main_issue_5]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_sacct_input_file(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
@@ -133,7 +144,8 @@ class TestSlurmLogParser:
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(output_csv, expected_jobs_csv, shallow=False))
 
-    #@pytest.mark.order(after=['test_main_missing_sacct_output]'])
+    order += 1
+    @pytest.mark.order(order)
     def test_main_from_slurm(self):
         self.cleanup_files()
         # Only run this test if sacct is in the path so can run tests on instances without slurm

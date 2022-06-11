@@ -15,9 +15,14 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
+from test_AcceleratorLogParser import order as last_order
 
-@pytest.mark.order(3, after=['tests/test_AcceleratorLogParser.py::TestAcceleratorLogParser::test_main'])
+order = last_order // 100 * 100 + 100
+assert order == 200
+
 class TestCSVLogParser:
+    global order
+
     def cleanup_output_files(self):
         system(f"rm -rf {dirname(__file__)+'/../output'}")
 
@@ -33,6 +38,8 @@ class TestCSVLogParser:
             job = parser.parse_job()
         assert(filecmp.cmp(input_csv, output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_args(self):
         self.cleanup_output_files()
         test_files_dir = 'test_files/LSFLogParser'
@@ -45,6 +52,8 @@ class TestCSVLogParser:
         print(excinfo.value.output)
         assert("CSVLogParser.py: error: the following arguments are required: --input-csv" in excinfo.value.output)
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_input(self):
         self.cleanup_output_files()
         test_files_dir = 'test_files/LSFLogParser'
@@ -56,6 +65,8 @@ class TestCSVLogParser:
         print(excinfo.value)
         assert("CSVLogParser.py: error: the following arguments are required: --input-csv" in excinfo.value.output)
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_no_output(self):
         self.cleanup_output_files()
         test_files_dir = 'test_files/LSFLogParser'
@@ -68,6 +79,8 @@ class TestCSVLogParser:
             print(f"output:\n{e.output}")
             raise
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_same_input_and_output(self):
         self.cleanup_output_files()
         input_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
@@ -89,6 +102,8 @@ class TestCSVLogParser:
         print(excinfo.value.output)
         assert("Input and output CSV cannot be the same" in excinfo.value.output)
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_from_accelerator(self):
         self.cleanup_output_files()
         input_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
@@ -98,6 +113,8 @@ class TestCSVLogParser:
         print(output)
         assert(filecmp.cmp(output_csv, input_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_from_lsf(self):
         self.cleanup_output_files()
         input_csv = 'test_files/LSFLogParser/exp_jobs.csv'
@@ -106,6 +123,8 @@ class TestCSVLogParser:
         check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         assert(filecmp.cmp(input_csv, output_csv, shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
     def test_main_from_slurm(self):
         self.cleanup_output_files()
         input_csv = 'test_files/SlurmLogParser/exp_jobs.csv'
