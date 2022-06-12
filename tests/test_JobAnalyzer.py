@@ -9,7 +9,7 @@ from CSVLogParser import CSVLogParser
 import filecmp
 from JobAnalyzer import JobAnalyzer, JobCost
 import json
-import unittest
+from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 import os
 from os import environ, getenv, listdir, path, system
 from os.path import abspath, dirname
@@ -18,6 +18,7 @@ from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
 from test_SortJobs import order as last_order
+import unittest
 
 order = last_order // 100 * 100 + 100
 assert order == 600
@@ -43,6 +44,8 @@ class TestJobAnalyzer(unittest.TestCase):
 
     region = 'eu-west-1'
 
+    default_max_mem_gb = (100 * MEM_MB) / MEM_GB
+
     _jobAnalyzer = None
 
     def get_jobAnalyzer(self):
@@ -50,6 +53,8 @@ class TestJobAnalyzer(unittest.TestCase):
             return self._jobAnalyzer
         self._use_static_instance_type_info()
         self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR)
+        if not self._jobAnalyzer.instance_type_info:
+            self._jobAnalyzer.get_instance_type_info()
         return self._jobAnalyzer
 
     def _remove_instance_type_info(self):
@@ -738,7 +743,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./JobAnalyzer.py', '--output-csv', output_csv, '--output-dir', output_dir, 'lsf', '--logfile-dir', test_files_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--output-csv', output_csv, '--output-dir', output_dir, 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
