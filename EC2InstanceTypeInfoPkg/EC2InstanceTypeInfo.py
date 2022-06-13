@@ -115,9 +115,9 @@ class EC2InstanceTypeInfo:
                     else:
                         instance_type_info[instanceType]['ThreadsPerCore'] = 1
                 if 'ValidCores' in instanceTypeDict['VCpuInfo']:
-                    instance_type_info[instanceType]['CoreCount'] = max(instanceTypeDict['VCpuInfo']['ValidCores'])
+                    instance_type_info[instanceType]['CoreCount'] = int(max(instanceTypeDict['VCpuInfo']['ValidCores']))
                 else:
-                    instance_type_info[instanceType]['CoreCount'] = instanceTypeDict['VCpuInfo']['DefaultVCpus']/instance_type_info[instanceType]['ThreadsPerCore']
+                    instance_type_info[instanceType]['CoreCount'] = int(instanceTypeDict['VCpuInfo']['DefaultVCpus']/instance_type_info[instanceType]['ThreadsPerCore'])
                 instance_type_info[instanceType]['MemoryInMiB'] = instanceTypeDict['MemoryInfo']['SizeInMiB']
                 instance_type_info[instanceType]['SSDCount'] = instanceTypeDict.get('InstanceStorageInfo', {'Disks': [{'Count': 0}]})['Disks'][0]['Count']
                 instance_type_info[instanceType]['SSDTotalSizeGB'] = instanceTypeDict.get('InstanceStorageInfo', {'TotalSizeInGB': 0})['TotalSizeInGB']
@@ -134,17 +134,10 @@ class EC2InstanceTypeInfo:
                 if instance_family not in instance_family_info:
                     instance_family_info[instance_family] = {}
                     instance_family_info[instance_family]['instance_types'] = [instanceType,]
-                    if re.match(r'.+\.metal', instanceType):
-                        instance_family_info[instance_family]['MaxInstanceType'] = None
-                        instance_family_info[instance_family]['MaxInstanceSize'] = None
-                        instance_family_info[instance_family]['MaxCoreCount'] = 0
-                    else:
-                        instance_family_info[instance_family]['MaxInstanceType'] = instanceType
-                        instance_family_info[instance_family]['MaxInstanceSize'] = instance_size
-                        instance_family_info[instance_family]['MaxCoreCount'] = instance_type_info[instanceType]['CoreCount']
                 else:
                     instance_family_info[instance_family]['instance_types'].append(instanceType)
-                    if instance_type_info[instanceType]['CoreCount'] > instance_family_info[instance_family]['MaxCoreCount']:
+                if instance_size != 'metal':
+                    if instance_type_info[instanceType]['CoreCount'] > instance_family_info[instance_family].get('MaxCoreCount', 0):
                         instance_family_info[instance_family]['MaxInstanceType'] = instanceType
                         instance_family_info[instance_family]['MaxInstanceSize'] = instance_size
                         instance_family_info[instance_family]['MaxCoreCount'] = instance_type_info[instanceType]['CoreCount']
@@ -153,7 +146,7 @@ class EC2InstanceTypeInfo:
             instance_family_info[instance_family]['instance_types'].sort()
 
         instance_types = sorted(instance_type_info.keys())
-        logger.debug(f"Getting pricing info for {len(instance_types)} instance types:\n{json.dumps(instance_types, indent=4)}")
+        logger.debug(f"Getting pricing info for {len(instance_types)} instance types:\n{json.dumps(instance_types, indent=4, sort_keys=True)}")
         instance_types = instance_type_info.keys()
         logger.debug("{} instance types in {}".format(len(instance_types), region))
 
@@ -289,7 +282,7 @@ class EC2InstanceTypeInfo:
             instance_type_info[instanceType]['pricing']['EC2SavingsPlan_max_discount'] = max_ec2_sp_discount
             instance_type_info[instanceType]['pricing']['ComputeSavingsPlan_min_discount'] = min_compute_sp_discount
             instance_type_info[instanceType]['pricing']['ComputeSavingsPlan_max_discount'] = max_compute_sp_discount
-            logger.debug(f"    instance_type_info:\n{json.dumps(instance_type_info[instanceType], indent=4)}")
+            logger.debug(f"    instance_type_info:\n{json.dumps(instance_type_info[instanceType], indent=4, sort_keys=True)}")
 
             # fh = open(f'instance_type_info-{count}.json', 'w')
             # print(json.dumps(self.instance_type_info, indent=4, sort_keys=True), file=fh)

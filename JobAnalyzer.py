@@ -699,11 +699,12 @@ class JobAnalyzer:
         first_hour_cell = excel_summary_ws[f'B{row}']
         first_hour_cell.value = 0
         first_hour_cell.protection = xls_unlocked
+        first_hour_cell_ref = f'CostSummary!$B${row}'
         row += 1
         excel_summary_ws[f'A{row}'] = 'Last hour to analyze'
         last_hour_cell = excel_summary_ws[f'B{row}']
         last_hour_cell.protection = xls_unlocked
-        last_hour_cell_ref = f'CostSummary!$B{row}'
+        last_hour_cell_ref = f'CostSummary!$B${row}'
         row += 2
         excel_summary_ws.cell(row=row, column=1).value = f'EC2 Savings Plan (ESP) Hourly Commits:'
         esp_hourly_commit_cell_refs = {}
@@ -738,6 +739,14 @@ class JobAnalyzer:
         excel_summary_ws[f'A{row}'] = 'Total OD'
         total_od_cell = excel_summary_ws[f'B{row}']
         total_od_cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
+        row += 1
+        excel_summary_ws[f'A{row}'] = 'Total ESP'
+        total_esp_cell = excel_summary_ws[f'B{row}']
+        total_esp_cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
+        row += 1
+        excel_summary_ws[f'A{row}'] = 'Total CSP'
+        total_csp_cell = excel_summary_ws[f'B{row}']
+        total_csp_cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
         row += 1
         excel_summary_ws[f'A{row}'] = 'Total'
         total_cell = excel_summary_ws[f'B{row}']
@@ -926,9 +935,11 @@ class JobAnalyzer:
         last_hour_cell.value = number_of_hours - 1
 
         # CostSummary Worksheet
-        total_spot_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["Total Spot Costs"]}" & {first_hour_cell.coordinate}+2 & ":{hourly_column_letters["Total Spot Costs"]}" & {last_hour_cell.coordinate}+2))'
-        total_od_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["OD Cost"]}" & {first_hour_cell.coordinate}+2 & ":{hourly_column_letters["OD Cost"]}" & {last_hour_cell.coordinate}+2))'
-        total_cell.value =    f'=sum(indirect("Hourly!{hourly_column_letters["Total Cost"]}" & {first_hour_cell.coordinate}+2 & ":{hourly_column_letters["Total Cost"]}" & {last_hour_cell.coordinate}+2))'
+        total_spot_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["Total Spot Costs"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["Total Spot Costs"]}" & {last_hour_cell_ref}+2))'
+        total_esp_cell.value = f'=({last_hour_cell_ref}-{first_hour_cell_ref}+1)*{esp_hourly_commit_cell_ref}'
+        total_esp_cell.value = f'=({last_hour_cell_ref}-{first_hour_cell_ref}+1)*{csp_hourly_commit_cell_ref}'
+        total_od_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["OD Cost"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["OD Cost"]}" & {last_hour_cell_ref}+2))'
+        total_cell.value =    f'=sum(indirect("Hourly!{hourly_column_letters["Total Cost"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["Total Cost"]}" & {last_hour_cell_ref}+2))'
 
         # InstanceFamilySummary Worksheet
         row = 1
