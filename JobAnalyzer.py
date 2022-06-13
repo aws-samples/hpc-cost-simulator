@@ -28,7 +28,7 @@ from LSFLogParser import LSFLogParser, logger as LSFLogParser_logger
 import logging
 from math import ceil
 from openpyxl import Workbook as XlsWorkbook
-from openpyxl.chart import LineChart as XlLineChart, Reference as XlReference
+from openpyxl.chart import BarChart3D, LineChart as XlLineChart, Reference as XlReference
 from openpyxl.styles import Alignment as XlsAlignment, Protection as XlsProtection
 from openpyxl.styles.numbers import FORMAT_CURRENCY_USD_SIMPLE
 from openpyxl.utils import get_column_letter as xl_get_column_letter
@@ -675,7 +675,10 @@ class JobAnalyzer:
         # Create worksheets
         excel_summary_ws = excel_wb.active
         excel_summary_ws.title = 'CostSummary'
-        excel_summary_ws.protection.sheet = xls_locked
+        #excel_summary_ws.protection.sheet = xls_locked
+
+        excel_job_stats_ws = excel_wb.create_sheet(title='JobStats')
+        excel_job_stats_ws.protection.sheet = xls_locked
 
         excel_instance_family_summary_ws = excel_wb.create_sheet(title='InstanceFamilySummary')
         excel_instance_family_summary_ws.protection.sheet = xls_locked
@@ -721,16 +724,19 @@ class JobAnalyzer:
         row += 1
         excel_summary_ws[f'A{row}'] = 'Total'
         cell = excel_summary_ws[f'B{row}']
-        cell.value = f"=sum(B{esp_hourly_commit_first_row}:B{esp_hourly_commit_last_row})"
+        if instance_families:
+            cell.value = f"=sum(B{esp_hourly_commit_first_row}:B{esp_hourly_commit_last_row})"
+        else:
+            cell.value = 0
         cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
-        esp_hourly_commit_cell_ref = f"CostSummary!$B${row}"
+        esp_hourly_commit_cell_ref = f"CostSummary!${cell.column_letter}${cell.row}"
         row += 2
         excel_summary_ws[f'A{row}'] = 'CSP Hourly Commit'
         cell = excel_summary_ws[f'B{row}']
         cell.value = 0
         cell.protection = xls_unlocked
         cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
-        csp_hourly_commit_cell_ref = f'CostSummary!$B${row}'
+        csp_hourly_commit_cell_ref = f'CostSummary!${cell.column_letter}${cell.row}'
         row += 2
         excel_summary_ws[f'A{row}'] = 'Total Spot'
         total_spot_cell = excel_summary_ws[f'B{row}']
@@ -751,36 +757,84 @@ class JobAnalyzer:
         excel_summary_ws[f'A{row}'] = 'Total'
         total_cell = excel_summary_ws[f'B{row}']
         total_cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
+        total_cell_ref = f'CostSummary!${total_cell.column_letter}${total_cell.row}'
         row += 2
-        excel_summary_ws.cell(row=row, column=1).value = 'Savings Plan Analysis'
-        excel_summary_ws.cell(row=row, column=2).value = 'Total Cost'
-        cell = excel_summary_ws.cell(row=row, column=3)
-        cell.value = 'CSP'
-        excel_summary_ws.column_dimensions[cell.column_letter].width = max(8, len(cell.value)+1)
-        excel_summary_ws.column_dimensions[cell.column_letter].alignment = XlsAlignment(horizontal='right')
-        for instance_family_index, instance_family in enumerate(instance_families):
-            column = 4 + instance_family_index
-            column_letter = xl_get_column_letter(column)
-            cell = excel_summary_ws.cell(row=row, column=column)
-            cell.value = f'{instance_family} ESP'
-            cell.alignment = XlsAlignment(horizontal='right')
-            excel_summary_ws.column_dimensions[column_letter].width = max(8, len(cell.value)+1)
-            excel_summary_ws.column_dimensions[column_letter].alignment = XlsAlignment(horizontal='right')
-        for row_index in range(100):
+        excel_summary_ws.cell(row=row, column=1).value = 'Use Excel Solver to optimize savings plans'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'Enable solver'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'File -> Options'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'Select Add-ins on the left'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'Manage: Excel Add-ins, Click Go'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'Check Solver Add-in, select OK'
+        row += 2
+        excel_summary_ws.cell(row=row, column=1).value = 'Select Data in menu'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = 'Select Solver in the Analyze section of the ribbon'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = f'Set "Set Objective" to Total: {total_cell_ref}'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = f'Set "To:" to Min'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = f'Set "By Changing Variable Cells:" to the savings plan commits: $B${esp_hourly_commit_first_row}:$B${esp_hourly_commit_last_row},{csp_hourly_commit_cell_ref}'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = f'Set "Select a Solving Method:" to GRG Nonlinear'
+        row += 1
+        excel_summary_ws.cell(row=row, column=1).value = f'Select Solve'
+
+        # JobStats Worksheet
+        max_column_widths = {}
+        row = 1
+        column = 1
+        excel_job_stats_ws.cell(row=row, column=column).value = 'Memory Size (GB)'
+        max_column_widths[column] = len(excel_job_stats_ws.cell(row=row, column=column).value)
+        column += 1
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            excel_job_stats_ws.cell(row=row, column=column).value = f'{runtime} Minutes'
+            excel_job_stats_ws.merge_cells(start_row=row, start_column=column, end_row=row, end_column=column+2)
+            excel_job_stats_ws.cell(row=row, column=column).alignment = XlsAlignment(horizontal='center')
+            column += 3
+        row += 1
+        column = 2
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            excel_job_stats_ws.cell(row=row, column=column).value = 'Job count'
+            max_column_widths[column] = len(excel_job_stats_ws.cell(row=row, column=column).value)
+            column += 1
+            excel_job_stats_ws.cell(row=row, column=column).value = 'Total duration'
+            max_column_widths[column] = len(excel_job_stats_ws.cell(row=row, column=column).value)
+            column += 1
+            excel_job_stats_ws.cell(row=row, column=column).value = 'Total wait time'
+            max_column_widths[column] = len(excel_job_stats_ws.cell(row=row, column=column).value)
+            column += 1
+        row += 1
+        for ram in self.get_ranges(self.ram_ranges_GB):
+            column = 1
+            excel_job_stats_ws.cell(row=row, column=column).value = f"{ram} GB"
+            max_column_widths[column] = max(max_column_widths[column], len(excel_job_stats_ws.cell(row=row, column=column).value))
+            column += 1
+            for runtime in self.get_ranges(self.runtime_ranges_minutes):
+                summary = self.job_data_collector[ram][runtime]
+                excel_job_stats_ws.cell(row=row, column=column).value = f"{summary['number_of_jobs']}"
+                excel_job_stats_ws.cell(row=row, column=column+1).value = f"{summary['total_duration_minutes']}"
+                excel_job_stats_ws.cell(row=row, column=column+2).value = f"{summary['total_wait_minutes']}"
+                column += 3
             row += 1
-            cell = excel_summary_ws.cell(row=row, column=1)
-            cell.value = f'Scenario {row_index+1}'
-            cell.protection = xls_unlocked
-            cell = excel_summary_ws.cell(row=row, column=2)
-            cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
-            cell.protection = xls_unlocked
-            cell.value = 0
-            for index in range(len(instance_families) + 1):
-                column = index + 3
-                cell = excel_summary_ws.cell(row=row, column=column)
-                cell.value = 0
-                cell.protection = xls_unlocked
-                cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
+        for column, max_column_width in max_column_widths.items():
+            excel_job_stats_ws.column_dimensions[xl_get_column_letter(column)].width = max_column_width + 1
+        row += 1
+        column = 1
+        # Add a chart to show the distribution by job characteristics
+        # job_count_chart = BarChart3D()
+        # job_count_chart.title = 'Job Count by Duration and Memory Size'
+        # job_count_chart.style = 13
+        # job_count_chart.y_axis.title = 'Core Hours'
+        # job_count_chart.x_axis.title = 'Relative Hour'
+        # job_count_chart.width = 30
+        # job_count_chart.height = 15
+        # excel_core_hours_chart_ws.add_chart(job_count_chart, excel_job_stats_ws.cell(row=row, column=column).coordinate)
 
         # Config Worksheet
         excel_config_ws.column_dimensions['A'].width = 35
@@ -937,7 +991,7 @@ class JobAnalyzer:
         # CostSummary Worksheet
         total_spot_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["Total Spot Costs"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["Total Spot Costs"]}" & {last_hour_cell_ref}+2))'
         total_esp_cell.value = f'=({last_hour_cell_ref}-{first_hour_cell_ref}+1)*{esp_hourly_commit_cell_ref}'
-        total_esp_cell.value = f'=({last_hour_cell_ref}-{first_hour_cell_ref}+1)*{csp_hourly_commit_cell_ref}'
+        total_csp_cell.value = f'=({last_hour_cell_ref}-{first_hour_cell_ref}+1)*{csp_hourly_commit_cell_ref}'
         total_od_cell.value = f'=sum(indirect("Hourly!{hourly_column_letters["OD Cost"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["OD Cost"]}" & {last_hour_cell_ref}+2))'
         total_cell.value =    f'=sum(indirect("Hourly!{hourly_column_letters["Total Cost"]}" & {first_hour_cell_ref}+2 & ":{hourly_column_letters["Total Cost"]}" & {last_hour_cell_ref}+2))'
 
@@ -1011,25 +1065,50 @@ class JobAnalyzer:
         excel_instance_family_summary_ws.cell(row=row, column=1).value = 'Total'
         for column in range(2, 8):
             cell = excel_instance_family_summary_ws.cell(row=row, column=column)
-            cell.value = f"=sum({xl_get_column_letter(column)}{instance_family_first_row}:{xl_get_column_letter(column)}{instance_family_last_row})"
+            if instance_families:
+                cell.value = f"=sum({xl_get_column_letter(column)}{instance_family_first_row}:{xl_get_column_letter(column)}{instance_family_last_row})"
+            else:
+                cell.value = 0
             if column > 4:
                 cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
 
-        # Charts
+        # Core Hours Charts
 
-        # Core Hours Chart
+        column = 1
+        row = 1
+
+        # Stacked Core Hours Chart
         # Stacked line chart with the number of core hours per instance family
         core_hours_chart = XlLineChart()
         core_hours_chart.title = 'Core Hours by Instance Family'
-        core_hours_chart.sytle = 13
+        core_hours_chart.style = 13
         core_hours_chart.y_axis.title = 'Core Hours'
         core_hours_chart.x_axis.title = 'Relative Hour'
         core_hours_chart.grouping = 'stacked'
+        core_hours_chart.width = 30
+        core_hours_chart.height = 15
         for instance_family in instance_families:
             column = hourly_columns[instance_family][f'{instance_family} CHr']
             data_series = XlReference(excel_hourly_ws, min_col=column, min_row=1, max_col=column, max_row=last_hour_cell.value + 2)
             core_hours_chart.add_data(data_series, titles_from_data=True)
         excel_core_hours_chart_ws.add_chart(core_hours_chart, 'A1')
+        row += 30
+
+        # Core Hours Chart by instance family
+        for instance_family in instance_families:
+            core_hours_chart = XlLineChart()
+            core_hours_chart.title = f'{instance_family} Core Hours'
+            core_hours_chart.style = 13
+            core_hours_chart.y_axis.title = 'Core Hours'
+            core_hours_chart.x_axis.title = 'Relative Hour'
+            core_hours_chart.width = 30
+            core_hours_chart.height = 15
+            column = hourly_columns[instance_family][f'{instance_family} CHr']
+            data_series = XlReference(excel_hourly_ws, min_col=column, min_row=1, max_col=column, max_row=last_hour_cell.value + 2)
+            core_hours_chart.add_data(data_series, titles_from_data=True)
+            cell = excel_core_hours_chart_ws.cell(row=row, column=1)
+            excel_core_hours_chart_ws.add_chart(core_hours_chart, cell.coordinate)
+            row += 30
 
         excel_wb.save(hourly_stats_xlsx)
 
