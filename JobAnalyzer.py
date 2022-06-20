@@ -599,6 +599,7 @@ def main():
 
         lsf_parser = subparsers.add_parser('lsf', help='Parse LSF logfiles', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         lsf_parser.add_argument("--logfile-dir", required=False, help="LSF logfile directory")
+        lsf_parser.add_argument("--default-max-mem-gb", type=float, required=True, help="Default maximum memory for a job in GB.")
 
         slurm_parser = subparsers.add_parser('slurm', help='Parse Slurm job information', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         slurm_parser.add_argument("--slurm-root", required=False, help="Directory that contains the Slurm bin directory.")
@@ -632,7 +633,7 @@ def main():
             if not args.logfile_dir or not args.output_csv:
                 logger.error(f"You must provide --logfile-dir and --output-csv for LSF.")
                 exit(1)
-            scheduler_parser = LSFLogParser(args.logfile_dir, args.output_csv, args.starttime, args.endtime)
+            scheduler_parser = LSFLogParser(args.logfile_dir, args.output_csv, args.default_max_mem_gb, args.starttime, args.endtime)
         elif args.parser == 'slurm':
             scheduler_parser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
 
