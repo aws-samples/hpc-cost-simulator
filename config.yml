@@ -32,6 +32,6 @@ instance_mapping:
     - x2i # (5)
 
 consumption_model_mapping:
-  minimum_cpu_speed:  3                   # For schedulers that do not report the CPU speed - allows setting a mimimum. set to 0 to include all instances
+  minimum_cpu_speed:  3                 # For schedulers that do not report the CPU speed - allows setting a mimimum. set to 0 to include all instances
   maximum_minutes_for_spot: 60
   job_file_batch_size: 1000               # number of successful job records processed to collect before writing them to the job log file

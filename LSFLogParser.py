@@ -16,7 +16,7 @@ from copy import deepcopy
 import json
 import logging
 from LSB_ACCT_FIELDS import LSB_ACCT_RECORD_FORMATS, MINIMAL_LSB_ACCT_FIELDS
-from MemoryUtils import MEM_GB, MEM_KB
+from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 from os import listdir, path
 from os.path import basename, dirname, realpath
 import re
@@ -39,7 +39,7 @@ class LSFLogParser(SchedulerLogParser):
     Parse LSF bacct.lsb* files to get job completion information.
     '''
 
-    def __init__(self, logfile_dir: str, output_csv: str, starttime: str=None, endtime: str=None):
+    def __init__(self, logfile_dir: str, output_csv: str, default_max_mem_gb: float, starttime: str=None, endtime: str=None):
         '''
         Constructor
 
@@ -54,6 +54,7 @@ class LSFLogParser(SchedulerLogParser):
         '''
         super().__init__(None, output_csv, starttime, endtime)
         self._logfile_dir = logfile_dir
+        self._default_max_mem_gb = default_max_mem_gb
 
         self._lsb_acct_files = self._get_lsb_acct_files(logfile_dir)
         self._lsb_acct_filename = None
@@ -126,11 +127,30 @@ class LSFLogParser(SchedulerLogParser):
             if record['record_type'] != 'JOB_FINISH':
                 logger.debug(f"Skipping {record['record_type']} record type")
                 continue
+            logger.debug(f"Effective resource request: {record['effectiveResReq']}")
+            match = re.search(r'rusage\[([^\]]*)\]', record['effectiveResReq'])
+            max_mem_gb = None
+            (record['maxRMem'] * MEM_KB) / MEM_GB
+            if match:
+                rusage = match.groups(0)[0]
+                logger.debug(f"rusage: {rusage}")
+                match = re.search(r'mem=([0-9\.]+)', rusage)
+                if match:
+                    max_mem = float(match.groups(0)[0])
+                    max_mem_gb = (max_mem * MEM_KB) / MEM_GB
+                    logger.debug(f"max_mem_gb: {max_mem_gb}")
+                else:
+                    logger.debug(f"No memory request found in rusage")
+            else:
+                logger.debug(f"No rusage found in resource request")
+            if not max_mem_gb:
+                max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb)
+            logger.debug(f"max_mem_gb: {max_mem_gb}")
             job = SchedulerJobInfo(
                 job_id = record['jobId'],
-                resource_request = record['resReq'],
+                resource_request = record['effectiveResReq'],
                 num_cores = record['maxNumProcessors'],
-                max_mem_gb = record['maxRMem'] * MEM_KB / MEM_GB,
+                max_mem_gb = max_mem_gb,
                 num_hosts = record.get('numExHosts', record['numAskedHosts']),
 
                 submit_time = record['submitTime'],
@@ -527,6 +547,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Parse LSF logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--logfile-dir", required=True, help="LSF logfile directory")
     parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
+    parser.add_argument("--default-max-mem-gb", type=float, required=True, help="Default maximum memory for a job in GB.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
@@ -540,7 +561,7 @@ def main() -> None:
     logger.info('Started LSF log parser')
     logger.info(f"LSF logfile directory: {args.logfile_dir}")
 
-    lsfLogParser = LSFLogParser(args.logfile_dir, args.output_csv, starttime=args.starttime, endtime=args.endtime)
+    lsfLogParser = LSFLogParser(args.logfile_dir, args.output_csv, args.default_max_mem_gb, starttime=args.starttime, endtime=args.endtime)
     try:
         lsfLogParser.parse_jobs()
     except Exception as e:
