@@ -131,16 +131,16 @@ The second step is processing the job data and simulating the cost of running th
 <li>sudo access to install any required tools</li>
 </ul>
 <p>A bash setup script is provided to install the required yum packages, create a Python virtual environment with all required Python packages, and activate the virtual environment.
-The pip packages and versions are listed in <code>requirements.txt</code>.
+The pip packages and versions are listed in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/requirements.txt">requirements.txt</a>.
 The setup script must be sourced, not executed, to set up the environment to run the tool.</p>
 <pre><code>source setup.sh
 </code></pre>
 <h3 id="instance-type-information">Instance Type Information</h3>
-<p>The tool requires a list of available instance types in the region and their prices that is stored in <code>instance_type_info.json</code>.
+<p>The tool requires a list of available instance types in the region and their prices that is stored in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a>.
 The version that comes with the tool has the data for all regions that was complete when it was generated.
 This is provided for convenience so that the customer can run the tool without an AWS account or IAM permissions.</p>
 <p><strong>NOTE</strong>: Since available instance types and prices change over time this file should be updated before before being used.</p>
-<p>The <code>get_instance_type_info.py</code> script can be used to update <code>instance_type_info.json</code>.
+<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/EC2InstanceTypeInfoPkg/get_ec2_instance_info.py">get_instance_type_info.py</a> script can be used to update <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a>.
 It requires the following IAM permissions.</p>
 <pre><code>{
     &quot;Version&quot;: &quot;2012-10-17&quot;,
@@ -171,16 +171,22 @@ get_ec2_instance_info.py --input instance_type_info.json
 </code></pre>
 <h1 id="running-the-tool">Running the Tool</h1>
 <h2 id="job-parsing">Job Parsing</h2>
-<p>The scheduler parsers parse the scheduler-specific job completion dasta and saves it to a common CSV format.
+<p>The scheduler parsers parse the scheduler-specific job completion data and saves it to a common CSV format.
 The parsers are scheduler specific Python scripts.</p>
 <ul>
-<li>AcceleratorLogParser.py</li>
-<li>LSFLogParser.py</li>
-<li>SlurmLogParser.py</li>
+<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a></li>
+<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a></li>
+<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a></li>
 </ul>
 <p>Parsing can take several hours to complete and we recommend testing on a small subset of the accounting records before running on the entire dataset.</p>
 <h2 id="job-analysis">Job Analysis</h2>
-<p>After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files: <code>summary.csv</code> and <code>hourly_stats.csv</code>.</p>
+<p>After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files.</p>
+<ul>
+<li><code>summary.csv</code></li>
+<li><code>summary_stats.csv</code></li>
+<li><code>hourly_stats.csv</code></li>
+<li><code>hourly_stats.xlsx</code></li>
+</ul>
 <p>The job analyzer can call the parser, however, parsing is the longest step so it is recommended that it be run separately from the job analyzer.
 The parser output is a CSV file that can be used as the input to the job analyzer.
 The job analyzer runs relatively quickly and can be run with different configurations on the same job data.</p>
@@ -507,28 +513,153 @@ The job analyzer runs relatively quickly and can be run with different configura
 </table>
 <p>In this (Real custoemr) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.</p>
 <h3 id="hourly_statscsv">hourly_stats.csv</h3>
-<p>Provides an hour-by-hour cost simulation broken down by
-|Relative Hour       |Total OnDemand Costs|Total Spot Cost     |m5                  |r5                  |
-|--------------------|--------------------|--------------------|--------------------|--------------------|
-|0                   |8.93                |0.00                |8.93                |0.00                |
-|1                   |10.97               |0.00                |10.97               |0.00                |
-|2                   |11.02               |0.00                |11.02               |0.00                |
-|3                   |10.88               |0.00                |10.88               |0.00                |
-|4                   |11.02               |0.00                |11.02               |0.00                |
-|5                   |10.96               |0.00                |10.96               |0.00                |
-|6                   |11.00               |0.00                |11.00               |0.00                |
-|7                   |11.02               |0.00                |11.02               |0.00                |
-|8                   |11.03               |0.00                |11.03               |0.00                |
-|9                   |11.22               |0.00                |11.16               |0.05                |
-|10                  |12.93               |0.00                |11.26               |1.66                |
-|11                  |12.98               |0.00                |11.54               |1.44                |
-|12                  |13.04               |0.00                |11.21               |1.82                |
-|13                  |10.25               |0.00                |10.21               |0.03                |
-|14                  |11.92               |0.00                |11.07               |0.84                |
-|15                  |15.58               |0.00                |11.53               |4.05                |
-|16                  |13.97               |0.00                |12.09               |1.87                |
-|17                  |17.04               |0.00                |12.82               |4.21                |
-|18                  |25.28               |0.00                |12.23               |13.05               |</p></div>
+<p>Provides an hour-by-hour cost simulation broken down by spot and on-demand costs.</p>
+<table>
+<thead>
+<tr>
+<th>Relative Hour</th>
+<th>Total OnDemand Costs</th>
+<th>Total Spot Cost</th>
+<th>m5</th>
+<th>r5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>8.93</td>
+<td>0.00</td>
+<td>8.93</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>1</td>
+<td>10.97</td>
+<td>0.00</td>
+<td>10.97</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>2</td>
+<td>11.02</td>
+<td>0.00</td>
+<td>11.02</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>3</td>
+<td>10.88</td>
+<td>0.00</td>
+<td>10.88</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>4</td>
+<td>11.02</td>
+<td>0.00</td>
+<td>11.02</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>5</td>
+<td>10.96</td>
+<td>0.00</td>
+<td>10.96</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>6</td>
+<td>11.00</td>
+<td>0.00</td>
+<td>11.00</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>7</td>
+<td>11.02</td>
+<td>0.00</td>
+<td>11.02</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>8</td>
+<td>11.03</td>
+<td>0.00</td>
+<td>11.03</td>
+<td>0.00</td>
+</tr>
+<tr>
+<td>9</td>
+<td>11.22</td>
+<td>0.00</td>
+<td>11.16</td>
+<td>0.05</td>
+</tr>
+<tr>
+<td>10</td>
+<td>12.93</td>
+<td>0.00</td>
+<td>11.26</td>
+<td>1.66</td>
+</tr>
+<tr>
+<td>11</td>
+<td>12.98</td>
+<td>0.00</td>
+<td>11.54</td>
+<td>1.44</td>
+</tr>
+<tr>
+<td>12</td>
+<td>13.04</td>
+<td>0.00</td>
+<td>11.21</td>
+<td>1.82</td>
+</tr>
+<tr>
+<td>13</td>
+<td>10.25</td>
+<td>0.00</td>
+<td>10.21</td>
+<td>0.03</td>
+</tr>
+<tr>
+<td>14</td>
+<td>11.92</td>
+<td>0.00</td>
+<td>11.07</td>
+<td>0.84</td>
+</tr>
+<tr>
+<td>15</td>
+<td>15.58</td>
+<td>0.00</td>
+<td>11.53</td>
+<td>4.05</td>
+</tr>
+<tr>
+<td>16</td>
+<td>13.97</td>
+<td>0.00</td>
+<td>12.09</td>
+<td>1.87</td>
+</tr>
+<tr>
+<td>17</td>
+<td>17.04</td>
+<td>0.00</td>
+<td>12.82</td>
+<td>4.21</td>
+</tr>
+<tr>
+<td>18</td>
+<td>25.28</td>
+<td>0.00</td>
+<td>12.23</td>
+<td>13.05</td>
+</tr>
+</tbody>
+</table></div>
             </div>
         </div>
 
@@ -609,5 +740,5 @@ The job analyzer runs relatively quickly and can be run with different configura
 
 <!--
 MkDocs version : 1.3.0
-Build Date UTC : 2022-06-21 13:38:23.627996+00:00
+Build Date UTC : 2022-06-21 14:00:10.225298+00:00
 -->

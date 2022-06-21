@@ -100,14 +100,6 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#setup" class="nav-link">Setup</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#notes" class="nav-link">Notes</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
               </ul>
             </li>
         </ul>
@@ -155,83 +147,6 @@ For example:</p>
 <pre><code>./AcceleratorLogParser.py \
     --sql-output-file output/sql-output.txt \
     --output-csv output/jobs.csv
-</code></pre>
-<h2 id="setup">Setup</h2>
-<h2 id="notes">Notes</h2>
-<p>Set up paths for nc.</p>
-<pre><code>source /tools/altr/2019.01u7/common/etc/vovrc.sh
-</code></pre>
-<p>NC uses postgres.</p>
-<p>Get a list of tables:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select * from pg_catalog.pg_tables where schemaname != 'pg_catalog' and schemaname != 'information_schema'&quot;
-
- public metadata rtdamgr {} t f f f
- public loadinfo rtdamgr {} t f f f
- public users rtdamgr {} t f t f
- public hosts rtdamgr {} t f t f
- public jobclasses rtdamgr {} t f t f
- public projects rtdamgr {} t f t f
- public osgroups rtdamgr {} t f t f
- public fsgroups rtdamgr {} t f t f
- public tools rtdamgr {} t f t f
- public resources rtdamgr {} t f t f
- public grabbeds rtdamgr {} t f t f
- public statuses rtdamgr {} t f t f
- public jobs rtdamgr {} t f t f
- pg_temp_2 import_jobs_1916 rtdamgr {} t f f f
- pg_temp_2 import_jobs_normalized_1916 rtdamgr {} t f f f
-</code></pre>
-<p>Get list of columns in the table:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'jobs'&quot;
-
- id integer
- loadinfo_id integer
- jobclassid integer
- projectid integer
- fsgroupid integer
- userid integer
- osgroupid integer
- toolid integer
- resourcesid integer
- grabbedid integer
- exehostid integer
- statusid integer
- spriority smallint
- submittime integer
- starttime integer
- endtime integer
- deadline integer
- exitstatus smallint
- maxram integer
- maxvm integer
- cputime real
- susptime integer
- failcode integer
- fstokens integer
-</code></pre>
-<p>Get columns we need for analysis:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select id, submittime, starttime, endtime, exitstatus, maxram, maxvm, cputime, susptime from jobs&quot;
-</code></pre>
-<p>Get list of columns in the resources table:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'resources'&quot;
-
- id integer
- name {character varying}
-</code></pre>
-<p>Get list of resources</p>
-<pre><code>nc cmd vovsql_query -e &quot;select id, name from resources&quot;
-</code></pre>
-<p>Get list of columns in the users table:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'users'&quot;
-
- id integer
- name {character varying}
-</code></pre>
-<p>Get list of users in the users table:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select id, name from users&quot;
-
- id integer
- name {character varying}
 </code></pre></div>
             </div>
         </div>
