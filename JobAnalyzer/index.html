@@ -48,9 +48,6 @@
                             <li class="navitem active">
                                 <a href="./" class="nav-link">Job Analyzer</a>
                             </li>
-                            <li class="navitem">
-                                <a href="../todo/" class="nav-link">Things To Do</a>
-                            </li>
                         </ul>
 
                     <ul class="nav navbar-nav ml-auto">
@@ -65,7 +62,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../todo/" class="nav-link">
+                                <a rel="next" class="nav-link disabled">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -256,11 +253,15 @@ optional arguments:
 </code></pre>
 <h3 id="parser-specific-arguments-lsf">Parser-specific Arguments - LSF</h3>
 <pre><code>usage: JobAnalyzer.py lsf [-h] [--logfile-dir LOGFILE_DIR]
+                          --default-max-mem-gb DEFAULT_MAX_MEM_GB
 
 optional arguments:
   -h, --help            show this help message and exit
   --logfile-dir LOGFILE_DIR
                         LSF logfile directory (default: None)
+  --default-max-mem-gb DEFAULT_MAX_MEM_GB
+                        Default maximum memory for a job in GB. (default:
+                        None)
 </code></pre>
 <h3 id="parser-specific-arguments-slurm">Parser-specific Arguments - Slurm</h3>
 <pre><code>usage: JobAnalyzer.py slurm [-h] [--slurm-root SLURM_ROOT]
@@ -293,7 +294,7 @@ optional arguments:
 </code></pre>
 <h2 id="data-used">Data Used</h2>
 <p>The parser parses out and save the minimum amount of data required to do the analysis.
-The fields are documented in the SchedulerJobInfo.py module.
+The fields are documented in the <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SchedulerJobInfo.py">SchedulerJobInfo.py</a> module.
 The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
 and actual resource usage information, if available such as the user time, system time, and max memory used.</p></div>
             </div>
