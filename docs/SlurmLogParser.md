@@ -1,6 +1,6 @@
 # Slurm Log Parser
 
-The `SlurmLogParser.py` script calls Slurm `sacct`, parses the job completion data, and generates a CSV file that can be used by `JobAnalyzer.py`.
+The [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) script calls Slurm `sacct`, parses the job completion data, and generates a CSV file that can be used by [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py).
 It has 2 modes of operation, online and offline.
 
 ## Online
@@ -11,7 +11,7 @@ When running in this mode, the output of `sacct` will be stored to a CSV file de
 ## Offline
 
 If running this tool on a Linux machine not connected to the Slurm head-node, you can first extract the `sacct` output to a CSV file and then run the tool offline to analyze it.
-When running in this mode, the tool expects an existing file, defined by the `--sacct-input-file` argument, that contains the output of `saact`..
+When running in this mode, the tool expects an existing file, defined by the `--sacct-input-file` argument, that contains the output of `saact`.
 
 **Note**: You can't use both `--sacct-input-file` and `--sacct-output-file` together.
 

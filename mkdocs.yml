@@ -1,8 +1,10 @@
-site_name: Scheduler Log Analyzer
+site_name: HPC Cost Simulator
+repo_url: https://github.com/aws-samples/hpc-cost-simulator
+docs_dir: docs
 nav:
   - 'index.md'
+  - 'AcceleratorLogParser.md'
   - 'LSFLogParser.md'
   - 'SlurmLogParser.md'
-  - 'AcceleratorLogParser.md'
   - 'JobAnalyzer.md'
-  - 'todo.md'
+strict: true
