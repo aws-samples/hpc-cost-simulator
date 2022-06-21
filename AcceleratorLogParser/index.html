@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Altair Accelerator Log Parsing - Scheduler Log Analyzer</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Scheduler Log Analyzer</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">Scheduler Log Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../todo/" class="nav-link">Things To Do</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../SlurmLogParser/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../JobAnalyzer/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#altair-accelerator-log-parsing" class="nav-link">Altair Accelerator Log Parsing</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#parsing-the-job-completion-data" class="nav-link">Parsing the Job Completion Data</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#setup" class="nav-link">Setup</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#notes" class="nav-link">Notes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="altair-accelerator-log-parsing">Altair Accelerator Log Parsing</h1>
+<p>The <code>AcceleratorLogParser.py</code> script queries the Accelerator results database, parses the job completion datap, and saves it into a CSV file.</p>
+<h2 id="usage">Usage</h2>
+<pre><code>usage: AcceleratorLogParser.py [-h]
+                               (--sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
+                               --output-csv OUTPUT_CSV [--debug]
+
+Parse Altair Accelerator logs.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --sql-output-file SQL_OUTPUT_FILE
+                        File where the output of sql query will be written.
+                        Cannot be used with --sql-input-file. Required if
+                        --sql-input-file not set. Command to create file: nc
+                        cmd vovsql_query -e &quot;select id, submittime, starttime,
+                        endtime, exitstatus, maxram, maxvm, cputime, susptime
+                        from jobs&quot; &gt; SQL_OUTPUT_FILE (default: None)
+  --sql-input-file SQL_INPUT_FILE
+                        File with the output of sql query so can process it
+                        offline. Cannot be used with --sql-output-file.
+                        Required if --sql-output-file not set. (default: None)
+  --output-csv OUTPUT_CSV
+                        CSV file with parsed job completion records (default:
+                        None)
+  --debug, -d           Enable debug mode (default: False)
+</code></pre>
+<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
+<p>First you must source the setup script to make sure that all required packages are installed.</p>
+<pre><code>source setup.sh
+</code></pre>
+<p>This creates a python virtual environment and activates it.</p>
+<p>The script calls <code>nc cmd vovsql_query</code> so your environment should be set up so that the nc scripts are in the path.
+For example:</p>
+<pre><code>source /tools/altr/2019.01u7/common/etc/vovrc.sh
+</code></pre>
+<p>The parsed data will be written in the output directory which will be created if it does not exist.</p>
+<pre><code>./AcceleratorLogParser.py \
+    --sql-output-file output/sql-output.txt \
+    --output-csv output/jobs.csv
+</code></pre>
+<h2 id="setup">Setup</h2>
+<h2 id="notes">Notes</h2>
+<p>Set up paths for nc.</p>
+<pre><code>source /tools/altr/2019.01u7/common/etc/vovrc.sh
+</code></pre>
+<p>NC uses postgres.</p>
+<p>Get a list of tables:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select * from pg_catalog.pg_tables where schemaname != 'pg_catalog' and schemaname != 'information_schema'&quot;
+
+ public metadata rtdamgr {} t f f f
+ public loadinfo rtdamgr {} t f f f
+ public users rtdamgr {} t f t f
+ public hosts rtdamgr {} t f t f
+ public jobclasses rtdamgr {} t f t f
+ public projects rtdamgr {} t f t f
+ public osgroups rtdamgr {} t f t f
+ public fsgroups rtdamgr {} t f t f
+ public tools rtdamgr {} t f t f
+ public resources rtdamgr {} t f t f
+ public grabbeds rtdamgr {} t f t f
+ public statuses rtdamgr {} t f t f
+ public jobs rtdamgr {} t f t f
+ pg_temp_2 import_jobs_1916 rtdamgr {} t f f f
+ pg_temp_2 import_jobs_normalized_1916 rtdamgr {} t f f f
+</code></pre>
+<p>Get list of columns in the table:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'jobs'&quot;
+
+ id integer
+ loadinfo_id integer
+ jobclassid integer
+ projectid integer
+ fsgroupid integer
+ userid integer
+ osgroupid integer
+ toolid integer
+ resourcesid integer
+ grabbedid integer
+ exehostid integer
+ statusid integer
+ spriority smallint
+ submittime integer
+ starttime integer
+ endtime integer
+ deadline integer
+ exitstatus smallint
+ maxram integer
+ maxvm integer
+ cputime real
+ susptime integer
+ failcode integer
+ fstokens integer
+</code></pre>
+<p>Get columns we need for analysis:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select id, submittime, starttime, endtime, exitstatus, maxram, maxvm, cputime, susptime from jobs&quot;
+</code></pre>
+<p>Get list of columns in the resources table:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'resources'&quot;
+
+ id integer
+ name {character varying}
+</code></pre>
+<p>Get list of resources</p>
+<pre><code>nc cmd vovsql_query -e &quot;select id, name from resources&quot;
+</code></pre>
+<p>Get list of columns in the users table:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where table_name = 'users'&quot;
+
+ id integer
+ name {character varying}
+</code></pre>
+<p>Get list of users in the users table:</p>
+<pre><code>nc cmd vovsql_query -e &quot;select id, name from users&quot;
+
+ id integer
+ name {character varying}
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

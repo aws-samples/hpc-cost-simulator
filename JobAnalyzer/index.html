@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Job Analyzer - Scheduler Log Analyzer</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Scheduler Log Analyzer</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">Scheduler Log Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../todo/" class="nav-link">Things To Do</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../AcceleratorLogParser/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../todo/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#job-analyzer" class="nav-link">Job Analyzer</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#configuration" class="nav-link">Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#data-used" class="nav-link">Data Used</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="job-analyzer">Job Analyzer</h1>
+<p>The <code>JobAnalyzer.py</code> script post-processes the output of the parsers to provide an analysis of running the jobs on AWS.
+For convenience, the analyzer can call the parser and analyze the output in 1 step.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p><code>JobAnalyzer.py</code> relies on  <code>instance_type_info.json</code> which contains instance type details and pricing.
+If the file doesn't exist in the same directory as the script then it will attempt to create it using the AWS API.
+For details on the required IAM permissions see the <a href="docs/index.md#instance_type_information">main documentation page</a>.</p>
+<h2 id="configuration">Configuration</h2>
+<p>All configuration parameters are stored in <code>config.yml</code>.
+See comments within the file for details of each parameter's use.</p>
+<h2 id="usage">Usage</h2>
+<p>Arguments provided to <code>JobAnalyzer</code> are required in a specific order:</p>
+<pre><code>    ./JobAnalyzer.py &lt;Arguments that apply to all schedulers&gt; &lt;Parser type&gt; &lt;Parser-specific Arguments&gt;
+</code></pre>
+<p>```usage: JobAnalyzer.py [-h] [--starttime STARTTIME] [--endtime ENDTIME]
+                      [--config CONFIG] [--output-dir OUTPUT_DIR]
+                      [--output-csv OUTPUT_CSV] [--debug]
+                      parser ...</p>
+<p>Analyze jobs</p>
+<p>positional arguments:
+  parser                Choose the kind of information to parse.
+                        ./JobAnalyzer.py <parser> -h for parser specific
+                        arguments.
+    accelerator         Parse Accelerator (nc) job information
+    csv                 Parse CSV from already parsed job information.
+    lsf                 Parse LSF logfiles
+    slurm               Parse Slurm job information</p>
+<p>optional arguments:
+  -h, --help            show this help message and exit
+  --starttime STARTTIME
+                        Select jobs after the specified time. Format YYYY-MM-
+                        DDTHH:MM:SS (default: None)
+  --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
+                        DDTHH:MM:SS (default: None)
+  --config CONFIG       Configuration file. (default: ./config.yml)
+  --output-dir OUTPUT_DIR
+                        Directory where output will be written (default:
+                        output)
+  --output-csv OUTPUT_CSV
+                        CSV file with parsed job completion records (default:
+                        None)
+  --debug, -d           Enable debug mode (default: False)</p>
+<pre><code>
+### Arguments that apply to all schedulers
+
+When used, these parameters must precede the parser type:
+
+</code></pre>
+<p>--starttime STARTTIME     Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS (default: None)
+  --endtime ENDTIME         Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS (default: None)
+  --config CONFIG           Configuration file. (default: ./config.yml)
+  --output-dir OUTPUT_DIR   Directory where output will be written (default: output)
+  --output-csv OUTPUT_CSV   CSV file with parsed job completion records (default: None)
+  --debug, -d               Enable debug mode (default: False)
+  --help, -h                Show help message</p>
+<pre><code>
+###  Parser Type
+
+The tool supports 4 parser types:
+
+</code></pre>
+<pre><code>accelerator         Parse Accelerator (nc) job information
+lsf                 Parse LSF accounting ercords (lsb.acct fiels)
+slurm               Parse Slurm job information
+csv                 Parse CSV from a previously parsed job information.
+</code></pre>
+<pre><code>
+### Parser-specific Arguments - Accelerator
+
+</code></pre>
+<p>usage: JobAnalyzer.py accelerator [-h] [--default-mem-gb DEFAULT_MEM_GB]
+                                  (--sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)</p>
+<p>optional arguments:
+  -h, --help            show this help message and exit
+  --default-mem-gb DEFAULT_MEM_GB
+                        Default amount of memory (in GB) requested for jobs.
+                        (default: 0.098)
+  --sql-output-file SQL_OUTPUT_FILE
+                        File where the output of sql query will be written.
+                        Cannot be used with --sql-input-file. Required if
+                        --sql-input-file not set. Command to create file: nc
+                        cmd vovsql_query -e "select jobs.id, jobs.submittime,
+                        jobs.starttime, jobs.endtime, resources.name,
+                        jobs.exitstatus, jobs.maxram, jobs.maxvm,
+                        jobs.cputime, jobs.susptime from jobs inner join
+                        resources on jobs.resourcesid=resources.id" &gt;
+                        SQL_OUTPUT_FILE (default: None)
+  --sql-input-file SQL_INPUT_FILE
+                        File with the output of sql query so can process it
+                        offline. Cannot be used with --sql-output-file.
+                        Required if --sql-output-file not set. (default: None)</p>
+<pre><code>
+### Parser-specific Arguments - LSF
+
+</code></pre>
+<p>usage: JobAnalyzer.py lsf [-h] [--logfile-dir LOGFILE_DIR]</p>
+<p>optional arguments:
+  -h, --help            show this help message and exit
+  --logfile-dir LOGFILE_DIR
+                        LSF logfile directory (default: None)</p>
+<pre><code>
+### Parser-specific Arguments - Slurm
+
+</code></pre>
+<p>usage: JobAnalyzer.py slurm [-h] [--slurm-root SLURM_ROOT]
+                            [--sacct-output-file SACCT_OUTPUT_FILE | --sacct-input-file SACCT_INPUT_FILE]</p>
+<p>optional arguments:
+  -h, --help            show this help message and exit
+  --slurm-root SLURM_ROOT
+                        Directory that contains the Slurm bin directory.
+                        (default: None)
+  --sacct-output-file SACCT_OUTPUT_FILE
+                        File where the output of sacct will be written. Cannot
+                        be used with --sacct-input-file. Required if --sacct-
+                        input-file not set. (default: None)
+  --sacct-input-file SACCT_INPUT_FILE
+                        File with the output of sacct so can process sacct
+                        output offline. Cannot be used with --sacct-output-
+                        file. Required if --sacct-output-file not set.
+                        (default: None)</p>
+<pre><code>
+Note: The tool will call `sacct` to get accounting logs, if you don't have it installed on the machine, please see the [SlurmLogParser.py documentation](docs/SlurmLogParser.md) for details on how to save them to a CSV file.
+
+### Analyzing Pre-Parsed CSV Job Data
+
+</code></pre>
+<p>usage: JobAnalyzer.py csv [-h] --input-csv INPUT_CSV</p>
+<p>optional arguments:
+  -h, --help            show this help message and exit
+  --input-csv INPUT_CSV
+                        CSV file with parsed job info from scheduler parser.
+                        (default: None)
+```</p>
+<h2 id="data-used">Data Used</h2>
+<p>The parser parses out and save the minimum amount of data required to do the analysis.
+The fields are documented in the SchedulerJobInfo.py module.
+The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
+and actual resource usage information, if available such as the user time, system time, and max memory used.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

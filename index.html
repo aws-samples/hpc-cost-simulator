@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>Scheduler Log Analyzer</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="js/jquery-1.10.2.min.js" defer></script>
+        <script src="js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">Scheduler Log Analyzer</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem active">
+                                <a href="." class="nav-link">Scheduler Log Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="todo/" class="nav-link">Things To Do</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" class="nav-link disabled">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="LSFLogParser/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#scheduler-log-analyzer" class="nav-link">Scheduler Log Analyzer</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#running-the-tool" class="nav-link">Running the Tool</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#job-parsing" class="nav-link">Job Parsing</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#job-analysis" class="nav-link">Job Analysis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="scheduler-log-analyzer">Scheduler Log Analyzer</h1>
+<p>This tool analyzes the jobs that have been run on compute clusters managed by the IBM LSF, SchedMD Slurm, and Altair Accelerator schedulers and simulates the hourly cost of running the jobs on AWS.
+The AWS Cloud Economics team can use this data to build a commercial proposal to optimize the cost using Saving Plans and Reserved Instances.</p>
+<p>Since scheduler data can indicate business sensitive data (tape out dates, project names) and PII (user names), this tool anonymizes all aspects of the data to meet the security and privacy requirements of Semiconductor companies.
+All output files are clear-text CSV files for auditability.</p>
+<p>The tool consists of two steps.
+The first is the parsing of the scheduler job completion data and is scheduler specific.
+The output of the parser is a CSV file with the job data that is required for cost analysis.
+The second step is processing the job data and simulating the cost of running them on AWS.</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>Python 3.6 or newer</li>
+<li>sudo access to install any required tools</li>
+</ul>
+<p>A bash setup script is provided to install the required yum packages, create a Python virtual environment with all required Python packages, and activate the virtual environment.
+The pip packages and versions are listed in <code>requirements.txt</code>.
+The setup script must be sourced, not executed, to set up the environment to run the tool.</p>
+<pre><code>source setup.sh
+</code></pre>
+<h3 id="instance-type-information">Instance Type Information</h3>
+<p>The tool requires a list of available instance types in the region and their prices that is stored in <code>instance_type_info.json</code>.
+The version that comes with the tool has the data for all regions that was complete when it was generated.
+This is provided for convenience so that the customer can run the tool without an AWS account or IAM permissions.</p>
+<p><strong>NOTE</strong>: Since available instance types and prices change over time this file should be updated before before being used.</p>
+<p>The <code>get_instance_type_info.py</code> script can be used to update <code>instance_type_info.json</code>.
+It requires the following IAM permissions.</p>
+<pre><code>{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+            &quot;Sid&quot;: &quot;GetEC2InstanceTypeInfo&quot;,
+            &quot;Effect&quot;: &quot;Allow&quot;,
+            &quot;Action&quot;: [
+                &quot;ec2:DescribeInstanceTypes&quot;,
+                &quot;ec2:DescribeRegions&quot;,
+                &quot;ec2:DescribeSpotPriceHistory&quot;,
+                &quot;pricing:GetProducts&quot;
+            ],
+            &quot;Resource&quot;: &quot;*&quot;
+        }
+    ]
+}
+</code></pre>
+<p>To get information just for one region run the following commands.</p>
+<pre><code>source setup.sh
+rm instance_type_info.json
+get_ec2_instance_info.py --input instance_type_info.json --region REGION
+</code></pre>
+<p>You can get the information for all regions by leaving off the --region argument.</p>
+<pre><code>source setup.sh
+rm instance_type_info.json
+get_ec2_instance_info.py --input instance_type_info.json
+</code></pre>
+<h1 id="running-the-tool">Running the Tool</h1>
+<h2 id="job-parsing">Job Parsing</h2>
+<p>The scheduler parsers parse the scheduler-specific job completion dasta and saves it to a common CSV format.
+The parsers are scheduler specific Python scripts.</p>
+<ul>
+<li>AcceleratorLogParser.py</li>
+<li>LSFLogParser.py</li>
+<li>SlurmLogParser.py</li>
+</ul>
+<p>Parsing can take several hours to complete and we recommend testing on a small subset of the accounting records before running on the entire dataset.</p>
+<h2 id="job-analysis">Job Analysis</h2>
+<p>After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files: <code>summary.csv</code> and <code>hourly_stats.csv</code>.</p>
+<p>The job analyzer can call the parser, however, parsing is the longest step so it is recommended that it be run separately from the job analyzer.
+The parser output is a CSV file that can be used as the input to the job analyzer.
+The job analyzer runs relatively quickly and can be run with different configurations on the same job data.</p>
+<h3 id="summarycsv">summary.csv</h3>
+<p>Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime the total wait time. These provide a high-level understanding of the customer's workload, and helps us show the customer how much of their workload needs high memory instances (utually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.</p>
+<p>Example:</p>
+<table>
+<thead>
+<tr>
+<th>MemorySize</th>
+<th>0-1 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>1-5 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>5-20 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>20-60 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>60-240 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>240-1440 Minutes</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+<th>1440-1000000 Min</th>
+<th>&lt;--</th>
+<th>&lt;--</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>&lt;--</td>
+<td>Job count</td>
+<td>Total duration</td>
+<td>Total wait time</td>
+</tr>
+<tr>
+<td>0-1GB</td>
+<td>1451224</td>
+<td>295357</td>
+<td>0</td>
+<td>298597</td>
+<td>711710</td>
+<td>0</td>
+<td>268244</td>
+<td>2464401</td>
+<td>0</td>
+<td>84075</td>
+<td>2832260</td>
+<td>0</td>
+<td>48673</td>
+<td>5699891</td>
+<td>0</td>
+<td>21450</td>
+<td>14928398</td>
+<td>&lt;--</td>
+<td>37222</td>
+<td>940366200</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1-2GB</td>
+<td>7800</td>
+<td>4645</td>
+<td>0</td>
+<td>33076</td>
+<td>88381</td>
+<td>0</td>
+<td>27230</td>
+<td>285958</td>
+<td>0</td>
+<td>11301</td>
+<td>390683</td>
+<td>0</td>
+<td>9244</td>
+<td>1129832</td>
+<td>0</td>
+<td>5195</td>
+<td>3431642</td>
+<td>&lt;--</td>
+<td>4444</td>
+<td>104405917</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2-4GB</td>
+<td>3866</td>
+<td>2482</td>
+<td>0</td>
+<td>68157</td>
+<td>201630</td>
+<td>0</td>
+<td>94798</td>
+<td>1120678</td>
+<td>0</td>
+<td>108126</td>
+<td>3764462</td>
+<td>0</td>
+<td>47593</td>
+<td>5155126</td>
+<td>0</td>
+<td>17470</td>
+<td>10450704</td>
+<td>&lt;--</td>
+<td>7154</td>
+<td>100846783</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4-8GB</td>
+<td>425</td>
+<td>219</td>
+<td>0</td>
+<td>5352</td>
+<td>17497</td>
+<td>0</td>
+<td>9978</td>
+<td>106535</td>
+<td>0</td>
+<td>7959</td>
+<td>275142</td>
+<td>0</td>
+<td>5768</td>
+<td>701616</td>
+<td>0</td>
+<td>3831</td>
+<td>2662791</td>
+<td>&lt;--</td>
+<td>3218</td>
+<td>66155544</td>
+<td>0</td>
+</tr>
+<tr>
+<td>8-16GB</td>
+<td>759</td>
+<td>274</td>
+<td>0</td>
+<td>722</td>
+<td>2044</td>
+<td>0</td>
+<td>5904</td>
+<td>72149</td>
+<td>0</td>
+<td>4462</td>
+<td>183369</td>
+<td>0</td>
+<td>11244</td>
+<td>1307581</td>
+<td>0</td>
+<td>6363</td>
+<td>3983032</td>
+<td>&lt;--</td>
+<td>3024</td>
+<td>42831455</td>
+<td>0</td>
+</tr>
+<tr>
+<td>16-32GB</td>
+<td>389</td>
+<td>108</td>
+<td>0</td>
+<td>237</td>
+<td>771</td>
+<td>0</td>
+<td>1148</td>
+<td>14321</td>
+<td>0</td>
+<td>1573</td>
+<td>58971</td>
+<td>0</td>
+<td>2971</td>
+<td>359024</td>
+<td>0</td>
+<td>2577</td>
+<td>1766540</td>
+<td>&lt;--</td>
+<td>2017</td>
+<td>29588185</td>
+<td>0</td>
+</tr>
+<tr>
+<td>32-64GB</td>
+<td>435</td>
+<td>133</td>
+<td>0</td>
+<td>63</td>
+<td>209</td>
+<td>0</td>
+<td>605</td>
+<td>7613</td>
+<td>0</td>
+<td>1079</td>
+<td>41389</td>
+<td>0</td>
+<td>1731</td>
+<td>206706</td>
+<td>0</td>
+<td>1283</td>
+<td>1026257</td>
+<td>&lt;--</td>
+<td>1107</td>
+<td>22509888</td>
+<td>0</td>
+</tr>
+<tr>
+<td>64-128GB</td>
+<td>160</td>
+<td>60</td>
+<td>0</td>
+<td>71</td>
+<td>140</td>
+<td>0</td>
+<td>35</td>
+<td>383</td>
+<td>0</td>
+<td>110</td>
+<td>4379</td>
+<td>0</td>
+<td>244</td>
+<td>33840</td>
+<td>0</td>
+<td>408</td>
+<td>284120</td>
+<td>&lt;--</td>
+<td>285</td>
+<td>6939359</td>
+<td>0</td>
+</tr>
+<tr>
+<td>128-256GB</td>
+<td>177</td>
+<td>81</td>
+<td>0</td>
+<td>125</td>
+<td>275</td>
+<td>0</td>
+<td>107</td>
+<td>743</td>
+<td>0</td>
+<td>45</td>
+<td>1826</td>
+<td>0</td>
+<td>122</td>
+<td>15285</td>
+<td>0</td>
+<td>258</td>
+<td>206859</td>
+<td>&lt;--</td>
+<td>192</td>
+<td>5132956</td>
+<td>0</td>
+</tr>
+<tr>
+<td>256-512GB</td>
+<td>580</td>
+<td>227</td>
+<td>0</td>
+<td>297</td>
+<td>889</td>
+<td>0</td>
+<td>330</td>
+<td>3258</td>
+<td>0</td>
+<td>249</td>
+<td>9267</td>
+<td>0</td>
+<td>165</td>
+<td>20148</td>
+<td>0</td>
+<td>53</td>
+<td>35973</td>
+<td>&lt;--</td>
+<td>69</td>
+<td>1955220</td>
+<td>0</td>
+</tr>
+<tr>
+<td>512-1000000GB</td>
+<td>498</td>
+<td>249</td>
+<td>0</td>
+<td>447</td>
+<td>918</td>
+<td>0</td>
+<td>226</td>
+<td>2116</td>
+<td>0</td>
+<td>141</td>
+<td>4907</td>
+<td>0</td>
+<td>45</td>
+<td>5168</td>
+<td>0</td>
+<td>41</td>
+<td>29869</td>
+<td>&lt;--</td>
+<td>26</td>
+<td>729017</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>In this (Real custoemr) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.</p>
+<h3 id="hourly_statscsv">hourly_stats.csv</h3>
+<p>Provides an hour-by-hour cost simulation broken down by
+|Relative Hour       |Total OnDemand Costs|Total Spot Cost     |m5                  |r5                  |
+|--------------------|--------------------|--------------------|--------------------|--------------------|
+|0                   |8.93                |0.00                |8.93                |0.00                |
+|1                   |10.97               |0.00                |10.97               |0.00                |
+|2                   |11.02               |0.00                |11.02               |0.00                |
+|3                   |10.88               |0.00                |10.88               |0.00                |
+|4                   |11.02               |0.00                |11.02               |0.00                |
+|5                   |10.96               |0.00                |10.96               |0.00                |
+|6                   |11.00               |0.00                |11.00               |0.00                |
+|7                   |11.02               |0.00                |11.02               |0.00                |
+|8                   |11.03               |0.00                |11.03               |0.00                |
+|9                   |11.22               |0.00                |11.16               |0.05                |
+|10                  |12.93               |0.00                |11.26               |1.66                |
+|11                  |12.98               |0.00                |11.54               |1.44                |
+|12                  |13.04               |0.00                |11.21               |1.82                |
+|13                  |10.25               |0.00                |10.21               |0.03                |
+|14                  |11.92               |0.00                |11.07               |0.84                |
+|15                  |15.58               |0.00                |11.53               |4.05                |
+|16                  |13.97               |0.00                |12.09               |1.87                |
+|17                  |17.04               |0.00                |12.82               |4.21                |
+|18                  |25.28               |0.00                |12.23               |13.05               |</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js" defer></script>
+        <script src="search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.3.0
+Build Date UTC : 2022-06-21 12:49:16.648637+00:00
+-->
