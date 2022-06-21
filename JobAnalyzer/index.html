@@ -34,22 +34,22 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href="../docs/index.md" class="nav-link">None</a>
+                                <a href=".." class="nav-link">HPC Cost Simulator</a>
                             </li>
                             <li class="navitem">
-                                <a href="../docs/LSFLogParser.md" class="nav-link">None</a>
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
                             </li>
                             <li class="navitem">
-                                <a href="../docs/SlurmLogParser.md" class="nav-link">None</a>
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
                             </li>
                             <li class="navitem">
-                                <a href="../docs/AcceleratorLogParser.md" class="nav-link">None</a>
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Job Analyzer</a>
                             </li>
                             <li class="navitem">
-                                <a href="../docs/JobAnalyzer.md" class="nav-link">None</a>
-                            </li>
-                            <li class="navitem">
-                                <a href="../docs/todo.md" class="nav-link">None</a>
+                                <a href="../todo/" class="nav-link">Things To Do</a>
                             </li>
                         </ul>
 
@@ -59,6 +59,16 @@
                                 <i class="fa fa-search"></i> Search
                             </a>
                         </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../AcceleratorLogParser/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../todo/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/JobAnalyzer.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
@@ -111,7 +121,7 @@ For convenience, the analyzer can call the parser and analyze the output in 1 st
 <h2 id="prerequisites">Prerequisites</h2>
 <p><code>JobAnalyzer.py</code> relies on  <code>instance_type_info.json</code> which contains instance type details and pricing.
 If the file doesn't exist in the same directory as the script then it will attempt to create it using the AWS API.
-For details on the required IAM permissions see the <a href="docs/index.md#instance_type_information">main documentation page</a>.</p>
+For details on the required IAM permissions see the <a href="..#instance_type_information">main documentation page</a>.</p>
 <h2 id="configuration">Configuration</h2>
 <p>All configuration parameters are stored in <code>config.yml</code>.
 See comments within the file for details of each parameter's use.</p>
