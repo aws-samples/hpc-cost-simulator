@@ -105,6 +105,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-level="2"><a href="#savings-plan-optimization" class="nav-link">Savings Plan Optimization</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -191,8 +195,6 @@ positional arguments:
     csv                 Parse CSV from already parsed job information.
     lsf                 Parse LSF logfiles
     slurm               Parse Slurm job information
-    hourly_stats        Parse hourly_stats file so can create Excel workbook
-                        (xlsx).
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -296,7 +298,11 @@ optional arguments:
 <p>The parser parses out and save the minimum amount of data required to do the analysis.
 The fields are documented in the <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SchedulerJobInfo.py">SchedulerJobInfo.py</a> module.
 The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
-and actual resource usage information, if available such as the user time, system time, and max memory used.</p></div>
+and actual resource usage information, if available such as the user time, system time, and max memory used.</p>
+<h2 id="savings-plan-optimization">Savings Plan Optimization</h2>
+<p>The script write an Excel Workbook that allows you to view the analysis and analyze the impact of savings plan on the overall costs.
+Excel also has a Solver add-in that will automatically optimize the savings plan values to minimize the costs.
+The steps to configure the solver are included in the spreadsheet.</p></div>
             </div>
         </div>
 
