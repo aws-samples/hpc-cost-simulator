@@ -37,13 +37,13 @@
                                 <a href=".." class="nav-link">HPC Cost Simulator</a>
                             </li>
                             <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
+                            <li class="navitem">
                                 <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
                             </li>
                             <li class="navitem active">
                                 <a href="./" class="nav-link">Slurm Log Parser</a>
-                            </li>
-                            <li class="navitem">
-                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
                             </li>
                             <li class="navitem">
                                 <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
@@ -65,7 +65,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../AcceleratorLogParser/" class="nav-link">
+                                <a rel="next" href="../JobAnalyzer/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -116,14 +116,14 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="slurm-log-parser">Slurm Log Parser</h1>
-<p>The <code>SlurmLogParser.py</code> script calls Slurm <code>sacct</code>, parses the job completion data, and generates a CSV file that can be used by <code>JobAnalyzer.py</code>.
+<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a> script calls Slurm <code>sacct</code>, parses the job completion data, and generates a CSV file that can be used by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a>.
 It has 2 modes of operation, online and offline.</p>
 <h2 id="online">Online</h2>
 <p>Online means the tool will call the <code>sacct</code> command directly, which requires the Linux machine running the tool to have <code>sacct</code> installed and configured as well as the permissions to access accounting records from all users.
 When running in this mode, the output of <code>sacct</code> will be stored to a CSV file defined by the <code>--sacct-output-file</code> parameter.</p>
 <h2 id="offline">Offline</h2>
 <p>If running this tool on a Linux machine not connected to the Slurm head-node, you can first extract the <code>sacct</code> output to a CSV file and then run the tool offline to analyze it.
-When running in this mode, the tool expects an existing file, defined by the <code>--sacct-input-file</code> argument, that contains the output of <code>saact</code>..</p>
+When running in this mode, the tool expects an existing file, defined by the <code>--sacct-input-file</code> argument, that contains the output of <code>saact</code>.</p>
 <p><strong>Note</strong>: You can't use both <code>--sacct-input-file</code> and <code>--sacct-output-file</code> together.</p>
 <h2 id="usage">Usage</h2>
 <pre><code>usage: SlurmLogParser.py [-h] [--slurm-root SLURM_ROOT]

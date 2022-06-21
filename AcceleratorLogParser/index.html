@@ -36,14 +36,14 @@
                             <li class="navitem">
                                 <a href=".." class="nav-link">HPC Cost Simulator</a>
                             </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Altair Accelerator Log Parsing</a>
+                            </li>
                             <li class="navitem">
                                 <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
                             </li>
                             <li class="navitem">
                                 <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
-                            </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Altair Accelerator Log Parsing</a>
                             </li>
                             <li class="navitem">
                                 <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
@@ -60,12 +60,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../SlurmLogParser/" class="nav-link">
+                                <a rel="prev" href=".." class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../JobAnalyzer/" class="nav-link">
+                                <a rel="next" href="../LSFLogParser/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -108,7 +108,7 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="altair-accelerator-log-parsing">Altair Accelerator Log Parsing</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a> script queries the Accelerator results database, parses the job completion datap, and saves it into a CSV file.</p>
+<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a> script queries the Accelerator results database, parses the job completion data, and saves it into a CSV file.</p>
 <h2 id="usage">Usage</h2>
 <pre><code>usage: AcceleratorLogParser.py [-h]
                                (--sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
