@@ -51,14 +51,12 @@ logger.propagate = False
 logger.setLevel(logging.INFO)
 
 class JobCost:
-    def __init__(self, job: SchedulerJobInfo, spot: bool, instance_family: str, instance_type: str, rate: float, compute_sp_rate: float, ec2_sp_rate: float):
+    def __init__(self, job: SchedulerJobInfo, spot: bool, instance_family: str, instance_type: str, rate: float):
         self.job = job
         self.spot = spot
         self.instance_family = instance_family
         self.instance_type = instance_type
         self.rate = rate
-        self.compute_sp_rate = compute_sp_rate
-        self.ec2_sp_rate = ec2_sp_rate
 
 class JobAnalyzer:
 
@@ -201,19 +199,13 @@ class JobAnalyzer:
             Args:
                 instance_types ([str]): List of instance types. E.g. ['m5.xlarge', 'c5.4xlarge']
             Returns:
-                (str, float, float, float): Tuple with instance type and on-demand rate, compute savings plan rate, and ec2 instance savings plan rate
+                (str, float): Tuple with instance type and on-demand rate
         '''
         if not self.instance_type_info:
             self.get_instance_type_info()
 
         min_price = 999999
         cheapest_instance_type = None
-        compute_sp_duration = self.config['consumption_model_mapping']['ec2_savings_plan_duration']
-        compute_sp_payment_option = self.config['consumption_model_mapping']['ec2_savings_plan_payment_option']
-        compute_sp_term = f"Compute SP {compute_sp_duration}yr {compute_sp_payment_option}"
-        ec2_sp_duration = self.config['consumption_model_mapping']['ec2_savings_plan_duration']
-        ec2_sp_payment_option = self.config['consumption_model_mapping']['ec2_savings_plan_payment_option']
-        ec2_sp_term = f"EC2 SP {ec2_sp_duration}yr {ec2_sp_payment_option}"
 
         for instance_type in instance_types:
             if spot:
@@ -223,9 +215,7 @@ class JobAnalyzer:
             if price < min_price:
                 min_price = price
                 cheapest_instance_type = instance_type
-                compute_sp_rate = self.instance_type_info[instance_type]['pricing']['ComputeSavingsPlan'].get(compute_sp_term, price)
-                ec2_sp_rate = self.instance_type_info[instance_type]['pricing']['EC2SavingsPlan'].get(ec2_sp_term, price)
-        return (cheapest_instance_type, min_price, compute_sp_rate, ec2_sp_rate)
+        return (cheapest_instance_type, min_price)
 
     def generate_collection_dict(self):
         '''
@@ -301,14 +291,14 @@ class JobAnalyzer:
             hourly_file_name = path.join(self._output_dir, f"hourly-{round_hour}.csv")
             with open(hourly_file_name, 'a+') as job_file:
                 if job_file.tell() == 0:    # Empty file - add headers
-                    job_file.write('start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Compute SP Rate,EC2 SP Rate,Total Cost\n')
+                    job_file.write('start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Total Cost\n')
                 for job_cost_data in jobs:
                     job = job_cost_data.job
                     runtime_minutes = round(job.run_time_td.total_seconds()/60, 4)
                     runtime_hours = runtime_minutes / 60
                     total_on_demand_cost = round(job.num_hosts * runtime_hours * job_cost_data.rate, 6)
                     wait_time_minutes = round(job.wait_time_td.total_seconds()/60, 4)
-                    job_file.write(f"{SchedulerJobInfo.datetime_to_str(job.start_time_dt)},{job.job_id},{job.num_hosts},{runtime_minutes},{job.max_mem_gb},{wait_time_minutes},{job_cost_data.instance_type},{job_cost_data.instance_family},{job_cost_data.spot},{job_cost_data.rate},{job_cost_data.compute_sp_rate},{job_cost_data.ec2_sp_rate},{total_on_demand_cost}\n")
+                    job_file.write(f"{SchedulerJobInfo.datetime_to_str(job.start_time_dt)},{job.job_id},{job.num_hosts},{runtime_minutes},{job.max_mem_gb},{wait_time_minutes},{job_cost_data.instance_type},{job_cost_data.instance_family},{job_cost_data.spot},{job_cost_data.rate},{total_on_demand_cost}\n")
         self._hourly_jobs_to_be_written = 0
         self.jobs_by_hours = {}
 
@@ -388,9 +378,7 @@ class JobAnalyzer:
             'on_demand': {
                 'total': 0.0,
                 'instance_families': {}
-            },
-            'compute_savings_plan': 0.0,
-            'ec2_savings_plan': {},
+            }
         }
 
     def _update_hourly_stats(self, round_hour: int, minutes_within_hour: float, core_hours: float, total_cost_per_hour: float, spot: bool, instance_family: str) -> None:
@@ -468,8 +456,6 @@ class JobAnalyzer:
                     instance_family = job_field_values['Instance Family']
                     spot_eligible = job_field_values['Spot'] == 'True'
                     on_demand_rate = float(job_field_values['Hourly Rate'])
-                    compute_sp_rate = float(job_field_values['Compute SP Rate'])
-                    ec2_sp_rate = float(job_field_values['EC2 SP Rate'])
                     total_on_demand_cost = job_field_values['Total Cost']
 
                     end_time = start_time + job_runtime_minutes * 60
@@ -534,7 +520,6 @@ class JobAnalyzer:
 
         hour_list = list(self.hourly_stats.keys())
         hour_list.sort()
-        logger.debug(f"hour_list: {hour_list}")
         number_of_hours = 0
         with open(hourly_stats_csv, 'w+') as hourly_stats_fh:
             # convert from absolute hour to relative one (obfuscation)
@@ -1174,9 +1159,9 @@ class JobAnalyzer:
         job_runtime_minutes = job.run_time_td.total_seconds()/60
         spot_threshold = self.config['consumption_model_mapping']['maximum_minutes_for_spot']
         spot = job_runtime_minutes < spot_threshold
-        (instance_type, rate, compute_sp_rate, ec2_sp_rate) = self.get_lowest_priced_instance(potential_instance_types, spot)
+        (instance_type, rate) = self.get_lowest_priced_instance(potential_instance_types, spot)
         instance_family = EC2InstanceTypeInfo.get_instance_family(instance_type)
-        job_cost_data = JobCost(job, spot, instance_family, instance_type, rate, compute_sp_rate, ec2_sp_rate)
+        job_cost_data = JobCost(job, spot, instance_family, instance_type, rate)
 
         if spot:
             purchase_option = 'spot'

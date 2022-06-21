@@ -160,13 +160,12 @@ class TestJobAnalyzer(unittest.TestCase):
         finish_time = start_time + run_time
         instance_type = 'r5.4xlarge'
         instance_family = instance_type.split('.')[0]
-        savingsPlanTerm = '1yr All Upfront'
-        job_dict = {'job_id': 107, 'tasks': 1, 'memory_GB': 65.0, 'instance_family': instance_family, 'instance_type': instance_type, 'instance_hourly_cost': jobAnalyzer.instance_type_info[instance_type]['pricing']['OnDemand'], 'ComputeSPRate': jobAnalyzer.instance_type_info[instance_type]['pricing']['ComputeSavingsPlan'][f"Compute SP {savingsPlanTerm}"], 'EC2SPRate': jobAnalyzer.instance_type_info[instance_type]['pricing']['EC2SavingsPlan'][f"EC2 SP {savingsPlanTerm}"], 'instance_count': 1}
+        job_dict = {'job_id': 107, 'tasks': 1, 'memory_GB': 65.0, 'instance_family': instance_family, 'instance_type': instance_type, 'instance_hourly_cost': jobAnalyzer.instance_type_info[instance_type]['pricing']['OnDemand'], 'instance_count': 1}
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=submit_time, start_time=start_time, finish_time=finish_time, wait_time=wait_time)
-        job_cost_data = JobCost(job, run_time/60<= 60, job_dict['instance_family'], job_dict['instance_type'], job_dict['instance_hourly_cost'], job_dict['ComputeSPRate'], job_dict['EC2SPRate'])
+        job_cost_data = JobCost(job, run_time/60<= 60, job_dict['instance_family'], job_dict['instance_type'], job_dict['instance_hourly_cost'])
 
         # Expected contents of hourly csv file
-        job_log = '2022-02-03T15:55:45,107,1,45.0,65.0,11.6667,r5.4xlarge,r5,True,1.128,0.763,0.663,0.846\n'
+        job_log = '2022-02-03T15:55:45,107,1,45.0,65.0,11.6667,r5.4xlarge,r5,True,1.128,0.846\n'
 
         batch_size = int(jobAnalyzer.config['consumption_model_mapping']['job_file_batch_size'])
         for i in range(1,batch_size):
@@ -292,18 +291,16 @@ class TestJobAnalyzer(unittest.TestCase):
 
         jobAnalyzer = self.get_jobAnalyzer()
 
-        (t1, price1, compute_sp_rate1, ec2_sp_rate1) = jobAnalyzer.get_lowest_priced_instance(['c5.large'], False)
-        (t2, price2, compute_sp_rate2, ec2_sp_rate2) = jobAnalyzer.get_lowest_priced_instance(['c5.xlarge'], False)
-        (t3, price3, compute_sp_rate3, ec2_sp_rate3) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge'], False)
+        (t1, price1) = jobAnalyzer.get_lowest_priced_instance(['c5.large'], False)
+        (t2, price2) = jobAnalyzer.get_lowest_priced_instance(['c5.xlarge'], False)
+        (t3, price3) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge'], False)
 
         self.assertAlmostEqual(price2/price1,2,0)
         self.assertAlmostEqual(price3/price2,2,0)
 
-        (instance_type, price, compute_sp_rate, ec2_sp_rate) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge', 'c5.large', 'c5.xlarge'], False)
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge', 'c5.large', 'c5.xlarge'], False)
         assert(instance_type == 'c5.large')
         assert(price == price1)
-        assert(compute_sp_rate == compute_sp_rate1)
-        assert(ec2_sp_rate == ec2_sp_rate1)
 
     def check_get_instance_by_spec(self, min_mem_gb: float, min_cores: int, min_freq: float, exp_instance_types: [str]):
         jobAnalyzer = self.get_jobAnalyzer()
@@ -557,11 +554,11 @@ class TestJobAnalyzer(unittest.TestCase):
         assert len(missing_exp_instance_families) == 0
         assert len(missing_act_instance_families) == 0
 
-        (instance_type1, price1, compute_sp_rate1, ec2_sp_rate1) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large'], False)
+        (instance_type1, price1) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large'], False)
         self.assertEqual(instance_type1,'c6i.large')
         self.assertGreater(price1, 0.0001)
 
-        (instance_type2, price2, compute_sp_rate2, ec2_sp_rate2) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], False)
+        (instance_type2, price2) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], False)
         self.assertTrue(instance_type2, 'c6i.8xlarge')
         self.assertGreater(price2, 0.9)
 
