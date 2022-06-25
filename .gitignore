@@ -1,9 +1,13 @@
 .DS_Store
 __pycache__
 output/*
+site/
 venv
 .venv/
+.vscode/
 /*.pickle
 .requirements_installed
 /docs-sphinx/output/
 instance_type_info.csv
+instance_type_info.*.csv
+instance_type_info.*.json

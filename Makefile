@@ -9,9 +9,16 @@ ZIPFILE := $(REPO).zip
 .PHONY: help tests clean_repo create_tarball
 
 help:
-	@echo -e "\nusage: make [ tests | .requirements_installed | clean_repo | create_tarball | zipfile ]"
+	@echo -e "\nusage: make [ tests | docs | gh-docs | .requirements_installed | clean_repo | create_tarball | zipfile ]"
+
 tests:
-	pwd; source ./setup.sh; pytest tests
+	pwd; source ./setup.sh; pytest -v tests
+
+docs:
+	mkdocs serve
+
+gh-docs:
+	mkdocs gh-deploy
 
 .requirements_installed: requirements.txt
 	pip install -r requirements.txt

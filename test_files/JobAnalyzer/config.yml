@@ -1,6 +1,7 @@
 version: 1
 
 instance_mapping:
+  region_name: eu-west-1
   range_minimum: 0
   range_maximum: 1000000
   ram_ranges_GB:          # Changing this default value will requiring updating test_add_job_to_collector
@@ -21,8 +22,6 @@ instance_mapping:
     - 60
     - 240
     - 1440
-  region_name: eu-west-1
-  pricing_api_region_name: us-east-1
   instance_prefix_list: # to allow all instances leave the list with only 1 value of a blank string
     - c6i # (9)
     - m5. # (8) adding a dot to block AMD instances by default
@@ -35,3 +34,7 @@ consumption_model_mapping:
   minimum_cpu_speed:  3                   # For schedulers that do not report the CPU speed - allows setting a mimimum. set to 0 to include all instances
   maximum_minutes_for_spot: 60
   job_file_batch_size: 1000               # number of successful job records processed to collect before writing them to the job log file
+  ec2_savings_plan_duration: 3
+  ec2_savings_plan_payment_option: 'All Upfront'
+  compute_savings_plan_duration: 3
+  compute_savings_plan_payment_option: 'All Upfront'

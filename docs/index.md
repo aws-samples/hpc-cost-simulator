@@ -1,4 +1,4 @@
-# Scheduler Log Analyzer
+# HPC Cost Simulator
 
 This tool analyzes the jobs that have been run on compute clusters managed by the IBM LSF, SchedMD Slurm, and Altair Accelerator schedulers and simulates the hourly cost of running the jobs on AWS.
 The AWS Cloud Economics team can use this data to build a commercial proposal to optimize the cost using Saving Plans and Reserved Instances.
@@ -17,7 +17,7 @@ The second step is processing the job data and simulating the cost of running th
 * sudo access to install any required tools
 
 A bash setup script is provided to install the required yum packages, create a Python virtual environment with all required Python packages, and activate the virtual environment.
-The pip packages and versions are listed in `requirements.txt`.
+The pip packages and versions are listed in [requirements.txt](https://github.com/aws-samples/hpc-cost-simulator/blob/main/requirements.txt).
 The setup script must be sourced, not executed, to set up the environment to run the tool.
 
 ```
@@ -26,13 +26,13 @@ source setup.sh
 
 ### Instance Type Information
 
-The tool requires a list of available instance types in the region and their prices that is stored in `instance_type_info.json`.
+The tool requires a list of available instance types in the region and their prices that is stored in [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json).
 The version that comes with the tool has the data for all regions that was complete when it was generated.
 This is provided for convenience so that the customer can run the tool without an AWS account or IAM permissions.
 
 **NOTE**: Since available instance types and prices change over time this file should be updated before before being used.
 
-The `get_instance_type_info.py` script can be used to update `instance_type_info.json`.
+The [get_instance_type_info.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/EC2InstanceTypeInfoPkg/get_ec2_instance_info.py) script can be used to update [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json).
 It requires the following IAM permissions.
 
 ```
@@ -74,18 +74,23 @@ get_ec2_instance_info.py --input instance_type_info.json
 
 ## Job Parsing
 
-The scheduler parsers parse the scheduler-specific job completion dasta and saves it to a common CSV format.
+The scheduler parsers parse the scheduler-specific job completion data and saves it to a common CSV format.
 The parsers are scheduler specific Python scripts.
 
-* AcceleratorLogParser.py
-* LSFLogParser.py
-* SlurmLogParser.py
+* [AcceleratorLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py)
+* [LSFLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py)
+* [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py)
 
 Parsing can take several hours to complete and we recommend testing on a small subset of the accounting records before running on the entire dataset.
 
 ## Job Analysis
 
-After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files: `summary.csv` and `hourly_stats.csv`.
+After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files.
+
+* `summary.csv`
+* `summary_stats.csv`
+* `hourly_stats.csv`
+* `hourly_stats.xlsx`
 
 The job analyzer can call the parser, however, parsing is the longest step so it is recommended that it be run separately from the job analyzer.
 The parser output is a CSV file that can be used as the input to the job analyzer.
@@ -116,7 +121,8 @@ In this (Real custoemr) example, over 95% of the jobs were not memory intensive 
 
 ### hourly_stats.csv
 
-Provides an hour-by-hour cost simulation broken down by
+Provides an hour-by-hour cost simulation broken down by spot and on-demand costs.
+
 |Relative Hour       |Total OnDemand Costs|Total Spot Cost     |m5                  |r5                  |
 |--------------------|--------------------|--------------------|--------------------|--------------------|
 |0                   |8.93                |0.00                |8.93                |0.00                |

@@ -158,7 +158,9 @@ class TestJobAnalyzer(unittest.TestCase):
         submit_time = start_time - wait_time
         run_time = 45 * 60
         finish_time = start_time + run_time
-        job_dict = {'job_id': 107, 'tasks': 1, 'memory_GB': 65.0, 'instance_family': 'r5', 'instance_type': 'r5.4xlarge', 'instance_hourly_cost': 1.128, 'instance_count': 1}
+        instance_type = 'r5.4xlarge'
+        instance_family = instance_type.split('.')[0]
+        job_dict = {'job_id': 107, 'tasks': 1, 'memory_GB': 65.0, 'instance_family': instance_family, 'instance_type': instance_type, 'instance_hourly_cost': jobAnalyzer.instance_type_info[instance_type]['pricing']['OnDemand'], 'instance_count': 1}
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=submit_time, start_time=start_time, finish_time=finish_time, wait_time=wait_time)
         job_cost_data = JobCost(job, run_time/60<= 60, job_dict['instance_family'], job_dict['instance_type'], job_dict['instance_hourly_cost'])
 
@@ -185,7 +187,7 @@ class TestJobAnalyzer(unittest.TestCase):
     def test_missing_parser(self):
         self.cleanup_output_files()
         with pytest.raises(CalledProcessError) as excinfo:
-            output = check_output(['./JobAnalyzer.py', '--output-dir', 'output'], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--output-dir', 'output'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('The following arguments are required: parser' in excinfo.value.output)
@@ -297,13 +299,13 @@ class TestJobAnalyzer(unittest.TestCase):
         self.assertAlmostEqual(price3/price2,2,0)
 
         (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge', 'c5.large', 'c5.xlarge'], False)
-        assert(instance_type, 'c5.large')
+        assert(instance_type == 'c5.large')
         assert(price == price1)
 
     def check_get_instance_by_spec(self, min_mem_gb: float, min_cores: int, min_freq: float, exp_instance_types: [str]):
         jobAnalyzer = self.get_jobAnalyzer()
 
-        instance_type_info = jobAnalyzer.instance_type_info.instance_type_info[self.region]
+        instance_type_info = jobAnalyzer.instance_type_info
 
         print(f"min_mem_gb: {min_mem_gb}")
         print(f"min_cores:  {min_cores}")
@@ -683,7 +685,7 @@ class TestJobAnalyzer(unittest.TestCase):
         for act_csv_file in exp_csv_files:
             assert(act_csv_file in exp_csv_files)
         for csv_file in exp_csv_files:
-            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
         self._restore_credentials()
 
