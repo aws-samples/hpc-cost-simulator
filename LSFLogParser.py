@@ -127,14 +127,31 @@ class LSFLogParser(SchedulerLogParser):
             if record['record_type'] != 'JOB_FINISH':
                 logger.debug(f"Skipping {record['record_type']} record type")
                 continue
+            if record['startTime'] == 0 and record['runTime'] == 0:
+                continue
 
-            num_hosts = max(record.get('numExHosts', record['numAskedHosts']), 1)
+            # Get num_hosts
+            # This must be set before calculating max_mem_gb because need to know number of hosts first.
+            # Get span from effectiveResReq. Example: span[hosts=1]
+            span_hosts = None
+            logger.debug(f"Effective resource request: {record['effectiveResReq']}")
+            match = re.search(r'span\[([^]]*)\]', record['effectiveResReq'])
+            if match:
+                span = match.groups(0)[0]
+                logger.debug(f"span: {span}")
+                match = re.search(r'hosts=(\d+)', span)
+                if match:
+                    num_hosts = match.groups(0)[0]
+                    logger.debug(f"span_hosts: {span_hosts}")
+            # If span not set then slots can be spread across different hosts, but for the number of cores doesn't change.
+            # So for cost calculation just leave num_hosts == 1.
+            num_hosts = 1
             logger.debug(f"num_hosts: {num_hosts}")
 
+            # Calculate max_mem_gb.
+            # If found in resource request use that. Otherwise, use the max of the actual usage or default max mem gb
             max_mem_gb = None
-            logger.debug(f"Effective resource request: {record['effectiveResReq']}")
             match = re.search(r'rusage\[([^\]]*)\]', record['effectiveResReq'])
-            (record['maxRMem'] * MEM_KB) / MEM_GB
             if match:
                 rusage = match.groups(0)[0]
                 logger.debug(f"rusage: {rusage}")
@@ -150,6 +167,7 @@ class LSFLogParser(SchedulerLogParser):
             if not max_mem_gb:
                 max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb * num_hosts)
             logger.debug(f"max_mem_gb: {max_mem_gb}")
+
             job = SchedulerJobInfo(
                 job_id = record['jobId'],
                 resource_request = record['effectiveResReq'],
@@ -228,7 +246,10 @@ class LSFLogParser(SchedulerLogParser):
             logger.debug(f"Record type: {record_type} {len(fields)} fields")
             if record_type not in record_format:
                 raise ValueError(f"Invalid record type: {record_type}")
-            record = {}
+            record = {
+                'numExHosts': 0,
+                'execHosts': {}
+            }
             record['record_type'] = record_type
 
             if not(record_format[record_type] or record_format[record_type]['fields']):
@@ -327,11 +348,11 @@ class LSFLogParser(SchedulerLogParser):
                             logger.debug(f"    askedHost[{idx}]={askedHost}")
                             record['askedHosts'].append(askedHost)
                     elif field_name == 'numExHosts':
-                        record['execHosts'] = []
+                        record['execHosts'] = {}
                         for idx in range(0, field):
                             execHost = fields.pop(0)
                             logger.debug(f"    execHost[{idx}]={execHost}")
-                            record['execHosts'].append(execHost)
+                            record['execHosts'][execHost] = record['execHosts'].get(execHost, 0) + 1
                     elif field_name == 'Num':
                         record['submitEXT'] = {}
                         for idx in range(0, field):
@@ -432,11 +453,11 @@ class LSFLogParser(SchedulerLogParser):
                             record['reserHosts'].append(reserHost)
                 elif record_type == 'JOB_START':
                     if field_name == 'numExHosts':
-                        record['execHosts'] = []
+                        record['execHosts'] = {}
                         for idx in range(0, field):
                             execHost = fields.pop(0)
                             logger.debug(f"        execHosts[{idx}]={execHost}")
-                            record['execHosts'].append(execHost)
+                            record['execHosts'][execHost] = record['execHosts'].get(execHost, 0) + 1
         except IndexError:
             if field_name not in ['ineligiblePendTime', 'indexRangeCnt', 'requeueTime', 'numGPURusages', 'storageInfoC', 'numKVP']:
                 raise ValueError(f"Not enough fields to get value for {field_name}.")

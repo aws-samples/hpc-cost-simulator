@@ -1,0 +1,2 @@
+job_id,num_cores,max_mem_gb,num_hosts,submit_time,start_time,finish_time,resource_request,ineligible_pend_time,eligible_time,requeue_time,wait_time,run_time,exit_status,ru_inblock,ru_majflt,ru_maxrss,ru_minflt,ru_msgrcv,ru_msgsnd,ru_nswap,ru_oublock,ru_stime,ru_utime
+905984,16,47.56388473510742,1,2022-06-24T12:15:37,2022-06-24T12:15:44,2022-06-27T07:00:51,select[type == local] order[r15s:pg] rusage[Virtuoso_Multi_mode_Simulation=9.00:duration=1m:decay=0] span[hosts=1] ,0:00:00,2022-06-24T12:15:37,0:00:00,0:00:07,02-18:45:07,33280,8,0,5316,2322,0,0,0,0,0:01:03.733297,7:30:48
