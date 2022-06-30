@@ -370,8 +370,8 @@ class TestLSFLogParser:
         This turned out to be handling of numExHosts
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/9'
-        output_dir = 'output/LSFLogParser/issues/9'
+        test_files_dir = 'test_files/LSFLogParser/issues/gl-9'
+        output_dir = 'output/LSFLogParser/issues/gl-9'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
             check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
@@ -384,13 +384,13 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_issue_16(self):
+    def test_main_issue_gl_16(self):
         '''
-        Test for issue 16
+        Test for issue gitlab 16
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/16'
-        output_dir = 'output/LSFLogParser/issues/16'
+        test_files_dir = 'test_files/LSFLogParser/issues/gl-16'
+        output_dir = 'output/LSFLogParser/issues/gl-16'
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
@@ -404,13 +404,13 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_issue_19(self):
+    def test_main_issue_gl_19(self):
         '''
-        Test for issue 19
+        Test for gitlab issue 19
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/19'
-        output_dir = 'output/LSFLogParser/issues/19'
+        test_files_dir = 'test_files/LSFLogParser/issues/gl-19'
+        output_dir = 'output/LSFLogParser/issues/gl-19'
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         with pytest.raises(CalledProcessError) as excinfo:
@@ -424,13 +424,13 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_issue_22(self):
+    def test_main_issue_gl_22(self):
         '''
-        Test for issue 22
+        Test for gitlab issue 22
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/22'
-        output_dir = 'output/LSFLogParser/issues/22'
+        test_files_dir = 'test_files/LSFLogParser/issues/gl-22'
+        output_dir = 'output/LSFLogParser/issues/gl-22'
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
@@ -444,12 +444,12 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_issue_26(self):
+    def test_main_issue_gl_26(self):
         '''
-        Test for issue 26
+        Test for gitlab issue 26
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/26'
+        test_files_dir = 'test_files/LSFLogParser/issues/gl-26'
         output_dir = 'output/LSFLogParser/issues/26'
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
@@ -464,13 +464,13 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_issue_gh_18(self):
+    def test_main_issue_18(self):
         '''
         Test for github issue 18
         '''
         self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/issues/gh-18'
-        output_dir = 'output/LSFLogParser/issues/gh-18'
+        test_files_dir = 'test_files/LSFLogParser/issues/18'
+        output_dir = 'output/LSFLogParser/issues/18'
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
