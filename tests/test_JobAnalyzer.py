@@ -7,8 +7,9 @@ SPDX-License-Identifier: MIT-0
 
 from CSVLogParser import CSVLogParser
 import filecmp
-from JobAnalyzer import JobAnalyzer, JobCost
+from JobAnalyzer import JobAnalyzer, JobCost, logger as JobAnalyzer_logger
 import json
+import logging
 from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 import os
 from os import environ, getenv, listdir, path, system
@@ -235,7 +236,9 @@ class TestJobAnalyzer(unittest.TestCase):
                 self.assertEqual(jobs[key][value]['total_duration_minutes'], 0)
                 self.assertEqual(jobs[key][value]['total_wait_minutes'], 0)
 
-        # Fill collected with jobs and test results
+        JobAnalyzer_logger.setLevel(logging.DEBUG)
+
+        # Fill collector with jobs and test results
         submit_time = 0
         start_time = 2*60
         wait_time = start_time - submit_time
@@ -254,32 +257,33 @@ class TestJobAnalyzer(unittest.TestCase):
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60) + int(job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
         jobAnalyzer._add_job_to_collector(job)
         try:
-            self.assertEqual(jobs['0-1']['1-5']['number_of_jobs'], 4)
-            self.assertAlmostEqual(jobs['0-1']['1-5']['total_duration_minutes'], 16.5, 1)
-            self.assertAlmostEqual(jobs['0-1']['1-5']['total_wait_minutes'], 9.5, 1)
+            self.assertEqual(jobs['0-1']['1-5']['number_of_jobs'], 2)
+            self.assertAlmostEqual(jobs['0-1']['1-5']['total_duration_minutes'], 7.5, 1)
+            self.assertAlmostEqual(jobs['0-1']['1-5']['total_wait_minutes'], 4.5, 1)
         except:
             print(json.dumps(jobs, indent=4))
             raise
 
-        job_dict = {'job_id':3, 'tasks': 3, 'memory_GB': 2, 'wait_time_minutes': 2.1, 'runtime_minutes': 4.1, 'instance_count': 1}
+        job_dict = {'job_id':3, 'tasks': 3, 'memory_GB': 6, 'wait_time_minutes': 2.1, 'runtime_minutes': 4.1, 'instance_count': 1}
+        mem_per_instance = job_dict['memory_GB']/job_dict['tasks']
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60 + job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
-        print(f"{job.job_id} run_time={job.run_time}")
+        print(f"job {job.job_id} run_time={job.run_time}")
         jobAnalyzer._add_job_to_collector(job)
         try:
-            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 3)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 12.3, 1)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 6.3, 1)
+            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 1)
+            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 4.1, 1)
+            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 2.1, 1)
         except:
-            #print(json.dumps(jobs, indent=4))
+            print(json.dumps(jobs, indent=4))
             raise
 
-        job_dict = {'job_id':4, 'tasks': 5, 'memory_GB': 1.8, 'wait_time_minutes': 0.3, 'runtime_minutes': 3.2, 'instance_count': 1}
+        job_dict = {'job_id':4, 'tasks': 5, 'memory_GB': 9.0, 'wait_time_minutes': 0.3, 'runtime_minutes': 3.2, 'instance_count': 1}
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60) + int(job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
         jobAnalyzer._add_job_to_collector(job)
         try:
-            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 8)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 28.3, 1)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 7.8, 1)
+            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 2)
+            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 7.3, 1)
+            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 2.4, 1)
         except:
             print(json.dumps(jobs, indent=4))
             raise
@@ -808,14 +812,84 @@ class TestJobAnalyzer(unittest.TestCase):
 
     order += 1
     @pytest.mark.order(order)
-    def test_from_slurm_sacct_file(self):
+    def test_from_slurm_sacct_file_multi_node(self):
+        self._remove_credentials()
+
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        sacct_input_file = 'test_files/SlurmLogParser/multi-node/sacct-output.txt'
+        output_dir = 'output/JobAnalyzer/slurm/multi-node'
+        exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/multi-node'
+        # Put this in a try block so that can print the output if an unexpected exception occurs.
+        try:
+            output = check_output(['./JobAnalyzer.py', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_from_slurm_sacct_file_array(self):
+        # Make sure can run w/o credentials
+        self._remove_credentials()
+
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        sacct_input_file = 'test_files/SlurmLogParser/array/sacct-output.txt'
+        output_dir = 'output/JobAnalyzer/slurm/array'
+        exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/array'
+        # Put this in a try block so that can print the output if an unexpected exception occurs.
+        try:
+            output = check_output(['./JobAnalyzer.py', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_from_slurm_sacct_file_long(self):
         self._remove_credentials()
 
         self._use_static_instance_type_info()
 
         self.cleanup_output_files()
         sacct_input_file = 'test_files/SlurmLogParser/sacct-output.txt'
-        output_dir = 'output/JobAnalyzer/slurm'
+        output_dir = 'output/JobAnalyzer/slurm/long'
+        exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/long'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
             output = check_output(['./JobAnalyzer.py', '--output-dir', output_dir, 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
@@ -824,7 +898,6 @@ class TestJobAnalyzer(unittest.TestCase):
             raise
         print(f"output:\n{output}")
 
-        exp_csv_files_dir = 'test_files/JobAnalyzer/slurm'
         exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
         act_csv_files = self._get_hourly_files(output_dir)
         for exp_csv_file in exp_csv_files:

@@ -85,8 +85,8 @@ class SchedulerJobInfo:
 
         Args:
             job_id (int): Unique Job Id
-            num_cores (int): Number of cores requested for the job
-            max_mem_gb (float): Amount of memory requested by the job
+            num_cores (int): Number of cores requested for the job. This is the total number across all hosts/nodes.
+            max_mem_gb (float): Amount of memory requested by the job. This is the total number across all hosts/nodes.
             num_hosts (int): Number of compute nodes requested by the job
             submit_time (str): Date and time that the job was submitted.
             start_time (str): Date and time that the job started on the compute node
@@ -150,7 +150,7 @@ class SchedulerJobInfo:
 
         if not self.ineligible_pend_time:
             if self.eligible_time:
-                self.ineligible_pend_time_td = self.start_time_dt - self.eligible_time_dt
+                self.ineligible_pend_time_td = self.eligible_time_dt - self.submit_time_dt
                 self.ineligible_pend_time = SchedulerJobInfo.timedelta_to_string(self.ineligible_pend_time_td)
             else:
                 (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration("00:00")
