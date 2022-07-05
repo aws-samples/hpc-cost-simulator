@@ -36,7 +36,7 @@ class TestJobAnalyzer(unittest.TestCase):
 
     OUTPUT_DIR = path.join(REPO_DIR, 'output/JobAnalyzer')
 
-    INSTANCE_NAME_PATTERN = '\w\d\w*\.\d{0,2}\w+'
+    INSTANCE_NAME_PATTERN = r'\w\d\w*\.\d{0,2}\w+'
 
     INPUT_CSV = path.join(REPO_DIR, 'test_files/LSFLogParser/exp_jobs.csv')
 
@@ -866,6 +866,60 @@ class TestJobAnalyzer(unittest.TestCase):
             raise
 
         self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_13_no_instance_types_found(self):
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        test_files_dir = 'test_files/JobAnalyzer/issues/13'
+        config_file = path.join(test_files_dir, 'config-eu-west-1.yml')
+        input_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        output_dir = 'output/JobAnalyzer/issues/13'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = input_csv
+        with pytest.raises(CalledProcessError) as excinfo:
+            check_output(['./JobAnalyzer.py', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        print(excinfo.value)
+        print(excinfo.value.output)
+        assert('No instance types selected by instance_mapping' in excinfo.value.output)
+        assert(excinfo.value.returncode == 2)
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_13_no_spot_pricing(self):
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        test_files_dir = 'test_files/JobAnalyzer/issues/13'
+        config_file = path.join(test_files_dir, 'config-us-east-2.yml')
+        input_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        output_dir = 'output/JobAnalyzer/issues/13'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = input_csv
+        try:
+            output = check_output(['./JobAnalyzer.py', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
+
+        exp_csv_files_dir = 'test_files/JobAnalyzer/issues/13'
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
     @pytest.mark.order(-3)
     def test_get_instances(self):
