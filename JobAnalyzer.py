@@ -120,6 +120,10 @@ class JobAnalyzer:
         except Exception as e:
             logger.error(f"{config_filename} has errors\n{e}")
             exit(1)
+
+        # Print out configuration information
+        logger.info(f"""Configuration:
+        {json.dumps(config, indent=4)}""")
         return validated_config
 
     def get_ranges(self, range_array):
@@ -161,6 +165,10 @@ class JobAnalyzer:
                     self.instance_types[instance_type] = 1
                     break
         self.instance_types = sorted(self.instance_types.keys())
+        if not self.instance_types:
+            logger.error(f"No instance types selected by instance_mapping['instance_prefix_list'] in {self._config_filename}")
+            exit(2)
+        logger.info(f"{len(self.instance_types)} instance types selected: {self.instance_types}")
 
     def get_instance_by_spec(self, required_ram_GiB: float, required_cores: int, required_speed: float=0):
         '''
@@ -209,7 +217,10 @@ class JobAnalyzer:
 
         for instance_type in instance_types:
             if spot:
-                price = self.instance_type_info[instance_type]['pricing']['spot']['max']
+                try:
+                    price = self.instance_type_info[instance_type]['pricing']['spot']['max']
+                except KeyError:
+                    continue
             else:
                 price = self.instance_type_info[instance_type]['pricing']['OnDemand']
             if price < min_price:
@@ -1160,6 +1171,13 @@ class JobAnalyzer:
         spot_threshold = self.config['consumption_model_mapping']['maximum_minutes_for_spot']
         spot = job_runtime_minutes < spot_threshold
         (instance_type, rate) = self.get_lowest_priced_instance(potential_instance_types, spot)
+        if spot:
+            (on_demand_instance_type, on_demand_rate) = self.get_lowest_priced_instance(potential_instance_types, spot=False)
+            if not instance_type or (on_demand_rate < rate):
+                # No spot pricing available. Get lowest cost on-demand instance type
+                spot = False
+                instance_type = on_demand_instance_type
+                rate = on_demand_rate
         instance_family = EC2InstanceTypeInfo.get_instance_family(instance_type)
         job_cost_data = JobCost(job, spot, instance_family, instance_type, rate)
 
