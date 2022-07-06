@@ -394,11 +394,12 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '--debug'], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
             raise
+        print(f"output:\n{output}")
         assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
     order += 1

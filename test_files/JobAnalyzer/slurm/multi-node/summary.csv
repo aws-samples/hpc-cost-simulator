@@ -3,10 +3,10 @@ Note: All memory sizes are in GB, all times are in MINUTES (not hours)
                 
 MemorySize,0-1 Minutes,<--,<--,1-5 Minutes,<--,<--,5-20 Minutes,<--,<--,20-60 Minutes,<--,<--,60-240 Minutes,<--,<--,240-1440 Minutes,<--,<--,1440-1000000 Minutes,<--,<--,
 ,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,Job count,Total duration,Total wait time,
-0-1GB,61,5.5,23.900000000000013,19,55.16666666666666,20.8,5,38.38333333333333,26.516666666666666,0,0,0,0,0,0,0,0,0,0,0,0,
-1-2GB,2,0.9666666666666667,0.0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0-1GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1-2GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 2-4GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-4-8GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+4-8GB,0,0,0,0,0,0,1,5.016666666666667,1.7166666666666666,0,0,0,0,0,0,0,0,0,0,0,0,
 8-16GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 16-32GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 32-64GB,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

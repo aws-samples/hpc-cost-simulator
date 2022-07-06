@@ -4,6 +4,7 @@ Parse Slurm logfiles out write job information to a csv file.
 '''
 
 import argparse
+import json
 import logging
 from MemoryUtils import mem_string_to_float, mem_string_to_int, MEM_GB
 from os import environ, makedirs, path, remove
@@ -64,11 +65,11 @@ class SlurmLogParser(SchedulerLogParser):
 
     SLURM_ACCT_FIELDS = [
         ('State', 's'),           # Displays the job status, or state. Put this first so can skip ignored states.
-        ('JobID', 's'),     # The identification number of the job or job step
+        ('JobID', 's'),       # The identification number of the job or job step
         # Job properties
-        ('ReqCPUS', 'd'),  # Number of requested CPUs
-        ('ReqMem', 'd'),   # Minimum required memory for the job
-        ('ReqNodes', 'd'), # Requested minimum Node count for the job/step
+        ('ReqCPUS', 'd'),     # Number of requested CPUs
+        ('ReqMem', 'sd'),     # Minimum required memory for the job in bytes
+        ('ReqNodes', 'd'),    # Requested minimum Node count for the job/step
         ('Constraints', 's'), #
         # Times
         ('Submit', 'dt'),    # The time the job was submitted. NOTE: If a job is requeued, the submit time is reset. This is handled by not overwriting fields with the batch step.
@@ -84,15 +85,15 @@ class SlurmLogParser(SchedulerLogParser):
         ('AllocNodes', 'd'), # Number of nodes allocated to the job/step
         ('NCPUS', 'd'),      # Total number of CPUs allocated to the job. Equivalent to AllocCPUS
 
-        ('MaxDiskRead', 'd'),  # Maximum number of bytes read by all tasks in job')
-        ('MaxDiskWrite', 'd'), # Maximum number of bytes written by all tasks in job
-        ('MaxPages', 'd'),     # Maximum number of page faults of all tasks in job
-        ('MaxRSS', 'd'),       # Maximum resident set size of all tasks in job
-        ('MaxVMSize', 'd'),    # Maximum Virtual Memory size of all tasks in job
-        ('CPUTime', 'td'),     # Time used (Elapsed time * CPU count) by a job or step in HH:MM:SS format
-        ('UserCPU', 'td'),     # The amount of user CPU time used by the job or job step. Format is the same as Elapsed
-        ('SystemCPU', 'td'),   # The amount of system CPU time used by the job or job step. Format is the same as Elapsed
-        ('TotalCPU', 'td'),    # The sum of the SystemCPU and UserCPU time used by the job or job step
+        ('MaxDiskRead', 'sd'),  # Maximum number of bytes read by all tasks in job')
+        ('MaxDiskWrite', 'sd'), # Maximum number of bytes written by all tasks in job
+        ('MaxPages', 'd'),      # Maximum number of page faults of all tasks in job
+        ('MaxRSS', 'd'),        # Maximum resident set size of all tasks in job
+        ('MaxVMSize', 'd'),     # Maximum Virtual Memory size of all tasks in job
+        ('CPUTime', 'td'),      # Time used (Elapsed time * CPU count) by a job or step in HH:MM:SS format
+        ('UserCPU', 'td'),      # The amount of user CPU time used by the job or job step. Format is the same as Elapsed
+        ('SystemCPU', 'td'),    # The amount of system CPU time used by the job or job step. Format is the same as Elapsed
+        ('TotalCPU', 'td'),     # The sum of the SystemCPU and UserCPU time used by the job or job step
     ]
 
     SLURM_STATE_CODES = [
@@ -122,21 +123,23 @@ class SlurmLogParser(SchedulerLogParser):
         'REVOKED',
     ]
 
-    def parse_jobs(self) -> None:
+    def parse_jobs(self) -> bool:
         '''
         Parse all the jobs from the Slurm sacct command.
 
         Returns:
-            None
+            bool: Return True if no errors
         '''
         self._parsed_lines = []
         self.errors = []
         job = True
         while job:
             job = self.parse_job()
+        logger.info(f"Parsed {self.num_output_jobs()} jobs")
         if self.errors:
             logger.error(f"{len(self.errors)} errors while parsing jobs")
-        logger.info(f"Parsed {self.num_output_jobs()} jobs")
+            return False
+        return True
 
     def parse_job(self):
         '''
@@ -214,10 +217,10 @@ class SlurmLogParser(SchedulerLogParser):
         '''
         line = line.lstrip().rstrip()
         logger.debug(f"line {self._line_number}: '{line}'")
-        if re.match(f'^\s*$', line):
+        if re.match(r'^\s*$', line):
             logger.debug("    Skipping blank line")
             return None
-        if re.match(f'^\s*#', line):
+        if re.match(r'^\s*#', line):
             logger.debug("    Skipping comment line")
             return None
         fields = line.split('|')
@@ -229,10 +232,13 @@ class SlurmLogParser(SchedulerLogParser):
                 field_name = field_tuple[0]
                 field_format = field_tuple[1]
                 field_value = fields.pop(0)
+                req_mem_suffix = None
                 if field_value:
                     try:
                         if field_format == 'd':
                             field_value = mem_string_to_int(field_value)
+                        elif field_format == 'sd':
+                            (field_value, req_mem_suffix) = self._slurm_mem_string_to_int(field_value)
                         elif field_format == 'f':
                             field_value = mem_string_to_float(field_value)
                         elif field_format == 'dt':
@@ -246,6 +252,9 @@ class SlurmLogParser(SchedulerLogParser):
                         else:
                             raise ValueError(f"Invalid format of {field_format} for field {field_name}")
                     except ValueError as e:
+                        if field_name == 'Start' and job_fields['State'] == 'CANCELLED':
+                            # Ignore cancelled jobs that didn't start
+                            return None
                         field_errors += 1
                         msg = f"Unable to convert field {field_name} to format {field_format}: {field_value}: {e}\n{line}"
                         logger.error(f"{self._sacct_input_file}, line {self._line_number}: {msg}")
@@ -267,8 +276,30 @@ class SlurmLogParser(SchedulerLogParser):
         if 'JobID' not in job_fields:
             return None
         job_fields['JobID'] = job_fields['JobID'].replace('.batch', '')
+        job_fields['JobID'] = job_fields['JobID'].replace('.extern', '')
+        match = re.match(r'(\d+)\.(.+)$', job_fields['JobID'])
+        if match:
+            job_fields['JobID'] = match.group(1)
+            suffix = match.group(2)
+            if not re.match(r'\d+$', suffix):
+                logger.warning(f"Unknown job step suffix for job {job_fields['JobID']}: {suffix}")
+            job_fields['JobID'] = job_fields['JobID'].replace(f'.{suffix}', '')
         job_id = job_fields['JobID']
         logger.debug(f"    job_id: {job_id}")
+
+        # NCPUS and ReqMem are for the entire job. For a multi-node job this means the per node value must be divided by the number of nodes (AllocNodes).
+        if job_fields['AllocNodes'] == 0:
+            job_fields['AllocNodes'] = 1
+        if req_mem_suffix:
+            if req_mem_suffix == 'n':
+                job_fields['ReqMem'] *= job_fields['AllocNodes']
+            if req_mem_suffix == 'c' and (job_fields['NCPUS'] > 1):
+                job_fields['ReqMem'] *= job_fields['NCPUS']
+
+        if job_fields['ReqMem'] == 0 and job_fields['MaxRSS']:
+            logger.debug(f"No memory request for job {job_fields['JobID']} so using MaxRSS")
+            job_fields['ReqMem'] = round(job_fields['MaxRSS'] * job_fields['AllocNodes'] * 1.10)
+
         return (job_id, job_fields, self._line_number, field_errors)
 
     def _process_parsed_lines(self):
@@ -288,6 +319,7 @@ class SlurmLogParser(SchedulerLogParser):
             return None
 
         (job_id, job_fields, first_line_number, field_errors) = self._parsed_lines.pop(0)
+        last_line_number = first_line_number
         logger.debug(f"Assembling job {job_id}")
         while self._parsed_lines and self._parsed_lines[0][0] == job_id:
             # Update fields. Don't overwrite with .update or else blank fields will overwrite non-blank fields.
@@ -298,7 +330,7 @@ class SlurmLogParser(SchedulerLogParser):
                 field_name = field_tuple[0]
                 if next_job_fields.get(field_name, None) and not job_fields.get(field_name, None):
                     job_fields[field_name] = next_job_fields[field_name]
-        logger.debug(f"    Merged job fields: {job_fields}")
+        logger.debug(f"    Merged job fields:\n{json.dumps(job_fields, indent=4)}")
 
         if field_errors:
             return None
@@ -341,12 +373,15 @@ class SlurmLogParser(SchedulerLogParser):
         Returns:
             SchedulerJobInfo: Parsed job info
         '''
+        logger.debug(f"_create_job_from_job_fields({job_fields})")
+        if job_fields['AllocNodes'] == 0:
+            job_fields['AllocNodes'] = 1
         job = SchedulerJobInfo(
             job_id = job_fields['JobID'],
             resource_request = job_fields['Constraints'],
-            num_cores = job_fields['ReqCPUS'],
+            num_cores = job_fields['NCPUS'],
             max_mem_gb = job_fields['ReqMem']/MEM_GB,
-            num_hosts = job_fields['ReqNodes'],
+            num_hosts = job_fields['AllocNodes'],
 
             submit_time = job_fields['Submit'],
             eligible_time = job_fields['Eligible'],
@@ -376,6 +411,25 @@ class SlurmLogParser(SchedulerLogParser):
         if not self._sacct_input_file:
             # Delete the tmp file
             remove(self._sacct_output_file)
+
+    @staticmethod
+    def _slurm_mem_string_to_int(string_value: str) -> float:
+        '''
+        Slurm can add a 'c' or 'n' at the end of the ReqMem field to indicate if the memory request is per node or per core.
+        For per core requests then the request must be multiplied by the number of cores.
+
+        Args:
+            string_value (str): String value
+        Returns:
+            (float, str): Tuple with the memory value as bytes and a 'c' or 'n' to indicate if the value is per node or per core.
+        '''
+        if string_value[-1] in ['c', 'n']:
+            suffix = string_value[-1]
+            string_value = string_value[0:-1]
+        else:
+            suffix = ''
+        value = mem_string_to_int(string_value)
+        return (value, suffix)
 
 def main():
     parser = argparse.ArgumentParser(description="Parse Slurm logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -420,7 +474,8 @@ def main():
             exit(1)
         logger.info(f"Slurm job data will be written to {args.sacct_output_file}")
     slurmLogParser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
-    slurmLogParser.parse_jobs()
+    if not slurmLogParser.parse_jobs():
+        exit(2)
 
 if __name__ == '__main__':
     main()

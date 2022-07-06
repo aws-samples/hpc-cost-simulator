@@ -111,10 +111,10 @@ class LSFLogParser(SchedulerLogParser):
             # Strip off newline
             line = line.rstrip()
             logger.debug(f"line {self._lsb_acct_line_number}: {line}")
-            if re.match(f'^\s*$', line):
+            if re.match(r'^\s*$', line):
                 logger.debug(f"Blank line")
                 continue
-            if re.match(f'^\s*#', line):
+            if re.match(r'^\s*#', line):
                 logger.debug(f"Comment line")
                 continue
             try:
@@ -127,9 +127,13 @@ class LSFLogParser(SchedulerLogParser):
             if record['record_type'] != 'JOB_FINISH':
                 logger.debug(f"Skipping {record['record_type']} record type")
                 continue
+
+            num_hosts = max(record.get('numExHosts', record['numAskedHosts']), 1)
+            logger.debug(f"num_hosts: {num_hosts}")
+
+            max_mem_gb = None
             logger.debug(f"Effective resource request: {record['effectiveResReq']}")
             match = re.search(r'rusage\[([^\]]*)\]', record['effectiveResReq'])
-            max_mem_gb = None
             (record['maxRMem'] * MEM_KB) / MEM_GB
             if match:
                 rusage = match.groups(0)[0]
@@ -144,14 +148,14 @@ class LSFLogParser(SchedulerLogParser):
             else:
                 logger.debug(f"No rusage found in resource request")
             if not max_mem_gb:
-                max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb)
+                max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb * num_hosts)
             logger.debug(f"max_mem_gb: {max_mem_gb}")
             job = SchedulerJobInfo(
                 job_id = record['jobId'],
                 resource_request = record['effectiveResReq'],
                 num_cores = record['maxNumProcessors'],
                 max_mem_gb = max_mem_gb,
-                num_hosts = record.get('numExHosts', record['numAskedHosts']),
+                num_hosts = num_hosts,
 
                 submit_time = record['submitTime'],
                 ineligible_pend_time = record.get('ineligiblePendTime', 0),

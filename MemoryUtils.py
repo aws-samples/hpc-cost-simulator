@@ -30,20 +30,21 @@ MEM_SUFFIX = {
     'P': MEM_PB,
 }
 
-def mem_string_to_float(string_value):
+def mem_string_to_float(string_value: str) -> float:
     logger.debug(f"string_value={string_value}")
-    match = re.match(r'(^[0-9.e-]+)([kmgtp]).?$', string_value, re.IGNORECASE)
+    match = re.match(r'(^[0-9.e-]+)([kmgtp])$', string_value, re.IGNORECASE)
     if match:
         value = float(match.group(1))
         suffix = match.group(2).upper()
+        multiplier = MEM_SUFFIX[suffix]
+        logger.debug(f"value={value}")
+        logger.debug(f"suffix={suffix}")
+        logger.debug(f"multiplier={multiplier}")
+        value = value * multiplier
     else:
         value = float(string_value)
-        suffix = ''
-    logger.debug(f"value={value}")
-    logger.debug(f"suffix={suffix}")
-    multiplier = MEM_SUFFIX.get(suffix, 1)
-    logger.debug(f"multiplier={multiplier}")
-    return value * multiplier
+        logger.debug(f"value={value}")
+    return value
 
-def mem_string_to_int(string_value):
+def mem_string_to_int(string_value: str) -> int:
     return int(round(mem_string_to_float(string_value)))

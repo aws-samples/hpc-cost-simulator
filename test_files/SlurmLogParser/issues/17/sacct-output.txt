@@ -1,0 +1,11 @@
+#ERROR:2022-06-28 17:43:50,976: /tmp/SlurmAcct.txt, line 16841: Unable to convert field ReqMem to format d: 0n: could not convert string to float: '0n'
+COMPLETED|2346371.extern|8|0n|1||2022-06-10T06:19:15|2022-06-10T06:19:15|2022-06-10T06:19:15|00:55:58|00:00:00|2022-06-10T07:15:13|0:0||1|8|0.00M|0|0|356K|108056K|07:27:44|00:00:00|00:00:00|00:00:00
+
+# ERROR:2022-06-28 17:43:50,977: /tmp/SlurmAcct.txt, line 16842: Unable to convert field ReqMem to format d: 0n: could not convert string to float: '0n'
+COMPLETED|2346372|8|0n|1||2022-06-10T06:17:48|2022-06-10T06:17:48|2022-06-10T06:19:15|00:31:01|00:00:00|2022-06-10T06:50:16|0:0|0:0|1|8||||||04:08:08|25:34.179|04:20.603|29:54.783
+
+# ERROR:2022-06-28 17:43:50,977: /tmp/SlurmAcct.txt, line 16843: Unable to convert field ReqMem to format d: 0n: could not convert string to float: '0n'
+COMPLETED|2346372.batch|8|0n|1||2022-06-10T06:19:15|2022-06-10T06:19:15|2022-06-10T06:19:15|00:31:01|00:00:00|2022-06-10T06:50:16|0:0||1|8|7714.15M|6919.57M|55|246044K|1302896K|04:08:08|25:34.179|04:20.602|29:54.782
+
+#ERROR:2022-07-05 15:45:18,376: output/sacct_output.txt, line 6: Unable to convert field Start to format dt: None: time data 'None' does not match format '%Y-%m-%dT%H:%M:%S'
+CANCELLED|39|1|14947M|1|c7&x86_64&t3.xlarge&ondemand|2022-06-25T19:05:48|2022-06-25T19:07:49|None|00:00:00|00:00:00|2022-06-25T19:23:16|0:0|0:0|1|1||||||00:00:00|00:00:00|00:00:00|00:00:00
