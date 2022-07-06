@@ -17,11 +17,13 @@
         <script src="js/jquery-1.10.2.min.js" defer></script>
         <script src="js/bootstrap.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script> 
     </head>
 
     <body class="homepage">
-        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
                 <a class="navbar-brand" href=".">HPC Cost Simulator</a>
                 <!-- Expander button -->
@@ -91,6 +93,10 @@
               <ul class="nav flex-column">
             <li class="nav-item" data-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="3"><a href="#instance-type-information" class="nav-link">Instance Type Information</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
               </ul>
@@ -104,6 +110,22 @@
             </li>
             <li class="nav-item" data-level="2"><a href="#job-analysis" class="nav-link">Job Analysis</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="3"><a href="#summarycsv" class="nav-link">summary.csv</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="3"><a href="#hourly_statscsv" class="nav-link">hourly_stats.csv</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="3"><a href="#hourly_statsxlsx" class="nav-link">hourly_stats.xlsx</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="4"><a href="#optimize-savings-plans-using-excel-solver" class="nav-link">Optimize Savings Plans Using Excel Solver</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
               </ul>
             </li>
               </ul>
@@ -188,7 +210,11 @@ The parsers are scheduler specific Python scripts.</p>
 The parser output is a CSV file that can be used as the input to the job analyzer.
 The job analyzer runs relatively quickly and can be run with different configurations on the same job data.</p>
 <h3 id="summarycsv">summary.csv</h3>
-<p>Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime the total wait time. These provide a high-level understanding of the customer's workload, and helps us show the customer how much of their workload needs high memory instances (utually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.</p>
+<p>Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime, and the total wait time. These provide a high-level understanding of the customer's workload and helps us show the customer how much of their workload needs high memory instances (usually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.</p>
+<p>The wait time only includes the time the job waited after it was eligible to run.
+For example, if the job was waiting on a license or a dependency on another job, then the time that the jobs was ineligble to run is
+not included in the wait time.
+The reported wait time is the time that the job waited for compute resources to become available.</p>
 <p>Example:</p>
 <table>
 <thead>
@@ -508,7 +534,7 @@ The job analyzer runs relatively quickly and can be run with different configura
 </tr>
 </tbody>
 </table>
-<p>In this (Real custoemr) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.</p>
+<p>In this (real customer) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.</p>
 <h3 id="hourly_statscsv">hourly_stats.csv</h3>
 <p>Provides an hour-by-hour cost simulation broken down by spot and on-demand costs.</p>
 <table>
@@ -656,7 +682,48 @@ The job analyzer runs relatively quickly and can be run with different configura
 <td>13.05</td>
 </tr>
 </tbody>
-</table></div>
+</table>
+<h3 id="hourly_statsxlsx">hourly_stats.xlsx</h3>
+<p>The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
+For example, in the following example the "<strong>First hout to analyze</strong>" was changed to only include the last 12 months worth of data.</p>
+<p><img alt="Cost Summary" src="images/cost-summary.png" /></p>
+<p>The <strong>InstanceFamilySummary</strong> worksheet can be used to get insights into the predicted usage of different instance families.
+In this example it shows that the c6i family is used the most with very little utilization of other instance families.
+The average hourly use can be used to help choose the upper constraint for the savings plans.</p>
+<p><img alt="Instance Family Summary" src="images/instance-family-info.png" /></p>
+<h4 id="optimize-savings-plans-using-excel-solver">Optimize Savings Plans Using Excel Solver</h4>
+<p>Excel includes a numerical solver that can be used to optimize the use of Savings Plans to reduce your compute costs.
+The instructions for setting up the solver are on the "<strong>CostSummary</strong>" tab of the spreadsheet.</p>
+<p>First, enable the Excel solver.
+Select <strong>File</strong> -&gt; <strong>Options</strong></p>
+<p><img alt="file-options" src="images/file-options.png" /></p>
+<p>Select <strong>Add-ins</strong> on the lower left.</p>
+<p><img alt="add-ins" src="images/add-ins-1.png" /></p>
+<p>If the <strong>Solver Add-in</strong> isn't active then select <strong>Manage: Excel Add-ins</strong> and click <strong>Go</strong>.</p>
+<p>Select the <strong>Solver Add-in</strong> and click <strong>OK</strong>.</p>
+<p><img alt="solver add-in" src="images/solver-add-in.png" /></p>
+<p>If the <strong>Solver Add-in</strong> is already active then it will show up like this.</p>
+<p><img alt="solver add-in activated" src="images/add-ins-2.png" /></p>
+<p>Now you are ready to run the solver.
+Copy the original values by selecting column B and pasting the values into column C.
+Then select the <strong>Data</strong> menu select <strong>Solver</strong> on the ribbon.
+ the <strong>Solver Add-in</strong> is already active then it will show up like this.</p>
+<p><img alt="copy values" src="images/copy-values.png" /></p>
+<p>Configure the solver by selecting the total cost as the <strong>Objective</strong>.
+Then select the Savings Plan commit cells in <strong>By Changing Variable Cells:</strong>.
+Then add constraints for the Savings Plan commit cells.
+Then click <strong>Solve</strong> and wait while the Solver calculates the savings plan commits
+that will minimie your overall costs.</p>
+<p><img alt="solver parameters" src="images/solver-parameters.png" /></p>
+<p>The solver may run a while, but when it finishes then save the results.</p>
+<p><img alt="Save Solver Results" src="images/solver-results.png" /></p>
+<p>The spreadsheet will then show the savings plan commits that minimize the total costs.
+In this case Savings Plans were able to reduce total costs by about 10%.
+Note that this is due to the very variable nature of the jobs.
+The more sustained usage that you have, the more cost-effective Savings Plans will be.</p>
+<p><img alt="Optimized cost" src="images/solver-savings.png" /></p>
+<p>This graph shows the variability of the workload.</p>
+<p><img alt="Optimized cost" src="images/core-hours-chart.png" /></p></div>
             </div>
         </div>
 
@@ -737,5 +804,5 @@ The job analyzer runs relatively quickly and can be run with different configura
 
 <!--
 MkDocs version : 1.3.0
-Build Date UTC : 2022-06-21 14:48:32.206901+00:00
+Build Date UTC : 2022-07-06 23:59:58.676167+00:00
 -->
