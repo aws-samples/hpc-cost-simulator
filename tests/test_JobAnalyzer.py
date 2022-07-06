@@ -5,6 +5,7 @@ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 '''
 
+from copy import deepcopy
 from CSVLogParser import CSVLogParser
 import filecmp
 from JobAnalyzer import JobAnalyzer, JobCost, logger as JobAnalyzer_logger
@@ -228,7 +229,7 @@ class TestJobAnalyzer(unittest.TestCase):
         jobs = jobAnalyzer.job_data_collector
 
         config = jobAnalyzer.config
-        self.assertEqual(len(jobs.keys()),len(config["instance_mapping"]["ram_ranges_GB"])+1)
+        assert(len(jobs.keys()) == len(config["instance_mapping"]["ram_ranges_GB"])+1)
         for key in jobs:
             self.assertEqual(len(jobs[key]), len(config["instance_mapping"]["runtime_ranges_minutes"])+1)
             for value in jobs[key]:
@@ -253,13 +254,18 @@ class TestJobAnalyzer(unittest.TestCase):
             print(json.dumps(jobs, indent=4))
             raise
 
+        exp_jobs = deepcopy(jobs)
+
         job_dict = {'job_id':2, 'tasks': 3, 'memory_GB': 0.5, 'wait_time_minutes': 2.5, 'runtime_minutes': 4.5, 'instance_count': 1}
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60) + int(job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
         jobAnalyzer._add_job_to_collector(job)
+        exp_jobs['0-1']['1-5']['number_of_jobs'] += 1
+        exp_jobs['0-1']['1-5']['total_duration_minutes'] += job_dict['runtime_minutes']
+        exp_jobs['0-1']['1-5']['total_wait_minutes'] += job_dict['wait_time_minutes']
         try:
-            self.assertEqual(jobs['0-1']['1-5']['number_of_jobs'], 2)
-            self.assertAlmostEqual(jobs['0-1']['1-5']['total_duration_minutes'], 7.5, 1)
-            self.assertAlmostEqual(jobs['0-1']['1-5']['total_wait_minutes'], 4.5, 1)
+            assert(jobs['0-1']['1-5']['number_of_jobs'] == exp_jobs['0-1']['1-5']['number_of_jobs'])
+            assert(jobs['0-1']['1-5']['total_duration_minutes'] == exp_jobs['0-1']['1-5']['total_duration_minutes'])
+            assert(jobs['0-1']['1-5']['total_wait_minutes'] == exp_jobs['0-1']['1-5']['total_wait_minutes'])
         except:
             print(json.dumps(jobs, indent=4))
             raise
@@ -269,10 +275,13 @@ class TestJobAnalyzer(unittest.TestCase):
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60 + job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
         print(f"job {job.job_id} run_time={job.run_time}")
         jobAnalyzer._add_job_to_collector(job)
+        exp_jobs['1-2']['1-5']['number_of_jobs'] += 1
+        exp_jobs['1-2']['1-5']['total_duration_minutes'] += job_dict['runtime_minutes']
+        exp_jobs['1-2']['1-5']['total_wait_minutes'] += job_dict['wait_time_minutes']
         try:
-            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 1)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 4.1, 1)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 2.1, 1)
+            assert(jobs['1-2']['1-5']['number_of_jobs'] == exp_jobs['1-2']['1-5']['number_of_jobs'])
+            assert(jobs['1-2']['1-5']['total_duration_minutes'] == exp_jobs['1-2']['1-5']['total_duration_minutes'])
+            assert(jobs['1-2']['1-5']['total_wait_minutes'] == exp_jobs['1-2']['1-5']['total_wait_minutes'])
         except:
             print(json.dumps(jobs, indent=4))
             raise
@@ -280,10 +289,13 @@ class TestJobAnalyzer(unittest.TestCase):
         job_dict = {'job_id':4, 'tasks': 5, 'memory_GB': 9.0, 'wait_time_minutes': 0.3, 'runtime_minutes': 3.2, 'instance_count': 1}
         job = SchedulerJobInfo(job_dict['job_id'], num_cores=1, max_mem_gb=job_dict['memory_GB'], num_hosts=job_dict['tasks'], submit_time=0, start_time=int(job_dict['wait_time_minutes']*60), finish_time=int(job_dict['wait_time_minutes']*60) + int(job_dict['runtime_minutes']*60), wait_time=int(job_dict['wait_time_minutes']*60))
         jobAnalyzer._add_job_to_collector(job)
+        exp_jobs['1-2']['1-5']['number_of_jobs'] += 1
+        exp_jobs['1-2']['1-5']['total_duration_minutes'] += job_dict['runtime_minutes']
+        exp_jobs['1-2']['1-5']['total_wait_minutes'] += job_dict['wait_time_minutes']
         try:
-            self.assertEqual(jobs['1-2']['1-5']['number_of_jobs'], 2)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_duration_minutes'], 7.3, 1)
-            self.assertAlmostEqual(jobs['1-2']['1-5']['total_wait_minutes'], 2.4, 1)
+            assert(jobs['1-2']['1-5']['number_of_jobs'] == exp_jobs['1-2']['1-5']['number_of_jobs'])
+            assert(jobs['1-2']['1-5']['total_duration_minutes'] == exp_jobs['1-2']['1-5']['total_duration_minutes'])
+            assert(jobs['1-2']['1-5']['total_wait_minutes'] == exp_jobs['1-2']['1-5']['total_wait_minutes'])
         except:
             print(json.dumps(jobs, indent=4))
             raise
@@ -311,11 +323,14 @@ class TestJobAnalyzer(unittest.TestCase):
 
         instance_type_info = jobAnalyzer.instance_type_info
 
+        exp_instance_types.sort()
+
         print(f"min_mem_gb: {min_mem_gb}")
         print(f"min_cores:  {min_cores}")
         print(f"min_freq:   {min_freq}")
         print(f"exp_num_instance_types: {len(exp_instance_types)}")
         instance_types = jobAnalyzer.get_instance_by_spec(min_mem_gb, min_cores, min_freq)
+        instance_types.sort()
         print(f"instance_types: {json.dumps(instance_types, indent=4)}")
         print(f"num_instance_types: {len(instance_types)}")
         for instance_type in instance_types:
@@ -329,6 +344,8 @@ class TestJobAnalyzer(unittest.TestCase):
             assert(instance_type in exp_instance_types)
         for instance_type in exp_instance_types:
             assert(instance_type in instance_types)
+        for idx in range(max(len(instance_types), len(exp_instance_types))):
+            assert(instance_types[idx] == exp_instance_types[idx])
         assert(len(instance_types) == len(exp_instance_types))
 
     order += 1
@@ -354,6 +371,16 @@ class TestJobAnalyzer(unittest.TestCase):
             "c5.9xlarge",
             "c5.large",
             "c5.xlarge",
+            "c6a.12xlarge",
+            "c6a.16xlarge",
+            "c6a.24xlarge",
+            "c6a.2xlarge",
+            "c6a.32xlarge",
+            "c6a.48xlarge",
+            "c6a.4xlarge",
+            "c6a.8xlarge",
+            "c6a.large",
+            "c6a.xlarge",
             "c6i.12xlarge",
             "c6i.16xlarge",
             "c6i.24xlarge",
@@ -380,6 +407,34 @@ class TestJobAnalyzer(unittest.TestCase):
             "m5.8xlarge",
             "m5.large",
             "m5.xlarge",
+            "m6a.12xlarge",
+            "m6a.16xlarge",
+            "m6a.24xlarge",
+            "m6a.2xlarge",
+            "m6a.32xlarge",
+            "m6a.4xlarge",
+            "m6a.48xlarge",
+            "m6a.8xlarge",
+            "m6a.large",
+            "m6a.xlarge",
+            "m6i.12xlarge",
+            "m6i.16xlarge",
+            "m6i.24xlarge",
+            "m6i.2xlarge",
+            "m6i.32xlarge",
+            "m6i.4xlarge",
+            "m6i.8xlarge",
+            "m6i.large",
+            "m6i.xlarge",
+            "m6id.12xlarge",
+            "m6id.16xlarge",
+            "m6id.24xlarge",
+            "m6id.2xlarge",
+            "m6id.32xlarge",
+            "m6id.4xlarge",
+            "m6id.8xlarge",
+            "m6id.large",
+            "m6id.xlarge",
             "r5.12xlarge",
             "r5.16xlarge",
             "r5.24xlarge",
@@ -388,6 +443,24 @@ class TestJobAnalyzer(unittest.TestCase):
             "r5.8xlarge",
             "r5.large",
             "r5.xlarge",
+            "r6i.12xlarge",
+            "r6i.16xlarge",
+            "r6i.24xlarge",
+            "r6i.2xlarge",
+            "r6i.32xlarge",
+            "r6i.4xlarge",
+            "r6i.8xlarge",
+            "r6i.large",
+            "r6i.xlarge",
+            "r6id.12xlarge",
+            "r6id.16xlarge",
+            "r6id.24xlarge",
+            "r6id.2xlarge",
+            "r6id.32xlarge",
+            "r6id.4xlarge",
+            "r6id.8xlarge",
+            "r6id.large",
+            "r6id.xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -450,9 +523,13 @@ class TestJobAnalyzer(unittest.TestCase):
         min_mem_gb = 768
         min_cores = 1
         min_freq = 3
-        exp_num_instance_types = 11
         exp_instance_types = [
+            "m6a.48xlarge",
             "r5.24xlarge",
+            "r6i.24xlarge",
+            "r6i.32xlarge",
+            "r6id.24xlarge",
+            "r6id.32xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -469,11 +546,15 @@ class TestJobAnalyzer(unittest.TestCase):
         min_mem_gb = 32
         min_cores = 24
         min_freq = 2
-        exp_num_instance_types = 25
         exp_instance_types = [
             "c5.12xlarge",
             "c5.18xlarge",
             "c5.24xlarge",
+            "c6a.12xlarge",
+            "c6a.16xlarge",
+            "c6a.24xlarge",
+            "c6a.32xlarge",
+            "c6a.48xlarge",
             "c6i.12xlarge",
             "c6i.16xlarge",
             "c6i.24xlarge",
@@ -485,9 +566,30 @@ class TestJobAnalyzer(unittest.TestCase):
             "m5.12xlarge",
             "m5.16xlarge",
             "m5.24xlarge",
+            "m6a.12xlarge",
+            "m6a.16xlarge",
+            "m6a.24xlarge",
+            "m6a.32xlarge",
+            "m6a.48xlarge",
+            "m6i.12xlarge",
+            "m6i.16xlarge",
+            "m6i.24xlarge",
+            "m6i.32xlarge",
+            "m6id.12xlarge",
+            "m6id.16xlarge",
+            "m6id.24xlarge",
+            "m6id.32xlarge",
             "r5.12xlarge",
             "r5.16xlarge",
             "r5.24xlarge",
+            "r6i.12xlarge",
+            "r6i.16xlarge",
+            "r6i.24xlarge",
+            "r6i.32xlarge",
+            "r6id.12xlarge",
+            "r6id.16xlarge",
+            "r6id.24xlarge",
+            "r6id.32xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -505,12 +607,26 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_num_instance_types = 11
         exp_instance_types = [
             "c5.24xlarge",
+            "c6a.24xlarge",
+            "c6a.32xlarge",
+            "c6a.48xlarge",
             "c6i.24xlarge",
             "c6i.32xlarge",
             "c6id.24xlarge",
             "c6id.32xlarge",
             "m5.24xlarge",
+            "m6a.24xlarge",
+            "m6a.32xlarge",
+            "m6a.48xlarge",
+            "m6i.24xlarge",
+            "m6i.32xlarge",
+            "m6id.24xlarge",
+            "m6id.32xlarge",
             "r5.24xlarge",
+            "r6i.24xlarge",
+            "r6i.32xlarge",
+            "r6id.24xlarge",
+            "r6id.32xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
             "x2iedn.24xlarge",
@@ -530,10 +646,16 @@ class TestJobAnalyzer(unittest.TestCase):
 
         exp_instance_family_counts = {
             'c5': 8,
+            'c6a': 10,
             'c6i': 9,
             'c6id': 9,
             'm5': 8,
+            'm6a': 10,
+            'm6i': 9,
+            'm6id': 9,
             'r5': 8,
+            'r6i': 9,
+            'r6id': 9,
             'z1d': 6,
             'x2idn': 3,
             'x2iedn': 7,
@@ -558,13 +680,35 @@ class TestJobAnalyzer(unittest.TestCase):
         assert len(missing_exp_instance_families) == 0
         assert len(missing_act_instance_families) == 0
 
-        (instance_type1, price1) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large'], False)
-        self.assertEqual(instance_type1,'c6i.large')
-        self.assertGreater(price1, 0.0001)
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large', 'c6id.large'], False)
+        exp_instance_type = 'c6i.large'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['OnDemand'])
 
-        (instance_type2, price2) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], False)
-        self.assertTrue(instance_type2, 'c6i.8xlarge')
-        self.assertGreater(price2, 0.9)
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c5.large', 'c6i.large', 'c6id.large'], True)
+        exp_instance_type = 'c5.large'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
+
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6id.xlarge', 'c6i.xlarge', 'c5.xlarge'], False)
+        exp_instance_type = 'c6i.xlarge'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['OnDemand'])
+
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6id.xlarge', 'c6i.xlarge', 'c5.xlarge'], True)
+        exp_instance_type = 'c6id.xlarge'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
+
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], False)
+        exp_instance_type = 'c6i.8xlarge'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['OnDemand'])
+
+        (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], True)
+        exp_instance_type = 'c6i.8xlarge'
+        assert(instance_type == exp_instance_type)
+        assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
 
     order += 1
     @pytest.mark.order(order)
@@ -749,10 +893,11 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./JobAnalyzer.py', '--output-csv', output_csv, '--output-dir', output_dir, 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--output-csv', output_csv, '--output-dir', output_dir, '--debug', 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
+        print(f"output:\n{output}")
 
         assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
 
