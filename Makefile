@@ -6,7 +6,7 @@ REPO := $(shell basename $(REPODIR))
 TARBALL := $(REPO).tgz
 ZIPFILE := $(REPO).zip
 
-.PHONY: help tests clean_repo create_tarball
+.PHONY: help tests docs fh-docs clean_repo create_tarball
 
 help:
 	@echo -e "\nusage: make [ tests | docs | gh-docs | .requirements_installed | clean_repo | create_tarball | zipfile ]"
