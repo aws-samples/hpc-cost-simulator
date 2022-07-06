@@ -177,13 +177,57 @@ optional arguments:
 
 ## Data Used
 
-The parser parses out and save the minimum amount of data required to do the analysis.
+The parser parses out and saves the minimum amount of data required to do the analysis.
 The fields are documented in the [SchedulerJobInfo.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SchedulerJobInfo.py) module.
 The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
 and actual resource usage information, if available such as the user time, system time, and max memory used.
 
+## Jobs CSV File Format
+
+The format out the CSV files that the parsers write is flexible and JobAnalyzer.py can use any CSV file that containes the required information.
+This can be useful if you are using a different scheduler or storing the job information in something like Splunk.
+As long as you can export the required data into a CSV file, then JobAnalyzer.py can parse it.
+
+The order of the fields in the CSV file do not matter, but the names of the fields do.
+There is no standard for CSV files, but the JobAnalyzer.py expects the files to be written in the "Microsoft Excel" dialect.
+The field names must be in the first row.
+
+The required fields are:
+
+| Field | Type | Description
+|-------|------|-------------
+| job_id | string | Job id
+| num_cores | int | Total number of cores allocated to the job
+| max_mem_gb | float | Total amount of memory allocated to the job in GB
+| num_hosts | int |Number of hosts. In Slurm this is the number of nodes. The number of cores should be evenly divisible by the number of hosts. For LSF this is typically 1.
+| submit_time | datetime string | Time that the job was submitted. All times are expected to be in the format *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*
+| start_time  | datetime string | Time that the job started.
+| finish_time | datetime string | Time that the job finished.
+
+The optional fields are:
+
+| Field | Type | Description
+|-------|------|-------------
+| resource_request | string | Resources requested by the job. For LSF this is the effective resource request. For Slurm it is the job constraints.
+| ineligible_pend_time | timedelta string | Duration that the job was ineligible to run. This is what LSF writes. Defaults to max(0, eligible_time - start_time). Format for timedelta strings is *h*:*mm*:*ss*.
+| eligible_time | datetime string | Time that the job became eligible to run. Defaults to the start_time + ineligible_pend_time.
+| requeue_time | datetime string | Time that the job was requeued. Currently not used.
+| wait_time | timedelta string | Time that job was pending after it was eligible to run. Default start_time - eligible_time.
+| run_time | timedelta string | Time that the job ran. Default: finish_time - start_time
+| exit_status | int | Effective return code of the job. Default: 0
+| ru_majflt  | float | Number of page faults
+| ru_maxrss  | float | Maximum shared text size
+| ru_minflt  | float | Number of page reclaims
+| ru_msgsnd  | float | Number of System V IPC messages sent
+| ru_msgrcv  | float | Number of messages received
+| ru_nswap   | float | Number of times the process was swapped out
+| ru_inblock | float | Number of block input operations
+| ru_oublock | float | Number of block output operations
+| ru_stime   | float | System time used
+| ru_utime   | float | User time used
+
 ## Savings Plan Optimization
 
-The script write an Excel Workbook that allows you to view the analysis and analyze the impact of savings plan on the overall costs.
+The script writes an Excel Workbook that allows you to view the analysis and analyze the impact of savings plan on the overall costs.
 Excel also has a Solver add-in that will automatically optimize the savings plan values to minimize the costs.
-The steps to configure the solver are included in the spreadsheet.
+The steps to configure the solver are included in the spreadsheet and are on the [main page](index.md#optimize-savings-plans-using-excel-solver).
