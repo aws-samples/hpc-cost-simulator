@@ -125,9 +125,10 @@ class LSFLogParser(SchedulerLogParser):
                 # Keep going to try to parse all valid records
                 continue
             if record['record_type'] != 'JOB_FINISH':
-                logger.debug(f"Skipping {record['record_type']} record type")
+                logger.debug(f"{self._lsb_acct_filename}, line {self._lsb_acct_line_number}: Skipping {record['record_type']} record type")
                 continue
             if record['startTime'] == 0 and record['runTime'] == 0:
+                logger.debug(f"{self._lsb_acct_filename}, line {self._lsb_acct_line_number}: Ignoring job {record['jobId']} because startTime and runTime are zero.")
                 continue
 
             # Get num_hosts
