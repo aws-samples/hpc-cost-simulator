@@ -98,7 +98,12 @@ The job analyzer runs relatively quickly and can be run with different configura
 
 ### summary.csv
 
-Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime the total wait time. These provide a high-level understanding of the customer's workload, and helps us show the customer how much of their workload needs high memory instances (utually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.
+Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime, and the total wait time. These provide a high-level understanding of the customer's workload and helps us show the customer how much of their workload needs high memory instances (usually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.
+
+The wait time only includes the time the job waited after it was eligible to run.
+For example, if the job was waiting on a license or a dependency on another job, then the time that the jobs was ineligble to run is
+not included in the wait time.
+The reported wait time is the time that the job waited for compute resources to become available.
 
 Example:
 
@@ -117,7 +122,7 @@ Example:
 |256-512GB       |580             |227             |0               |297             |889             |0               |330             |3258            |0               |249             |9267            |0               |165             |20148           |0               |53              |35973           |<--             |69              |1955220         |0               |
 |512-1000000GB   |498             |249             |0               |447             |918             |0               |226             |2116            |0               |141             |4907            |0               |45              |5168            |0               |41              |29869           |<--             |26              |729017          |0               |
 
-In this (Real custoemr) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.
+In this (real customer) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.
 
 ### hourly_stats.csv
 
@@ -144,3 +149,70 @@ Provides an hour-by-hour cost simulation broken down by spot and on-demand costs
 |16                  |13.97               |0.00                |12.09               |1.87                |
 |17                  |17.04               |0.00                |12.82               |4.21                |
 |18                  |25.28               |0.00                |12.23               |13.05               |
+
+### hourly_stats.xlsx
+
+The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
+For example, in the following example the "**First hout to analyze**" was changed to only include the last 12 months worth of data.
+
+![Cost Summary](images/cost-summary.png)
+
+The **InstanceFamilySummary** worksheet can be used to get insights into the predicted usage of different instance families.
+In this example it shows that the c6i family is used the most with very little utilization of other instance families.
+The average hourly use can be used to help choose the upper constraint for the savings plans.
+
+![Instance Family Summary](images/instance-family-info.png)
+
+#### Optimize Savings Plans Using Excel Solver
+
+Excel includes a numerical solver that can be used to optimize the use of Savings Plans to reduce your compute costs.
+The instructions for setting up the solver are on the "**CostSummary**" tab of the spreadsheet.
+
+First, enable the Excel solver.
+Select **File** -> **Options**
+
+![file-options](images/file-options.png)
+
+Select **Add-ins** on the lower left.
+
+![add-ins](images/add-ins-1.png)
+
+If the **Solver Add-in** isn't active then select **Manage: Excel Add-ins** and click **Go**.
+
+Select the **Solver Add-in** and click **OK**.
+
+![solver add-in](images/solver-add-in.png)
+
+If the **Solver Add-in** is already active then it will show up like this.
+
+![solver add-in activated](images/add-ins-2.png)
+
+Now you are ready to run the solver.
+Copy the original values by selecting column B and pasting the values into column C.
+Then select the **Data** menu select **Solver** on the ribbon.
+ the **Solver Add-in** is already active then it will show up like this.
+
+![copy values](images/copy-values.png)
+
+Configure the solver by selecting the total cost as the **Objective**.
+Then select the Savings Plan commit cells in **By Changing Variable Cells:**.
+Then add constraints for the Savings Plan commit cells.
+Then click **Solve** and wait while the Solver calculates the savings plan commits
+that will minimie your overall costs.
+
+![solver parameters](images/solver-parameters.png)
+
+The solver may run a while, but when it finishes then save the results.
+
+![Save Solver Results](images/solver-results.png)
+
+The spreadsheet will then show the savings plan commits that minimize the total costs.
+In this case Savings Plans were able to reduce total costs by about 10%.
+Note that this is due to the very variable nature of the jobs.
+The more sustained usage that you have, the more cost-effective Savings Plans will be.
+
+![Optimized cost](images/solver-savings.png)
+
+This graph shows the variability of the workload.
+
+![Optimized cost](images/core-hours-chart.png)

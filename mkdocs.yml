@@ -8,3 +8,13 @@ nav:
   - 'SlurmLogParser.md'
   - 'JobAnalyzer.md'
 strict: true
+theme:
+  name: mkdocs
+  #name: readthedocs
+  hljs_languages:
+    - python
+    - yaml
+  navigation_depth: 4
+  nav_style: dark
+  features:
+    - navigation.tabs
