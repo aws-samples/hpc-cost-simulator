@@ -262,15 +262,20 @@ class JobAnalyzer:
         return range
 
     def _add_job_to_collector(self, job: SchedulerJobInfo) -> None:
+        logger.debug(f"_add_job_to_collector({job})")
         runtime_minutes = job.run_time_td.total_seconds()/60
+        logger.debug(f"runtime_minutes: {runtime_minutes}")
         wait_time_minutes = job.wait_time_td.total_seconds()/60
-        job_RAM_range = self.select_range(job.max_mem_gb, self.ram_ranges_GB)
+        logger.debug(f"wait_time_minutes: {wait_time_minutes}")
+        job_RAM_range = self.select_range(job.max_mem_gb/job.num_hosts, self.ram_ranges_GB)
+        logger.debug(f"job_RAM_range: {job_RAM_range}")
         job_runtime_range = self.select_range(runtime_minutes, self.runtime_ranges_minutes)
+        logger.debug(f"job_runtime_range: {job_runtime_range}")
         logger.debug(f"Status of [{job_RAM_range}][{job_runtime_range}] BEFORE adding job {job.job_id}: {self.job_data_collector[job_RAM_range][job_runtime_range]}")
         logger.debug(f"job_id {job.job_id}, runtime {job.run_time}, waitime {job.wait_time}")
-        self.job_data_collector[job_RAM_range][job_runtime_range]['number_of_jobs'] += job.num_hosts
-        self.job_data_collector[job_RAM_range][job_runtime_range]['total_duration_minutes'] += job.num_hosts * runtime_minutes # TODO: check code adhers to IBM LSF logic, handle multiple hosts
-        self.job_data_collector[job_RAM_range][job_runtime_range]['total_wait_minutes'] += job.num_hosts * wait_time_minutes   # TODO: check code adhers to IBM LSF logic, handle multiple hosts
+        self.job_data_collector[job_RAM_range][job_runtime_range]['number_of_jobs'] += 1
+        self.job_data_collector[job_RAM_range][job_runtime_range]['total_duration_minutes'] += runtime_minutes # TODO: check code adhers to IBM LSF logic, handle multiple hosts
+        self.job_data_collector[job_RAM_range][job_runtime_range]['total_wait_minutes'] += wait_time_minutes   # TODO: check code adhers to IBM LSF logic, handle multiple hosts
         logger.debug(f"Status of [{job_RAM_range}][{job_runtime_range}] AFTER adding job {job.job_id}: {self.job_data_collector[job_RAM_range][job_runtime_range]}")
         logger.debug('-------------------------------------------------------------------------------------------------')
 
@@ -1163,8 +1168,10 @@ class JobAnalyzer:
             JobCost: Job cost information
         '''
         # Find the right instance type to run the job + its price
-        min_memory_per_instance = ceil(job.max_mem_gb)
-        potential_instance_types = self.get_instance_by_spec(min_memory_per_instance, job.num_cores, self.minimum_cpu_speed)
+        num_hosts = job.num_hosts
+        min_memory_per_instance = ceil(job.max_mem_gb / num_hosts)
+        num_cores_per_instance = ceil(job.num_cores / num_hosts)
+        potential_instance_types = self.get_instance_by_spec(min_memory_per_instance, num_cores_per_instance, self.minimum_cpu_speed)
         if len(potential_instance_types) == 0:
             raise RuntimeError(f"Job {job.job_id} with {min_memory_per_instance} GB is too big to fit in a single instance.")
         job_runtime_minutes = job.run_time_td.total_seconds()/60
@@ -1178,6 +1185,7 @@ class JobAnalyzer:
                 spot = False
                 instance_type = on_demand_instance_type
                 rate = on_demand_rate
+        logger.debug(f"Lowest priced instance type: {instance_type} spot={spot} rate={rate}")
         instance_family = EC2InstanceTypeInfo.get_instance_family(instance_type)
         job_cost_data = JobCost(job, spot, instance_family, instance_type, rate)
 
