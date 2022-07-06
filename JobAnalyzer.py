@@ -212,6 +212,7 @@ class JobAnalyzer:
         if not self.instance_type_info:
             self.get_instance_type_info()
 
+        logger.debug(f"Finding cheapest instance: spot={spot} {instance_types}")
         min_price = 999999
         cheapest_instance_type = None
 
@@ -223,9 +224,11 @@ class JobAnalyzer:
                     continue
             else:
                 price = self.instance_type_info[instance_type]['pricing']['OnDemand']
+            logger.debug(f"{instance_type}: price: {price}")
             if price < min_price:
                 min_price = price
                 cheapest_instance_type = instance_type
+                logger.debug("cheaper")
         return (cheapest_instance_type, min_price)
 
     def generate_collection_dict(self):
