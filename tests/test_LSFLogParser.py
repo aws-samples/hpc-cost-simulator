@@ -460,7 +460,27 @@ class TestLSFLogParser:
         print(f"output:\n{excinfo.value.output}")
         assert(excinfo.value.returncode == 1)
         assert('6 invalid records were found in 1 files' in excinfo.value.output)
-        assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_main_issue_16(self):
+        '''
+        Test for github issue 16
+        '''
+        self.cleanup_files()
+        test_files_dir = 'test_files/LSFLogParser/issues/16'
+        output_dir = 'output/LSFLogParser/issues/16'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        try:
+            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            print(f"output:\n{output}")
+        except CalledProcessError as e:
+            print(f"return code: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
     order += 1
     @pytest.mark.order(order)
@@ -480,7 +500,7 @@ class TestLSFLogParser:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
             raise
-        assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
 
     order += 1
     @pytest.mark.order(order)
