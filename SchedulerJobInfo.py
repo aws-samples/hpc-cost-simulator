@@ -129,11 +129,31 @@ class SchedulerJobInfo:
 
         # Optional fields
         self.resource_request = resource_request
-        (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
-        (self.eligible_time, self.eligible_time_dt) = SchedulerJobInfo.fix_datetime(eligible_time)
-        (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
-        (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
-        (self.run_time, self.run_time_td) = SchedulerJobInfo.fix_duration(run_time)
+        try:
+            (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
+        except:
+            logger.warning(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
+            pass
+        try:
+            (self.eligible_time, self.eligible_time_dt) = SchedulerJobInfo.fix_datetime(eligible_time)
+        except:
+            logger.warning(f"Invalid ineligible_pend_time: {eligible_time}")
+            pass
+        try:
+            (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
+        except:
+            logger.warning(f"Invalid ineligible_pend_time: {requeue_time}")
+            pass
+        try:
+            (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
+        except:
+            logger.warning(f"Invalid ineligible_pend_time: {wait_time}")
+            pass
+        try:
+            (self.run_time, self.run_time_td) = SchedulerJobInfo.fix_duration(run_time)
+        except:
+            logger.warning(f"Invalid ineligible_pend_time: {run_time}")
+            pass
 
         self.exit_status = SchedulerJobInfo.fix_int(exit_status)
 
@@ -161,12 +181,21 @@ class SchedulerJobInfo:
             else:
                 self.eligible_time = self.submit_time
                 self.eligible_time_dt = self.submit_time_dt
+
+        # Bug 31 saved the start_time even if it was 0 and less than submit time.
+        # Check for this condition and set the start time to the eligible time
+        if self.start_time_dt < self.submit_time_dt:
+            self.start_time = self.eligible_time
+            self.start_time_dt = self.eligible_time_dt
+
         # Bug 22 incorrectly calculated the wait_time using start_time instead of submit_time so just always calculate it so it's correct.
         self.wait_time_td = self.start_time_dt - self.eligible_time_dt
         self.wait_time = SchedulerJobInfo.timedelta_to_string(self.wait_time_td)
+
         if not self.run_time:
             self.run_time_td = self.finish_time_dt - self.start_time_dt
             self.run_time = SchedulerJobInfo.timedelta_to_string(self.run_time_td)
+
 
     @staticmethod
     def from_dict(field_dict: dict):

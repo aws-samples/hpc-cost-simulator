@@ -1139,6 +1139,40 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_31_negative_wait_time(self):
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        test_files_dir = 'test_files/JobAnalyzer/issues/31'
+        input_csv = path.join(test_files_dir, 'jobs.csv')
+        output_dir = 'output/JobAnalyzer/issues/31'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        try:
+            output = check_output(['./JobAnalyzer.py', '--config', self.CONFIG_FILENAME, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
+
+        exp_csv_files_dir = 'test_files/JobAnalyzer/issues/31'
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+
     @pytest.mark.order(-3)
     def test_get_instances(self):
         jobAnalyzer = self.get_jobAnalyzer()

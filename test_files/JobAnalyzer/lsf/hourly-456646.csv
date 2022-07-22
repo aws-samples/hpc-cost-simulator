@@ -1,3 +1,3 @@
 start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Total Cost
-2022-02-03T22:17:09,282,1,0.0,0.09765625,0.0,c5.large,c5,True,0.0357,0.0
-2022-02-03T22:19:08,283,1,0.0167,0.09765625,0.0167,c5.large,c5,True,0.0357,1e-05
+2022-02-03T22:17:09,282,1,0.0,0.09765625,0.0,c5d.large,c5d,True,0.0349,0.0
+2022-02-03T22:19:08,283,1,0.0167,0.09765625,0.0167,c5d.large,c5d,True,0.0349,1e-05
