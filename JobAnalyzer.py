@@ -120,10 +120,6 @@ class JobAnalyzer:
         except Exception as e:
             logger.error(f"{config_filename} has errors\n{e}")
             exit(1)
-
-        # Print out configuration information
-        logger.info(f"""Configuration:
-        {json.dumps(config, indent=4)}""")
         return validated_config
 
     def get_ranges(self, range_array):
@@ -1206,6 +1202,7 @@ def main():
         parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
         parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
         parser.add_argument("--config", required=False, default=f'{dirname(__file__)}/config.yml', help="Configuration file.")
+        parser.add_argument("--acknowledge-config", required=False, action='store_const', const=True, default=False, help="Acknowledge configuration file contents so don't get prompt.")
         parser.add_argument("--output-dir", required=False, default="output", help="Directory where output will be written")
         parser.add_argument("--output-csv", required=False, default=None, help="CSV file with parsed job completion records")
 
@@ -1275,6 +1272,19 @@ def main():
                 logger.info(f"Writing job data to {args.output_csv}")
 
             jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir)
+
+            # Print out configuration information
+            logger.info(f"""Configuration:
+            {json.dumps(jobAnalyzer.config, indent=4)}""")
+            acknowledge_config = args.acknowledge_config
+            while not acknowledge_config:
+                print(f"\nIs the correct configuration? (y/n) ")
+                answer = input().lower()
+                if answer == 'n':
+                    exit(1)
+                elif answer == 'y':
+                    acknowledge_config = True
+
             jobAnalyzer.analyze_jobs()
     except Exception as e:
         logger.exception(f"Unhandled exception")

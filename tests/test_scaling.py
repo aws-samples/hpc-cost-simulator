@@ -57,7 +57,7 @@ class TestScaling:
         self.gen_input_csv(input_csv, number_of_tests)
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -88,7 +88,7 @@ class TestScaling:
         self.gen_input_csv(input_csv, number_of_tests)
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -119,7 +119,7 @@ class TestScaling:
         self.gen_input_csv(input_csv, number_of_tests)
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -144,7 +144,7 @@ class TestScaling:
         self.gen_input_csv(input_csv, number_of_tests)
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -175,7 +175,7 @@ class TestScaling:
         self.gen_input_csv(input_csv, number_of_tests)
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--input-csv', input_csv, '--output-csv', output_csv, '--output-dir', output_dir], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
