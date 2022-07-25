@@ -18,7 +18,7 @@ There are 2 types of date/time formats used.
 '''
 __docformat__ = 'google'
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import re
 
@@ -51,6 +51,7 @@ class SchedulerJobInfo:
         submit_time:str,
         start_time:str,
         finish_time:str,
+
         # Optional fields
         ineligible_pend_time:str=None,
         eligible_time:str=None,
@@ -75,6 +76,7 @@ class SchedulerJobInfo:
         ru_stime:float=None,
         ru_utime:float=None,
 
+        # Put resource_request at end because can contain ',' which is also the CSV separator
         resource_request:str='',
         ):
         '''
@@ -476,7 +478,7 @@ class SchedulerJobInfo:
             return timestamp
         if str(type(timestamp)) != "<class 'int'>":
             raise ValueError( 'Expected timestamp to be int. Got {type(timestamp)}')
-        return datetime.fromtimestamp(timestamp)
+        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
     @staticmethod
     def str_to_datetime(string_value:str) -> datetime:
@@ -494,7 +496,7 @@ class SchedulerJobInfo:
         '''
         if str(type(string_value)) != "<class 'str'>":
             raise ValueError(f'Expected timestamp to be str. Got {type(string_value)}')
-        dt = datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT)
+        dt = datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT).replace(tzinfo=timezone.utc)
         return dt
 
     @staticmethod

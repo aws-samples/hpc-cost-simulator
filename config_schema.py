@@ -54,6 +54,17 @@ config_schema = Schema(
             Optional('ProjectRegExps', default=[]): [
                 str
             ]
+        },
+        Optional('ComputeClusterModel'): {
+            Optional('BootTime', default='2:00'): str,
+            Optional('IdleTime', default='4:00'): str,
+            Optional('SchedulingFrequency', default="2:00"): str, # Time between scheduling jobs
+            Optional('ShareInstances', default=False): bool, # Allow multiple jobs per instance
+            Optional('ReservedInstances', default=[]): [
+                {
+                    'InstanceType': int,
+                }
+            ]
         }
     }
 )

@@ -9,6 +9,7 @@ nav:
   - 'JobAnalyzer.md'
   - 'Output.md'
   - 'config.md'
+  - 'model-scheduling.md'
 strict: true
 theme:
   name: mkdocs
@@ -20,4 +21,3 @@ theme:
   nav_style: dark
   features:
     - navigation.tabs
- 

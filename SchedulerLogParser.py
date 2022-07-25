@@ -93,8 +93,14 @@ class SchedulerLogParser(ABC):
 
         if self._starttime:
             self._starttime_dt = SchedulerJobInfo.str_to_datetime(self._starttime)
+        else:
+            self._starttime_dt = None
         if self._endtime:
             self._endtime_dt = SchedulerJobInfo.str_to_datetime(self._endtime)
+        else:
+            self._endtime_dt = None
+
+        self.total_jobs_outside_time_window = 0
 
         self._num_errors = 0
 
@@ -231,7 +237,7 @@ class SchedulerLogParser(ABC):
             self._num_input_jobs += 1
             return job
 
-    def _job_in_time_window(self, job: SchedulerJobInfo):
+    def _job_in_time_window(self, job: SchedulerJobInfo) -> bool:
         '''
         Check if the job is inside the time window.
 
