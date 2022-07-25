@@ -166,6 +166,7 @@ class LSFLogParser(SchedulerLogParser):
             else:
                 logger.debug(f"No rusage found in resource request")
             if not max_mem_gb:
+                logger.debug(f"max_mem_gb defaults to max of default_max_mem_gb({self._default_max_mem_gb}) and maxRMem({record['maxRMem']})")
                 max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb * num_hosts)
             logger.debug(f"max_mem_gb: {max_mem_gb}")
 
