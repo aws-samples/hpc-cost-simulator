@@ -15,7 +15,10 @@ instance_mapping:
     - 128
     - 256
     - 512
-  runtime_ranges_minutes:   # Changing this default value will requiring updaing test_add_job_to_collector
+    - 1024
+    - 2048
+    - 4096
+  runtime_ranges_minutes:   # Changing this default value will requiring updating test_add_job_to_collector
     - 1
     - 5
     - 20
@@ -24,12 +27,16 @@ instance_mapping:
     - 1440
   instance_prefix_list: # to allow all instances leave the list with only 1 value of a blank string
     - c5. # (8)
+    - c5d. # ssd instances may be cheaper on spot
     - c6a
     - c6i # (9)
     - m5. # (8) adding a dot to block AMD instances by default
+    - m5d. # ssd instances may be cheaper on spot
     - m6a
     - m6i
     - r5. # (8)
+    - r5d. # ssd instances may be cheaper on spot
+    - r6a
     - r6i
     - z1d # (6)
     - x2i # (5)

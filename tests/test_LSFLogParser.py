@@ -504,6 +504,26 @@ class TestLSFLogParser:
 
     order += 1
     @pytest.mark.order(order)
+    def test_main_issue_31_no_start_time(self):
+        '''
+        Test for github issue 31
+        '''
+        self.cleanup_files()
+        test_files_dir = 'test_files/LSFLogParser/issues/31'
+        output_dir = 'output/LSFLogParser/issues/31'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        try:
+            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            print(f"output:\n{output}")
+        except CalledProcessError as e:
+            print(f"return code: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
     def test_main_acct(self):
         self.cleanup_files()
         test_files_dir = 'test_files/LSFLogParser/acct'
