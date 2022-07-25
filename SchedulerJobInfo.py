@@ -132,27 +132,27 @@ class SchedulerJobInfo:
         try:
             (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
+            logger.debug(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
             pass
         try:
             (self.eligible_time, self.eligible_time_dt) = SchedulerJobInfo.fix_datetime(eligible_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {eligible_time}")
+            logger.debug(f"Invalid ineligible_pend_time: {eligible_time}")
             pass
         try:
             (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {requeue_time}")
+            logger.debug(f"Invalid ineligible_pend_time: {requeue_time}")
             pass
         try:
             (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {wait_time}")
+            logger.debug(f"Invalid ineligible_pend_time: {wait_time}")
             pass
         try:
             (self.run_time, self.run_time_td) = SchedulerJobInfo.fix_duration(run_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {run_time}")
+            logger.debug(f"Invalid ineligible_pend_time: {run_time}")
             pass
 
         self.exit_status = SchedulerJobInfo.fix_int(exit_status)
