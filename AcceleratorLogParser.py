@@ -99,6 +99,7 @@ from SchedulerJobInfo import SchedulerJobInfo
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
 import subprocess # nosec
 from subprocess import CalledProcessError, check_output # nosec
+from textwrap import dedent
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -164,7 +165,7 @@ class AcceleratorLogParser(SchedulerLogParser):
             job = self.parse_job()
         logger.debug(f"Parsed {self.num_output_jobs()} jobs.")
 
-    DEFAULT_MEMORY_GB = round(100 * MEM_MB / MEM_GB, 3)
+    DEFAULT_MEMORY_GB = 0.0 # By default, jobs only limited by core count, not memory, if memory request not specified.
 
     _VOVSQL_JOBS_COLUMN_TUPLES = [
         ('jobs.id', 'd'),
@@ -181,12 +182,13 @@ class AcceleratorLogParser(SchedulerLogParser):
 
     _VOVSQL_COLUMNS = [field_tuple[0] for field_tuple in _VOVSQL_JOBS_COLUMN_TUPLES]
 
+    _VOVSQL_QUERY = f"select {', '.join(_VOVSQL_COLUMNS)} from jobs inner join resources on jobs.resourcesid=resources.id"
+
     _VOVSQL_QUERY_COMMAND_LIST = [
-        "nc", "cmd", "vovsql_query", "-e",
-        f"select {', '.join(_VOVSQL_COLUMNS)} from jobs inner join resources on jobs.resourcesid=resources.id"
+        "nc", "cmd", "vovsql_query", "-e", _VOVSQL_QUERY
     ]
 
-    _VOVSQL_QUERY_COMMAND = f"nc cmd vovsql_query -e \"select {', '.join(_VOVSQL_COLUMNS)} from jobs inner join resources on jobs.resourcesid=resources.id\""
+    _VOVSQL_QUERY_COMMAND = f"nc cmd vovsql_query -e \"{_VOVSQL_QUERY}\""
 
     def parse_job(self):
         if self._eof:
@@ -323,11 +325,12 @@ class AcceleratorLogParser(SchedulerLogParser):
 
 def main():
     parser = argparse.ArgumentParser(description="Parse Altair Accelerator logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--default-mem-gb", required=False, default=AcceleratorLogParser.DEFAULT_MEMORY_GB, help="Default amount of memory (in GB) requested for jobs.")
     accelerator_mutex_group = parser.add_mutually_exclusive_group(required=True)
-    accelerator_mutex_group.add_argument("--sql-output-file", help=f"File where the output of sql query will be written. Cannot be used with --sql-input-file. Required if --sql-input-file not set. \nCommand to create file:\n{AcceleratorLogParser._VOVSQL_QUERY_COMMAND} > SQL_OUTPUT_FILE")
+    accelerator_mutex_group.add_argument("--show-data-collection-cmd", action='store_const', const=True, default=False, help="Show the command to create the SQL_OUTPUT_FILE.")
+    accelerator_mutex_group.add_argument("--sql-output-file", help=f"File where the output of sql query will be written. Cannot be used with --sql-input-file. Required if --sql-input-file not set.")
     accelerator_mutex_group.add_argument("--sql-input-file", help="File with the output of sql query so can process it offline. Cannot be used with --sql-output-file. Required if --sql-output-file not set.")
-    parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
+    parser.add_argument("--output-csv", help="CSV file with parsed job completion records")
+    parser.add_argument("--default-mem-gb", required=False, default=AcceleratorLogParser.DEFAULT_MEMORY_GB, help="Default amount of memory (in GB) requested for jobs that do not have a memory request.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
@@ -336,6 +339,26 @@ def main():
     if args.debug:
         logger.setLevel(logging.DEBUG)
         SchedulerLogParser_logger.setLevel(logging.DEBUG)
+
+    if args.show_data_collection_cmd:
+        print(dedent(f"""\
+            Run the following command to save the job information to a file:
+
+                {AcceleratorLogParser._VOVSQL_QUERY_COMMAND} > SQL_OUTPUT_FILE
+
+            Then you can parse OUTPUT_FILE using the following command:
+
+                {__file__} --sql-output-file SQL_OUTPUT_FILE --output-csv OUTPUT_CSV
+        """))
+        exit(0)
+
+    if not (args.sql_output_file or args.sql_input_file):
+        logger.error("one of the arguments --sql-output-file --sql-input-file is required")
+        exit(1)
+
+    if not args.output_csv:
+        logger.error("the following arguments are required: --output-csv")
+        exit(1)
 
     logger.info('Started Altair Accelerator log parser')
 

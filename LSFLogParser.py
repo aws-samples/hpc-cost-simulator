@@ -23,8 +23,6 @@ import re
 from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
 from SchedulerJobInfo import SchedulerJobInfo
-import typing
-import yaml
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -574,7 +572,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Parse LSF logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--logfile-dir", required=True, help="LSF logfile directory")
     parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
-    parser.add_argument("--default-max-mem-gb", type=float, required=True, help="Default maximum memory for a job in GB.")
+    parser.add_argument("--default-max-mem-gb", type=float, default=0.0, required=False, help="Default maximum memory for a job in GB.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
