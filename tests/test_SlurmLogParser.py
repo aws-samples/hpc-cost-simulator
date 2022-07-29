@@ -102,11 +102,27 @@ class TestSlurmLogParser:
             check_output(['./SlurmLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert("SlurmLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
+        assert("SlurmLogParser.py: error: one of the arguments --show-data-collection-cmd --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_no_slurm(self):
+    def test_main_show_data_collection_command(self):
+        self.cleanup_files()
+        test_files_dir = 'test_files/SlurmLogParser'
+        sacct_file = path.join(test_files_dir, 'sacct-output.txt')
+        output_csv = 'output/SlurmLogParser.jobs.csv'
+        try:
+            output = check_output(['./SlurmLogParser.py', '--show-data-collection-cmd'], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        print(f"output:\n{output}")
+        assert("Run the following command to save the job information to a file:" in output)
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_main_no_sacct_file(self):
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
         sacct_file = path.join(test_files_dir, 'sacct-output.txt')
@@ -115,7 +131,7 @@ class TestSlurmLogParser:
             check_output(['./SlurmLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert("SlurmLogParser.py: error: one of the arguments --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
+        assert("SlurmLogParser.py: error: one of the arguments --show-data-collection-cmd --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
 
     order += 1
     @pytest.mark.order(order)

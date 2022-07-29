@@ -277,7 +277,7 @@ class TestLSFLogParser:
             check_output([self.lsfLogParser], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert('the following arguments are required: --logfile-dir, --output-csv, --default-max-mem-gb' in excinfo.value.output)
+        assert('the following arguments are required: --logfile-dir, --output-csv' in excinfo.value.output)
         assert(excinfo.value.returncode == 2)
 
     order += 1
@@ -302,19 +302,6 @@ class TestLSFLogParser:
         print(excinfo.value)
         print(excinfo.value.output)
         assert('the following arguments are required: --output-csv' in excinfo.value.output)
-        assert(excinfo.value.returncode == 2)
-
-    order += 1
-    @pytest.mark.order(order)
-    def test_missing_default_max_mem_gb(self):
-        self.cleanup_files()
-        test_files_dir = 'test_files/LSFLogParser/acct'
-        output_csv = 'jobs.csv'
-        with pytest.raises(CalledProcessError) as excinfo:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
-        print(excinfo.value)
-        print(excinfo.value.output)
-        assert('the following arguments are required: --default-max-mem-gb' in excinfo.value.output)
         assert(excinfo.value.returncode == 2)
 
     order += 1

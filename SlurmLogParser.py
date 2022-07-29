@@ -15,6 +15,7 @@ from SchedulerLogParser import logger as SchedulerLogParser_logger, SchedulerLog
 import subprocess # nosec
 from subprocess import CalledProcessError, check_output # nosec
 from sys import exit
+from textwrap import dedent
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -176,6 +177,24 @@ class SlurmLogParser(SchedulerLogParser):
                 return job
         return None
 
+    @staticmethod
+    def get_sacct_command_args(starttime: str, endtime: str):
+        format_fields = []
+        for field_tuple in SlurmLogParser.SLURM_ACCT_FIELDS:
+            format_fields.append(field_tuple[0])
+        args = ["sacct", '--allusers', '--parsable2', '--noheader', '--format', ','.join(format_fields)]
+        if not starttime:
+            starttime = '1970-01-01T0:00:00'
+        args.extend(['--starttime', starttime])
+        if endtime:
+            args.extend(['--endtime', endtime])
+        return args
+
+    @staticmethod
+    def get_sacct_command(starttime: str, endtime: str):
+        command = ' '.join(SlurmLogParser.get_sacct_command_args(starttime, endtime))
+        return command
+
     def _call_sacct(self):
         '''
         Call sacct to get job information.
@@ -188,17 +207,8 @@ class SlurmLogParser(SchedulerLogParser):
         # Create a file handle to write the sacct output to.
         sacct_write_fh = open(self._sacct_output_file, 'w')
 
-        format_fields = []
-        for field_tuple in self.SLURM_ACCT_FIELDS:
-            format_fields.append(field_tuple[0])
         logger.debug(f"Calling sacct")
-        args = ["sacct", '--allusers', '--parsable2', '--noheader', '--format', ','.join(format_fields)]
-        starttime = self._starttime
-        if not self._starttime:
-            starttime = '1970-01-01T0:00:00'
-        args.extend(['--starttime', starttime])
-        if self._endtime:
-            args.extend(['--endtime', self._endtime])
+        args = self.get_sacct_command_args()
         rc = subprocess.call(args, stdout=sacct_write_fh, stderr=subprocess.STDOUT, encoding='UTF-8') # nosec
         sacct_write_fh.close()
         if rc:
@@ -433,11 +443,12 @@ class SlurmLogParser(SchedulerLogParser):
 
 def main():
     parser = argparse.ArgumentParser(description="Parse Slurm logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--slurm-root", required=False, help="Directory that contains the Slurm bin directory.")
     slurm_mutex_group = parser.add_mutually_exclusive_group(required=True)
+    slurm_mutex_group.add_argument("--show-data-collection-cmd", action='store_const', const=True, default=False, help="Show the command to create SACCT_OUTPUT_FILE.")
     slurm_mutex_group.add_argument("--sacct-output-file", help="File where the output of sacct will be written. Cannot be used with --sacct-file. Required if --sacct-input-file not set.")
     slurm_mutex_group.add_argument("--sacct-input-file", help="File with the output of sacct so can process sacct output offline. Cannot be used with --sacct-output-file. Required if --sacct-output-file not set.")
-    parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
+    parser.add_argument("--output-csv", required=False, help="CSV file with parsed job completion records")
+    parser.add_argument("--slurm-root", required=False, help="Directory that contains the Slurm bin directory.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
@@ -447,6 +458,26 @@ def main():
         logger.setLevel(logging.DEBUG)
         SchedulerJobInfo_logger.setLevel(logging.DEBUG)
         SchedulerLogParser_logger.setLevel(logging.DEBUG)
+
+    if args.show_data_collection_cmd:
+        print(dedent(f"""\
+            Run the following command to save the job information to a file:
+
+                {SlurmLogParser.get_sacct_command(args.starttime, args.endtime)} > OUTPUT_FILE
+
+            Then you can parse OUTPUT_FILE using the following command:
+
+                {__file__} --sql-output-file OUTPUT_FILE --output-csv OUTPUT_CSV
+        """))
+        exit(0)
+
+    if not (args.sacct_output_file or args.sacct_input_file):
+        logger.error("one of the arguments --sacct-output-file --sacct-input-file is required")
+        exit(1)
+
+    if not args.output_csv:
+        logger.error("the following arguments are required: --output-csv")
+        exit(1)
 
     logger.info('Started Slurm log parser')
 
