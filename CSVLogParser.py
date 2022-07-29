@@ -64,8 +64,6 @@ class CSVLogParser(SchedulerLogParser):
             if not job:
                 return job
             if self._job_in_time_window(job):
-                if self._output_csv_fh:
-                    self.write_job_to_csv(job)
                 return job
 
     def parse_jobs(self) -> None:
@@ -78,6 +76,9 @@ class CSVLogParser(SchedulerLogParser):
         job = True
         while job:
             job = self.parse_job()
+            if job:
+                if self._output_csv_fh:
+                    self.write_job_to_csv(job)
 
 def main() -> None:
     '''

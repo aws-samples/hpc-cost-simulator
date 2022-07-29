@@ -35,8 +35,9 @@ from openpyxl.utils import get_column_letter as xl_get_column_letter
 import operator
 from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
+import re
 from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
-from SchedulerLogParser import logger as SchedulerLogParser_logger
+from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
 from SlurmLogParser import SlurmLogParser, logger as SlurmLogParser_logger
 from sys import exit
 import typing
@@ -60,7 +61,7 @@ class JobCost:
 
 class JobAnalyzer:
 
-    def __init__(self, scheduler_parser, config_filename, output_dir):
+    def __init__(self, scheduler_parser: SchedulerLogParser, config_filename: str, output_dir: str, queue_filters: str, project_filters: str) -> None:
         self._scheduler_parser = scheduler_parser
         self._config_filename = config_filename
         self._output_dir = realpath(output_dir)
@@ -78,6 +79,43 @@ class JobAnalyzer:
 
         logger.info(f"Loading configuration from {config_filename}.")
         self.config = JobAnalyzer.read_configuration(config_filename)
+
+        if queue_filters != None:
+            self.config['Jobs']['QueueRegExps'] = queue_filters.split(',')
+        if project_filters != None:
+            self.config['Jobs']['ProjectRegExps'] = project_filters.split(',')
+
+        self._queue_filter_regexps = []
+        for queue_filter_regexp in self.config['Jobs']['QueueRegExps']:
+            queue_filter_regexp = queue_filter_regexp.lstrip("'\"")
+            queue_filter_regexp = queue_filter_regexp.rstrip("'\"")
+            logger.debug(f"queue_filter_regexp: {queue_filter_regexp}")
+            logger.debug(f"queue_filter_regexp[0]: {queue_filter_regexp[0]}")
+            if queue_filter_regexp[0] == '-':
+                include = False
+                queue_filter_regexp = queue_filter_regexp[1:]
+                logger.debug(f"Exclude queues matching {queue_filter_regexp}")
+            else:
+                include = True
+            self._queue_filter_regexps.append((include, re.compile(queue_filter_regexp)))
+        if len(self._queue_filter_regexps) == 0:
+            # If no filters specified then include all queues
+            logger.debug('Set default queue filter')
+            self._queue_filter_regexps.append((True, re.compile(r'.*')))
+
+        self._project_filter_regexps = []
+        for project_filter_regexp in self.config['Jobs']['ProjectRegExps']:
+            if project_filter_regexp[0] == '-':
+                include = False
+                project_filter_regexp = project_filter_regexp[1:]
+                logger.debug(f"Exclude projects matching {project_filter_regexp}")
+            else:
+                include = True
+            self._project_filter_regexps.append((include, re.compile(project_filter_regexp)))
+        if len(self._project_filter_regexps) == 0:
+            # If no filters specified then include all projects
+            logger.debug('Set default project filter')
+            self._project_filter_regexps.append((True, re.compile(r'.*')))
 
         self.minimum_cpu_speed = self.config['consumption_model_mapping']['minimum_cpu_speed']
 
@@ -1140,7 +1178,15 @@ class JobAnalyzer:
             if not job:
                 logger.debug(f"No more jobs")
                 break
+            if not self._filter_job_queue(job):
+                logger.debug(f"Job {job.job_id} filtered out queue {job.queue}")
+                continue
+            if not self._filter_job_project(job):
+                logger.debug(f"Job {job.job_id} filtered out project {job.project}")
+                continue
             total_jobs += 1
+            if self._scheduler_parser._output_csv:
+                self._scheduler_parser.write_job_to_csv(job)
             try:
                 job_cost_data = self.analyze_job(job)
             except RuntimeError:
@@ -1156,6 +1202,48 @@ class JobAnalyzer:
 
         self._process_hourly_jobs()
         self._write_hourly_stats()
+
+    def _filter_job_queue(self, job: SchedulerJobInfo) -> bool:
+        '''
+        Filter the job queue
+
+        Args:
+            job (SchedulerJobInfo): Parsed job information
+        Returns:
+            bool: True if the job should be analyzed
+        '''
+        logger.debug(f"Filtering job {job.job_id} queue {job.queue}")
+        if job.queue == None:
+            queue = ''
+        else:
+            queue = job.queue
+        for (include_filter, filter_regexp) in self._queue_filter_regexps:
+            if filter_regexp.match(queue):
+                logger.debug(f"job {job.job_id} queue={queue} matched {filter_regexp} include={include_filter}")
+                return include_filter
+        logger.debug(f"job {job.job_id} queue={queue} didn't match any filters")
+        return False
+
+    def _filter_job_project(self, job: SchedulerJobInfo) -> bool:
+        '''
+        Filter the job project
+
+        Args:
+            job (SchedulerJobInfo): Parsed job information
+        Returns:
+            bool: True if the job should be analyzed
+        '''
+        logger.debug(f"Filtering job {job.job_id} project {job.project}")
+        if job.project == None:
+            project = ''
+        else:
+            project = job.project
+        for (include_filter, filter_regexp) in self._project_filter_regexps:
+            if filter_regexp.match(project):
+                logger.debug(f"job {job.job_id} project={project} matched {filter_regexp} include={include_filter}")
+                return include_filter
+        logger.debug(f"job {job.job_id} project={project} didn't match any filters.")
+        return False
 
     def analyze_job(self, job: SchedulerJobInfo) -> JobCost:
         '''
@@ -1232,6 +1320,10 @@ def main():
         hourly_stats_parser = subparsers.add_parser('hourly_stats', help='Parse hourly_stats file so can create Excel workbook (xlsx).', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         hourly_stats_parser.add_argument("--input-hourly-stats-csv", required=True, help="Existing hourly_stats.csv file to use as input.")
 
+        parser.add_argument("--queues", default=None, help="Comma separated list of regular expressions of queues to include/exclude. Prefix the queue with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
+
+        parser.add_argument("--projects", default=None, help="Comma separated list of regular expressions of projects to include/exclude. Prefix the project with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
+
         parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
         args = parser.parse_args()
 
@@ -1263,7 +1355,7 @@ def main():
             scheduler_parser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
         elif args.parser == 'hourly_stats':
             scheduler_parser = None
-            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir)
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
             jobAnalyzer.parse_hourly_stats_csv(args.input_hourly_stats_csv)
             jobAnalyzer._write_hourly_stats()
 
@@ -1271,7 +1363,7 @@ def main():
             if args.output_csv:
                 logger.info(f"Writing job data to {args.output_csv}")
 
-            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir)
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
 
             # Print out configuration information
             logger.info(f"""Configuration:

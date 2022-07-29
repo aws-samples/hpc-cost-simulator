@@ -163,6 +163,9 @@ class AcceleratorLogParser(SchedulerLogParser):
         job = True
         while job:
             job = self.parse_job()
+            if job:
+                if self._output_csv_fh:
+                    self.write_job_to_csv(job)
         logger.debug(f"Parsed {self.num_output_jobs()} jobs.")
 
     DEFAULT_MEMORY_GB = 0.0 # By default, jobs only limited by core count, not memory, if memory request not specified.
@@ -246,8 +249,6 @@ class AcceleratorLogParser(SchedulerLogParser):
             logger.debug(f"    job_id: {job_id}")
             job = self._create_job_from_job_fields(job_fields)
             if self._job_in_time_window(job):
-                if self._output_csv_fh:
-                    self.write_job_to_csv(job)
                 self._num_input_jobs += 1
                 return job
             job = None
