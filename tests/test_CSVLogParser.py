@@ -93,7 +93,7 @@ class TestCSVLogParser:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
             raise
-        assert(filecmp.cmp(input_csv, output_csv, shallow=False))
+        assert(filecmp.cmp(output_csv, input_csv, shallow=False))
 
         input_csv = output_csv
         with pytest.raises(CalledProcessError) as excinfo:
@@ -121,13 +121,13 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
-        assert(filecmp.cmp(input_csv, output_csv, shallow=False))
+        assert(filecmp.cmp(output_csv, input_csv, shallow=False))
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_from_slurm(self):
+    def test_main_from_slurm_v1(self):
         self.cleanup_output_files()
-        input_csv = 'test_files/SlurmLogParser/exp_jobs.csv'
+        input_csv = 'test_files/SlurmLogParser/exp_jobs-v1.csv'
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
@@ -136,4 +136,19 @@ class TestCSVLogParser:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
             raise
-        assert(filecmp.cmp(input_csv, output_csv, shallow=False))
+        assert(filecmp.cmp(output_csv, input_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_main_from_slurm_v2(self):
+        self.cleanup_output_files()
+        input_csv = 'test_files/SlurmLogParser/exp_jobs-v2.csv'
+        output_dir = 'output/CSVLogParser'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        try:
+            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        assert(filecmp.cmp(output_csv, input_csv, shallow=False))

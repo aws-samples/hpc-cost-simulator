@@ -197,18 +197,37 @@ class TestSlurmLogParser:
 
     order += 1
     @pytest.mark.order(order)
-    def test_main_sacct_input_file(self):
+    def test_main_sacct_input_file_v1(self):
+        '''
+        Test with the original format that doesn't have the Partition field
+        '''
         self.cleanup_files()
         test_files_dir = 'test_files/SlurmLogParser'
-        sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
+        sacct_input_file = path.join(test_files_dir, 'sacct-output-v1.txt')
         output_csv = 'output/SlurmLogParser/jobs.csv'
+        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs-v1.csv')
         try:
             check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
             raise
-        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        assert(filecmp.cmp(output_csv, expected_jobs_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_main_sacct_input_file_v2(self):
+        self.cleanup_files()
+        test_files_dir = 'test_files/SlurmLogParser'
+        sacct_input_file = path.join(test_files_dir, 'sacct-output-v2.txt')
+        output_csv = 'output/SlurmLogParser/jobs.csv'
+        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs-v2.csv')
+        try:
+            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
         assert(filecmp.cmp(output_csv, expected_jobs_csv, shallow=False))
 
     order += 1
@@ -234,6 +253,7 @@ class TestSlurmLogParser:
         test_files_dir = 'test_files/SlurmLogParser/multi-node'
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser/jobs.csv'
+        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
             output = check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
@@ -241,7 +261,6 @@ class TestSlurmLogParser:
             print(f"output:\n{e.output}")
             raise
         print(f"output:\n{output}")
-        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         assert(filecmp.cmp(output_csv, expected_jobs_csv, shallow=False))
 
     order += 1

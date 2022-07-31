@@ -54,7 +54,7 @@ class TestJobAnalyzer(unittest.TestCase):
         if self._jobAnalyzer:
             return self._jobAnalyzer
         self._use_static_instance_type_info()
-        self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR)
+        self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR, None, None)
         if not self._jobAnalyzer.instance_type_info:
             self._jobAnalyzer.get_instance_type_info()
         return self._jobAnalyzer
@@ -124,9 +124,10 @@ class TestJobAnalyzer(unittest.TestCase):
         print(excinfo.value)
 
         config = JobAnalyzer.read_configuration(self.CONFIG_FILENAME)
-        key_dict = {'version':'',
-            'instance_mapping':'',
-            'consumption_model_mapping':''
+        key_dict = {'version': '',
+            'instance_mapping': '',
+            'consumption_model_mapping': '',
+            'Jobs': ''
         }
 
         self.assertEqual(key_dict.keys(), config.keys())
@@ -724,7 +725,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_dir = 'output/JobAnalyzer/multi-hour'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, 'csv', '--input-csv', jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, '-d', 'csv', '--input-csv', jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")
@@ -1032,7 +1033,7 @@ class TestJobAnalyzer(unittest.TestCase):
         self._use_static_instance_type_info()
 
         self.cleanup_output_files()
-        sacct_input_file = 'test_files/SlurmLogParser/sacct-output.txt'
+        sacct_input_file = 'test_files/SlurmLogParser/sacct-output-v2.txt'
         output_dir = 'output/JobAnalyzer/slurm/long'
         exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/long'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
@@ -1084,6 +1085,82 @@ class TestJobAnalyzer(unittest.TestCase):
             raise
 
         self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def _run_filter_test(self, test_files_dir, output_dir, exp_csv_files_dir, queues=None, projects=None):
+        self._remove_credentials()
+
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        input_csv = path.join(test_files_dir, 'jobs.csv')
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = path.join(exp_csv_files_dir, 'exp_jobs.csv')
+        args = ['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir]
+        if queues:
+            args.extend(['--queues', queues])
+            print(f"args: {args}")
+        if projects:
+            args.extend(['--projects', projects])
+            print(f"args: {args}")
+        args.extend(['-d', 'csv', '--input-csv', input_csv])
+        print(f"args: {args}")
+        try:
+            output = check_output(args, stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
+
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_filter_queues_include_queue1(self):
+        test_files_dir = 'test_files/JobAnalyzer/filter_queues'
+        output_dir = 'output/JobAnalyzer/filter_queues/include_queue1'
+        exp_csv_files_dir = path.join(test_files_dir, 'include_queue1')
+        self._run_filter_test(test_files_dir, output_dir, exp_csv_files_dir, queues="'queue1'")
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_filter_queues_exclude_queue1(self):
+        test_files_dir = 'test_files/JobAnalyzer/filter_queues'
+        output_dir = 'output/JobAnalyzer/filter_queues/exclude_queue1'
+        exp_csv_files_dir = 'test_files/JobAnalyzer/filter_queues/exclude_queue1'
+        self._run_filter_test(test_files_dir, output_dir, exp_csv_files_dir, queues="'-queue1,.*'")
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_filter_queues_include_queue1_exclude_queue1(self):
+        test_files_dir = 'test_files/JobAnalyzer/filter_queues'
+        output_dir = 'output/JobAnalyzer/filter_queues/include_queue1_exclude_queue1'
+        exp_csv_files_dir = 'test_files/JobAnalyzer/filter_queues/include_queue1'
+        self._run_filter_test(test_files_dir, output_dir, exp_csv_files_dir, queues="'queue1,-queue1'")
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_filter_queues_include_queue2(self):
+        test_files_dir = 'test_files/JobAnalyzer/filter_queues'
+        output_dir = 'output/JobAnalyzer/filter_queues/include_queue2'
+        exp_csv_files_dir = path.join(test_files_dir, 'include_queue2')
+        self._run_filter_test(test_files_dir, output_dir, exp_csv_files_dir, queues="'queue2'")
 
     order += 1
     @pytest.mark.order(order)

@@ -22,7 +22,6 @@ from os.path import basename, dirname, realpath
 import re
 from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
-from SchedulerJobInfo import SchedulerJobInfo
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -71,6 +70,9 @@ class LSFLogParser(SchedulerLogParser):
         job = True
         while job:
             job = self.parse_job()
+            if job:
+                if self._output_csv_fh:
+                    self.write_job_to_csv(job)
         if self._invalid_record_dict:
             print("\n\n")
             logger.error(f"{self._number_of_invalid_records} invalid records were found in {len(self._invalid_record_dict)} files")
@@ -168,9 +170,12 @@ class LSFLogParser(SchedulerLogParser):
                 max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb * num_hosts)
             logger.debug(f"max_mem_gb: {max_mem_gb}")
 
+            # todo Get licenses from effectiveResReq
+            licenses = []
+            licenses = ','.join(licenses)
+
             job = SchedulerJobInfo(
                 job_id = record['jobId'],
-                resource_request = record['effectiveResReq'],
                 num_cores = record['maxNumProcessors'],
                 max_mem_gb = max_mem_gb,
                 num_hosts = num_hosts,
@@ -182,7 +187,11 @@ class LSFLogParser(SchedulerLogParser):
                 run_time = record['runTime'],
                 finish_time = record['Event Time'],
 
+                queue = record['queue'],
+                project = record['projectName'],
+
                 exit_status = record['exitStatus'],
+
                 ru_inblock = record['ru_inblock'],
                 ru_majflt = record['ru_majflt'],
                 ru_maxrss = record['ru_maxrss'],
@@ -193,10 +202,10 @@ class LSFLogParser(SchedulerLogParser):
                 ru_oublock = record['ru_oublock'],
                 ru_stime = record['ru_stime'],
                 ru_utime = record['ru_utime'],
+
+                resource_request = record['effectiveResReq'],
             )
             if self._job_in_time_window(job):
-                if self._output_csv_fh:
-                    self.write_job_to_csv(job)
                 self._num_input_jobs += 1
                 return job
 
