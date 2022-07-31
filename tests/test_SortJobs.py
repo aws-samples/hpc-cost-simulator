@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT-0
 '''
 
 import csv
+from CSVLogParser import CSVLogParser
 from datetime import datetime, timedelta
 import filecmp
 import logging
@@ -13,7 +14,7 @@ from os import path, system
 from os.path import abspath, dirname
 import pytest
 import random
-from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
+from SchedulerJobInfo import SchedulerJobInfo
 from SortJobs import JobSorter, logger as JobSorter_logger
 import subprocess
 from subprocess import CalledProcessError, check_output
@@ -73,17 +74,13 @@ class TestSortJobs(unittest.TestCase):
         '''
         self._cleanup_output_files()
 
-        unsorted_jobs_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
+        number_of_jobs = 10000
+        unsorted_jobs_csv = path.join(self.OUTPUT_DIR, 'unsorted_jobs.csv')
         sorted_jobs_csv = path.join(self.OUTPUT_DIR, 'sorted_jobs.csv')
 
-        job_sorter = JobSorter(unsorted_jobs_csv, sorted_jobs_csv)
+        unused_jobs_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
+        csv_log_parser = CSVLogParser(unused_jobs_csv, unsorted_jobs_csv)
 
-        unsorted_jobs_csv = path.join(self.OUTPUT_DIR, 'unsorted_jobs.csv')
-        output_fh = open(unsorted_jobs_csv, 'w')
-        csv_writer = csv.writer(output_fh, dialect='excel', lineterminator='\n')
-        job_sorter._write_csv_header(csv_writer)
-
-        number_of_jobs = 10000
         min_year = 1980
         max_year = 2022
         start = datetime(min_year, 1, 1, 0, 0, 0)
@@ -101,10 +98,8 @@ class TestSortJobs(unittest.TestCase):
                 start_time = eligible_time,
                 finish_time = eligible_time,
             )
-            job_sorter.write_job_to_csv(dummy_job, csv_writer)
-        output_fh.close()
-        job_sorter._output_csv_fh.close()
-        system(f"rm {job_sorter._output_csv_fh.name}")
+            csv_log_parser.write_job_to_csv(dummy_job)
+        csv_log_parser._output_csv_fh.close()
         print(f"Created {unsorted_jobs_csv}")
 
         print(f"Sorting {unsorted_jobs_csv} into {sorted_jobs_csv}")
@@ -112,14 +107,12 @@ class TestSortJobs(unittest.TestCase):
         #SchedulerJobInfo_logger.setLevel(logging.DEBUG)
         job_sorter = JobSorter(unsorted_jobs_csv, sorted_jobs_csv)
         job_sorter.sort_jobs()
-        assert(job_sorter._num_errors == 0)
 
-        sorted_jobs_csv_fh = open(sorted_jobs_csv, 'r')
-        csv_reader = csv.reader(sorted_jobs_csv_fh, dialect='excel')
-        next(csv_reader)
-        previous_job = job_sorter._read_job_from_csv(csv_reader)
-        while previous_job:
-            job = job_sorter._read_job_from_csv(csv_reader)
+        csv_log_parser = CSVLogParser(unused_jobs_csv, unsorted_jobs_csv)
+        previous_job = None
+        while True:
+            job = csv_log_parser.parse_job()
             if not job:
                 break
-            assert(job.eligible_time_dt >= previous_job.eligible_time_dt)
+            if previous_job:
+                assert(job.eligible_time_dt >= previous_job.eligible_time_dt)
