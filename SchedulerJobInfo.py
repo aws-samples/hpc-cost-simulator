@@ -287,8 +287,20 @@ class SchedulerJobInfo:
     HOUR_SECONDS = MINUTE_SECONDS * 60
     DAY_SECONDS = HOUR_SECONDS * 24
 
+    def to_dict(self) -> dict:
+        d = self.__dict__.copy()
+        del d['submit_time_dt']
+        del d['start_time_dt']
+        del d['finish_time_dt']
+        del d['eligible_time_dt']
+        del d['wait_time_td']
+        del d['run_time_td']
+        del d['ineligible_pend_time_td']
+        del d['requeue_time_td']
+        return d
+
     def fields(self):
-        return self.__dict__.keys()
+        return self.to_dict().keys()
 
     @staticmethod
     def fix_datetime(value):

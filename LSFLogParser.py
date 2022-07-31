@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT-0
 
 import argparse
 from copy import deepcopy
+import csv
 import json
 import logging
 from LSB_ACCT_FIELDS import LSB_ACCT_RECORD_FORMATS, MINIMAL_LSB_ACCT_FIELDS
@@ -56,6 +57,7 @@ class LSFLogParser(SchedulerLogParser):
         self._lsb_acct_files = self._get_lsb_acct_files(logfile_dir)
         self._lsb_acct_filename = None
         self._lsb_acct_fh = None
+        self._lsb_acct_csv_reader = None
 
         self._invalid_record_dict = {}
         self._number_of_invalid_records = 0
@@ -83,6 +85,9 @@ class LSFLogParser(SchedulerLogParser):
                 logger.error(f"    Invalid records can be found in: {self._invalid_record_dict[file]['invalid_records_filename']}")
 
     def parse_job(self) -> SchedulerJobInfo:
+        return self.parse_job_from_csv_reader()
+
+    def parse_job_from_csv_reader(self) -> SchedulerJobInfo:
         '''
         Parse a job from the LSF log files.
 
@@ -90,38 +95,39 @@ class LSFLogParser(SchedulerLogParser):
             SchedulerJobInfo: Parsed job or None if there are no more jobs to be parsed.
         '''
         while True:
-            if not self._lsb_acct_fh:
+            if not self._lsb_acct_csv_reader:
                 if not self._lsb_acct_files:
                     return None
                 self._lsb_acct_filename = self._lsb_acct_files.pop(0)
                 logger.info(f"Parsing lsb.acct file: {self._lsb_acct_filename}")
                 self._lsb_acct_line_number = 0
                 self._lsb_acct_fh = open(self._lsb_acct_filename, 'r', errors='replace')
+                self._lsb_acct_csv_reader = csv.reader(self._lsb_acct_fh, delimiter=' ')
             try:
-                line = self._lsb_acct_fh.readline()
+                record_fields = next(self._lsb_acct_csv_reader)
+                logger.debug(f"record_fields: {record_fields}")
             except UnicodeDecodeError as e:
                 self._lsb_acct_line_number += 1
                 self._save_invalid_record(self._lsb_acct_filename, self._lsb_acct_line_number, str(e), '')
                 continue
-            self._lsb_acct_line_number += 1
-            if line == '':
+            except StopIteration:
                 logger.debug(f"Reached EOF of {self._lsb_acct_filename}")
-                self._lsb_acct_fh = None
+                self._lsb_acct_csv_reader = None
+                self._lsb_acct_fh.close()
                 continue
-            # Strip off newline
-            line = line.rstrip()
-            logger.debug(f"line {self._lsb_acct_line_number}: {line}")
-            if re.match(r'^\s*$', line):
+            self._lsb_acct_line_number += 1
+            logger.debug(f"line {self._lsb_acct_line_number}: {record_fields}")
+            if len(record_fields) == 0:
                 logger.debug(f"Blank line")
                 continue
-            if re.match(r'^\s*#', line):
+            if re.match(r'^\s*#', record_fields[0]):
                 logger.debug(f"Comment line")
                 continue
             try:
-                record = self.parse_record(line, LSB_ACCT_RECORD_FORMATS)
+                record = self._parse_record_fields(record_fields, LSB_ACCT_RECORD_FORMATS)
             except Exception as e:
-                logger.error(f'{self._lsb_acct_filename}, line {self._lsb_acct_line_number}: Bad record: {e}\n{line}')
-                self._save_invalid_record(self._lsb_acct_filename, self._lsb_acct_line_number, str(e), line)
+                logger.error(f'{self._lsb_acct_filename}, line {self._lsb_acct_line_number}: Bad record: {e}\n{record_fields}')
+                self._save_invalid_record(self._lsb_acct_filename, self._lsb_acct_line_number, str(e), '"' + '" "'.join(record_fields) + '"')
                 # Keep going to try to parse all valid records
                 continue
             if record['record_type'] != 'JOB_FINISH':
@@ -235,7 +241,7 @@ class LSFLogParser(SchedulerLogParser):
                 logger.debug(f"Skipping: {filename} because doesn't start with lsb.acct")
         return lsb_acct_files
 
-    def parse_record(self, record_line: str, record_format: str) -> [str]:
+    def _parse_record_fields(self, original_fields, record_format: dict) -> dict:
         '''
         Parse a line from the bacct.lsb* file and return the field values.
 
@@ -249,7 +255,7 @@ class LSFLogParser(SchedulerLogParser):
         Returns:
             {str: str}: Dictionary with field name/value pairs.
         '''
-        fields = self.get_fields(record_line)
+        fields = original_fields.copy()
         try:
             record_type = fields.pop(0)
             logger.debug(f"Record type: {record_type} {len(fields)} fields")
@@ -473,93 +479,7 @@ class LSFLogParser(SchedulerLogParser):
         if fields:
             extra_fields = "'" + ','.join(fields) + "'"
             raise ValueError(f"{len(fields)} extra fields left over: {extra_fields}")
-        logger.debug(json.dumps(record, indent=4))
         return record
-
-    def get_fields(self, record_line):
-        '''
-        Split a line into it's fields.
-
-        Fields are space delimited, but fields that contain spaces are double quoted.
-        Fields that contain double quotes quote the quote as "".
-
-        The first field must be a valid record type.
-
-        Args:
-            record_line (str): A line from the logfile.
-
-        Raises:
-            ValueError: If any fields have an unterminated quote.
-
-        Returns:
-            [str]: Array of fields
-        '''
-        fields = []
-        remaining_fields = record_line.lstrip().rstrip()
-        while remaining_fields:
-            field, remaining_fields = self.get_field(remaining_fields)
-            #logger.debug(f"field={field}")
-            fields.append(field)
-        return fields
-
-    def get_field(self, record_line):
-        '''
-        Get the next field off a line and return the remaining fields
-
-        Args:
-            record_line (str): Remaining records to be parse
-
-        Raises:
-            ValueError: If an error found.
-                Field starts with a quote and terminating quote not found.
-        Returns:
-            (str, str): A tuple with the field, and the string with the remaining fields.
-        '''
-        record_line = record_line.lstrip().rstrip()
-        field = None
-        line_len = len(record_line)
-        if record_line[0] == '"':
-            new_record_line = record_line[1:]
-            line_len -= 1
-            field_end = 0
-            while field == None:
-                field_end = new_record_line.find('"', field_end)
-                if field_end == -1:
-                    raise ValueError(f"Terminating quote not found: \"{new_record_line}")
-                elif field_end == line_len - 1:
-                    field = new_record_line[0:field_end]
-                    remaining_fields = ''
-                elif new_record_line[field_end + 1] != '"':
-                    field = new_record_line[0:field_end]
-                    remaining_fields = new_record_line[(field_end + 1):]
-                elif new_record_line[field_end + 1] == '"':
-                    new_record_line = new_record_line[:field_end] + new_record_line[(field_end+1):]
-                    line_len -= 1
-                    field_end += 1
-                else:
-                    raise ValueError(f"Terminating quote at index {field_end} should be followed by another quote, a blank , or the EOL. Found {new_record_line[field_end + 1]}\nline: {record_line}")
-        else:
-            field_end = record_line.find(' ')
-            if field_end == -1:
-                field = record_line
-                remaining_fields = ''
-            else:
-                field = record_line[0:field_end]
-                remaining_fields = record_line[field_end+1:]
-        return field, remaining_fields.lstrip()
-
-    def filter_lsb_acct_records(self, job_records):
-        filtered_records = []
-        for job_record in job_records:
-            if job_record['record_type'] != 'JOB_FINISH':
-                continue
-            filtered_record = {}
-            for field in job_record:
-                if field not in MINIMAL_LSB_ACCT_FIELDS:
-                    continue
-                filtered_record[field] = deepcopy(job_record[field])
-            filtered_records.append(filtered_record)
-        return filtered_records
 
     def _save_invalid_record(self, filename: str, line_number: int, error_message, record) -> None:
         if filename not in self._invalid_record_dict:
