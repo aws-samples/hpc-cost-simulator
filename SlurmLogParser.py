@@ -95,6 +95,9 @@ class SlurmLogParser(SchedulerLogParser):
         ('UserCPU', 'td'),      # The amount of user CPU time used by the job or job step. Format is the same as Elapsed
         ('SystemCPU', 'td'),    # The amount of system CPU time used by the job or job step. Format is the same as Elapsed
         ('TotalCPU', 'td'),     # The sum of the SystemCPU and UserCPU time used by the job or job step
+
+        # This field was added, so it should be optional
+        ('Partition', 's'),       # The exit code returned by the job script or salloc
     ]
 
     SLURM_STATE_CODES = [
@@ -136,6 +139,9 @@ class SlurmLogParser(SchedulerLogParser):
         job = True
         while job:
             job = self.parse_job()
+            if job:
+                if self._output_csv_fh:
+                    self.write_job_to_csv(job)
         logger.info(f"Parsed {self.num_output_jobs()} jobs")
         if self.errors:
             logger.error(f"{len(self.errors)} errors while parsing jobs")
@@ -241,7 +247,13 @@ class SlurmLogParser(SchedulerLogParser):
             for field_tuple in self.SLURM_ACCT_FIELDS:
                 field_name = field_tuple[0]
                 field_format = field_tuple[1]
-                field_value = fields.pop(0)
+                try:
+                    field_value = fields.pop(0)
+                except IndexError:
+                    if field_name in ['Partition']:
+                        field_value = None
+                    else:
+                        raise
                 req_mem_suffix = None
                 if field_value:
                     try:
@@ -374,8 +386,6 @@ class SlurmLogParser(SchedulerLogParser):
             logger.debug("    Skipping because not in time window")
             return None
 
-        if self._output_csv_fh:
-            self.write_job_to_csv(job)
         return job
 
     def _create_job_from_job_fields(self, job_fields):
@@ -388,7 +398,6 @@ class SlurmLogParser(SchedulerLogParser):
             job_fields['AllocNodes'] = 1
         job = SchedulerJobInfo(
             job_id = job_fields['JobID'],
-            resource_request = job_fields['Constraints'],
             num_cores = job_fields['NCPUS'],
             max_mem_gb = job_fields['ReqMem']/MEM_GB,
             num_hosts = job_fields['AllocNodes'],
@@ -399,8 +408,11 @@ class SlurmLogParser(SchedulerLogParser):
             run_time = job_fields['Elapsed'],
             finish_time = job_fields['End'],
 
+            queue = job_fields['Partition'],
+
             # ExitCode is {returncode}:{signal}
             exit_status = job_fields['ExitCode'].split(':')[0],
+
             ru_inblock = job_fields['MaxDiskRead'],
             ru_majflt = job_fields['MaxPages'],
             ru_maxrss = job_fields['MaxRSS'],
@@ -411,6 +423,8 @@ class SlurmLogParser(SchedulerLogParser):
             ru_oublock = job_fields['MaxDiskWrite'],
             ru_stime = job_fields['SystemCPU'],
             ru_utime = job_fields['UserCPU'],
+
+            resource_request = job_fields['Constraints'],
         )
         return job
 
