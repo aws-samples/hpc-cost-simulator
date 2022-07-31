@@ -275,7 +275,7 @@ class LSFLogParser(SchedulerLogParser):
             for field_tuple in record_format[record_type]['fields']:
                 field_name = field_tuple[0]
                 field_format = field_tuple[1]
-                field_str = fields.pop(0)
+                field_str = fields.pop(0).lstrip().rstrip()
                 logger.debug(f"    {field_name}({field_format})={field_str}")
                 if field_format == '%s':
                     field = field_str
