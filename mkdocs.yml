@@ -8,6 +8,7 @@ nav:
   - 'SlurmLogParser.md'
   - 'JobAnalyzer.md'
   - 'Output.md'
+  - 'config.md'
 strict: true
 theme:
   name: mkdocs

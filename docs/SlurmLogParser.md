@@ -29,6 +29,11 @@ source setup.sh
 ./SlurmLogParser.py --show-data-collection-cmd
 ```
 
+As of this writing, the command is:
+```
+sacct --allusers --parsable2 --noheader --format State,JobID,ReqCPUS,ReqMem,ReqNodes,Constraints,Submit,Eligible,Start,Elapsed,Suspended,End,ExitCode,DerivedExitCode,AllocNodes,NCPUS,MaxDiskRead,MaxDiskWrite,MaxPages,MaxRSS,MaxVMSize,CPUTime,UserCPU,SystemCPU,TotalCPU,Partition --starttime 1970-01-01T0:00:00 > SlurmAccounting.csv
+```
+
 ## Parsing the Job Completion Data
 First you must source the setup script to activate the virtual environment and install all the dependedncies in it.
 

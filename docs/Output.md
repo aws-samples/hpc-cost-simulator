@@ -59,6 +59,9 @@ Select **Tools** -> **Options**
 
 If the **Solver Add-in** isn't active then select it and click **OK**.
 
+![Tools-Add-Ins](images/MacEnableSolver.png)
+
+
 #### Optimize Savings Plans Using Excel Solver
 
 Now you are ready to run the solver.
@@ -67,21 +70,38 @@ Copy the original values by selecting column B and pasting the values into colum
 Then select the **Data** menu select **Solver** on the ribbon.
 
 Configure the solver by selecting the total cost as the **Objective**.
-Then select the Savings Plan commit cells in **By Changing Variable Cells:**.
-Then add constraints for the Savings Plan commit cells.
+Then select the Savings Plan commit cells in **By Changing Variable Cells**.
+
+Do **not** select the total cell, only the $ value for specific instance family types:
+
+![Solver Configuration](images/MacSolverConfiguration.png)
+
+Optionally, you may add constraints for the Savings Plan commit cells.
+
+**Windows:**
+
+![solver parameters Windows](images/solver-parameters.png)      
+
+**Mac OS**
+
+![solver parameters Mac](images/MacSolverAddIn.png) 
+
 Then click **Solve** and wait while the Solver calculates the savings plan commits
 that will minimie your overall costs.
-
-![solver parameters Windows](images/solver-parameters.png)      ![solver parameters Mac](images/MacSolverAddIn.png) 
-
 The solver may run a while, but when it finishes then save the results.
 
+**Windows:** 
+
 ![Save Solver Results](images/solver-results.png)
+
+**Mac OS:** 
+
+![Save Solver Results](images/MacSolverResults.png)
 
 The spreadsheet will then show the savings plan commits that minimize the total costs.
 In this case Savings Plans were able to reduce total costs by about 10%.
 Note that this is due to the very variable nature of the jobs.
-The more sustained usage that you have, the more cost-effective Savings Plans will be.
+The more uniform usage you have, the more cost-effective Savings Plans will be.
 
 ![Optimized cost](images/solver-savings.png)
 

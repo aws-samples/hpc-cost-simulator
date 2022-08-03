@@ -8,6 +8,10 @@ To see data collection command syntax, run:
 source setup.sh
 ./AcceleratorLogParser.py --show-data-collection-cmd
 ```
+For example, as of this writing, the command is:
+```
+nc cmd vovsql_query -e "select jobs.id, jobs.submittime, jobs.starttime, jobs.endtime, resources.name, jobs.exitstatus, jobs.maxram, jobs.maxvm, jobs.cputime, jobs.susptime from jobs inner join resources on jobs.resourcesid=resources.id" > sql-output.txt
+```
 
 This command should run on a node connected to the Altiar Accelerator head node, and with a user with permissions to see the jobs from all users.
 
