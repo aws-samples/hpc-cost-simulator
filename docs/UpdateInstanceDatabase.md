@@ -1,7 +1,7 @@
 # Updating the Instance Type Information
 
 While we update the HCS Instance Type Information with each new release, you can update it yourself to get updates instance types and prices for one region or all regions.
-The Instance Type Information is stored in JSON format in  [instance_type_info.json](../instance_type_info.json)
+The Instance Type Information is stored in JSON format in  [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json)
 
 **Note**: Running the script without specifying a version will collect the data for all instance types across all available regions, which may take a few minutes to complete.
 
