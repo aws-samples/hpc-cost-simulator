@@ -1,35 +1,40 @@
 # Job Analyzer
 
-The [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) script post-processes the output of the parsers to provide an analysis of running the jobs on AWS.
-For convenience, the analyzer can call the parser and analyze the output in 1 step.
+The [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) performs the cost simulation using the outputs from:
+
+- [AcceleratorLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py), 
+- [LSFLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py) or 
+- [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) 
+
+It produces an hour-by-hour cost simulation, placing the output in the `output/` subfolder (by default).
+
+For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend calling perfoming the analysis in separate stages (see "How data is analyzed") in [index.md](index.md).
 
 ## Prerequisites
 
-[JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) relies on  [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json) which contains instance type details and pricing.
-If the file doesn't exist in the same directory as the script then it will attempt to create it using the AWS API.
-For details on the required IAM permissions see the [main documentation page](index.md#instance-type-information).
+[JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) relies on:
 
-## Configuration
+1. the virtual environment created by the setup script. run `source setup.sh` to setup the virtual environment.
+2. `config.yml` which defines the configuration of the analysis. 
+For more detials on the configuration file, see the [configuration documentation](config.md)
+3. [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json) which contains instance type details and pricing.
+The file is part of the repository, but if you want to download an update list of instances and their prices, please see [Updating the Instance Type Information](UpdateInstanceDatabase.md)
 
-All configuration parameters are stored in [config.yml](https://github.com/aws-samples/hpc-cost-simulator/blob/main/config.yml).
-The schema of the configuration file is contained in [config_schema.yml](https://github.com/aws-samples/hpc-cost-simulator/blob/main/config_schema.yml)
-and contains a list of all the options.
-See comments within the files for details of each parameter's use.
+# Performing the cost simulation
+Once you generated a CSV file from your Scheduler (See instructions for [IBM LSF](LSFLogParser.md), [SchedMD Slurm](SlurmLogParser.md) abd [Altair Engineering Accelerator](AcceleratorLogParser.md)) you can perform the cost simulation (step 3) using [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py)
 
-Key configuration parameters that you may want to change include.
+To parse the CSV file into the final anonymized Excel report, run:
+```
+source setup.sh
+./JobAnalyzer.py csv --input-csv INPUT_CSV_FILE_NAME
+```
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| instance_mapping: region_name | eu-west-1| The region where the AWS instances will run. |
-| instance_mapping: instance_prefix_list | [c6i, m5., r5., c5., z1d, x2i] | Instance types to be used during the analysis |
-| consumption_model_mapping: maximum_minutes_for_spot | 60 | Threshold for using on-demand instances instead of spot instances.|
-| consumption_model_mapping: ec2_savings_plan_duration | 3 | Duration of the savings plan. Valid values: [1, 3] |
-| consumption_model_mapping: ec2_savings_plan_payment_option | 'All Upfront' | Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront'] |
-| consumption_model_mapping: | 3 | Duration of the savings plan. Valid values: [1, 3] |
-| consumption_model_mapping: | 'All Upfront' | Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront'] |
+## Outputs
 
-## Usage
+By default, HCS places all output files in the `output/` folder (this can be changed usign the `--output-dir` parameter to `JobAnalyzer.py`). 
+**Note:** The output folder will get overwritten without prompting you for approval.
 
+## Full Syntax
 Arguments provided to `JobAnalyzer` are required in a specific order:
 
 ```
@@ -40,8 +45,9 @@ These are the common arguments.
 
 ```
 usage: JobAnalyzer.py [-h] [--starttime STARTTIME] [--endtime ENDTIME]
-                      [--config CONFIG] [--output-dir OUTPUT_DIR]
-                      [--output-csv OUTPUT_CSV] [--debug]
+                      [--config CONFIG] [--acknowledge-config]
+                      [--output-dir OUTPUT_DIR] [--output-csv OUTPUT_CSV]
+                      [--debug]
                       parser ...
 
 Analyze jobs
@@ -54,6 +60,8 @@ positional arguments:
     csv                 Parse CSV from already parsed job information.
     lsf                 Parse LSF logfiles
     slurm               Parse Slurm job information
+    hourly_stats        Parse hourly_stats file so can create Excel workbook
+                        (xlsx).
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -63,6 +71,8 @@ optional arguments:
   --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
                         DDTHH:MM:SS (default: None)
   --config CONFIG       Configuration file. (default: ./config.yml)
+  --acknowledge-config  Acknowledge configuration file contents so don't get
+                        prompt. (default: False)
   --output-dir OUTPUT_DIR
                         Directory where output will be written (default:
                         output)
@@ -88,16 +98,17 @@ When used, these parameters must precede the parser type:
 
 ###  Parser Type
 
-The tool supports 4 parser types:
+The tool supports 5 parser types:
 
 ```
     accelerator         Parse Accelerator (nc) job information
     lsf                 Parse LSF accounting ercords (lsb.acct fiels)
     slurm               Parse Slurm job information
     csv                 Parse CSV from a previously parsed job information.
+    hourly_stats        Parse the hourly output files from a previous run
 ```
 
-### Parser-specific Arguments - Accelerator
+### Parser-Specific Arguments - Accelerator
 
 ```
 usage: JobAnalyzer.py accelerator [-h] [--default-mem-gb DEFAULT_MEM_GB]
@@ -107,7 +118,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --default-mem-gb DEFAULT_MEM_GB
                         Default amount of memory (in GB) requested for jobs.
-                        (default: 0.098)
+                        (default: 0.0)
   --sql-output-file SQL_OUTPUT_FILE
                         File where the output of sql query will be written.
                         Cannot be used with --sql-input-file. Required if
@@ -124,7 +135,7 @@ optional arguments:
                         Required if --sql-output-file not set. (default: None)
 ```
 
-### Parser-specific Arguments - LSF
+### Parser-Specific Arguments - LSF
 
 ```
 usage: JobAnalyzer.py lsf [-h] [--logfile-dir LOGFILE_DIR]
@@ -139,7 +150,7 @@ optional arguments:
                         None)
 ```
 
-### Parser-specific Arguments - Slurm
+### Parser-Specific Arguments - Slurm
 
 ```
 usage: JobAnalyzer.py slurm [-h] [--slurm-root SLURM_ROOT]
@@ -163,71 +174,6 @@ optional arguments:
 
 Note: The tool will call `sacct` to get accounting logs, if you don't have it installed on the machine, please see the [SlurmLogParser.py documentation](SlurmLogParser.md) for details on how to save them to a CSV file.
 
-### Analyzing Pre-Parsed CSV Job Data
 
-```
-usage: JobAnalyzer.py csv [-h] --input-csv INPUT_CSV
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --input-csv INPUT_CSV
-                        CSV file with parsed job info from scheduler parser.
-                        (default: None)
-```
-
-## Data Used
-
-The parser parses out and saves the minimum amount of data required to do the analysis.
-The fields are documented in the [SchedulerJobInfo.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SchedulerJobInfo.py) module.
-The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
-and actual resource usage information, if available such as the user time, system time, and max memory used.
-
-## Jobs CSV File Format
-
-The format out the CSV files that the parsers write is flexible and JobAnalyzer.py can use any CSV file that containes the required information.
-This can be useful if you are using a different scheduler or storing the job information in something like Splunk.
-As long as you can export the required data into a CSV file, then JobAnalyzer.py can parse it.
-
-The order of the fields in the CSV file do not matter, but the names of the fields do.
-There is no standard for CSV files, but the JobAnalyzer.py expects the files to be written in the "Microsoft Excel" dialect.
-The field names must be in the first row.
-
-The required fields are:
-
-| Field | Type | Description
-|-------|------|-------------
-| job_id | string | Job id
-| num_cores | int | Total number of cores allocated to the job
-| max_mem_gb | float | Total amount of memory allocated to the job in GB
-| num_hosts | int |Number of hosts. In Slurm this is the number of nodes. The number of cores should be evenly divisible by the number of hosts. For LSF this is typically 1.
-| submit_time | datetime string | Time that the job was submitted. All times are expected to be in the format *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*
-| start_time  | datetime string | Time that the job started.
-| finish_time | datetime string | Time that the job finished.
-
-The optional fields are:
-
-| Field | Type | Description
-|-------|------|-------------
-| resource_request | string | Resources requested by the job. For LSF this is the effective resource request. For Slurm it is the job constraints.
-| ineligible_pend_time | timedelta string | Duration that the job was ineligible to run. This is what LSF writes. Defaults to max(0, eligible_time - start_time). Format for timedelta strings is *h*:*mm*:*ss*.
-| eligible_time | datetime string | Time that the job became eligible to run. Defaults to the start_time + ineligible_pend_time.
-| requeue_time | datetime string | Time that the job was requeued. Currently not used.
-| wait_time | timedelta string | Time that job was pending after it was eligible to run. Default start_time - eligible_time.
-| run_time | timedelta string | Time that the job ran. Default: finish_time - start_time
-| exit_status | int | Effective return code of the job. Default: 0
-| ru_majflt  | float | Number of page faults
-| ru_maxrss  | float | Maximum shared text size
-| ru_minflt  | float | Number of page reclaims
-| ru_msgsnd  | float | Number of System V IPC messages sent
-| ru_msgrcv  | float | Number of messages received
-| ru_nswap   | float | Number of times the process was swapped out
-| ru_inblock | float | Number of block input operations
-| ru_oublock | float | Number of block output operations
-| ru_stime   | float | System time used
-| ru_utime   | float | User time used
-
-## Savings Plan Optimization
-
-The script writes an Excel Workbook that allows you to view the analysis and analyze the impact of savings plan on the overall costs.
-Excel also has a Solver add-in that will automatically optimize the savings plan values to minimize the costs.
-The steps to configure the solver are included in the spreadsheet and are on the [main page](index.md#optimize-savings-plans-using-excel-solver).
+## What's Next?
+Once completed, you can find your Excel report under `output/hourly_stats.xlsx`. You can share it with your AWS acocunt team (Recommended) for further cost optimization guidance, or you can learn more about the data in the Excel in the [Output](Output.md) documentation page.
