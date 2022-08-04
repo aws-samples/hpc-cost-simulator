@@ -1,10 +1,9 @@
 # Job Analyzer
 
-The [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) performs the cost simulation using the outputs from:
-
-- [AcceleratorLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py), 
-- [LSFLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py) or 
-- [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) 
+The [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) performs the cost simulation using the outputs from 
+[AcceleratorLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py), 
+[LSFLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py) or 
+[SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) 
 
 It produces an hour-by-hour cost simulation, placing the output in the `output/` subfolder (by default).
 
