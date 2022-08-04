@@ -23,14 +23,14 @@ The output file (located under the `output/` directory if not otherwise specifie
 
 
 ## How data is analyzed
-The analysis is a 3-step process:
+The analysis is a 4-step process:
 
-| # | Step            | Description                                                                                                                                                     |
-|   |-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1 | Data Collection | Collect accounting records from the database.                                                                                                                   |
-| 2 | Formatting      | Parsing the scheduler accounting database - this takes the scheudler specific format, and converts the job records to a uniform format (not scheduler specific).|
-| 3 | Cost Simulation | Performing cost simulation using the output from step 2.                                                                                                        |
-| 4 | Analysis        | Analyzing the output, building a complete cost model. This can be done using your AWS account team.                                                             | 
+| # | Step | Description |
+| --- | --- | --- |
+|1| Data Collection | Collect accounting records from the database.|
+|2| Formatting|Parsing the scheduler accounting database - this takes the scheudler specific format, and converts the job records to a uniform format (not scheduler specific).|
+|3| Cost Simulation | Performing cost simulation using the output from step 2.|
+|4| Analysis | Analyzing the output, building a complete cost model. This can be done using your AWS account team.| 
 
 
 ## Prerequisits
