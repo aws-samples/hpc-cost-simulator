@@ -23,7 +23,7 @@ The output file (located under the `output/` directory if not otherwise specifie
 
 
 ## How data is analyzed
-The analysis is a 3-step process:
+The analysis is a 4-step process:
 
 | # | Step | Description |
 | --- | --- | --- |

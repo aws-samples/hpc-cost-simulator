@@ -26,7 +26,7 @@ class TestAcceleratorLogParser:
             check_output(['./AcceleratorLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert("AcceleratorLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
+        assert("AcceleratorLogParser.py: error: one of the arguments --show-data-collection-cmd --sql-output-file --sql-input-file is required" in excinfo.value.output)
 
     order += 1
     @pytest.mark.order(order)
@@ -36,7 +36,7 @@ class TestAcceleratorLogParser:
             check_output(['./AcceleratorLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert("AcceleratorLogParser.py: error: one of the arguments --sql-output-file --sql-input-file is required" in excinfo.value.output)
+        assert("AcceleratorLogParser.py: error: one of the arguments --show-data-collection-cmd --sql-output-file --sql-input-file is required" in excinfo.value.output)
 
     order += 1
     @pytest.mark.order(order)
@@ -58,7 +58,7 @@ class TestAcceleratorLogParser:
             check_output(['./AcceleratorLogParser.py', '--sql-output-file', sql_output_file], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
-        assert("AcceleratorLogParser.py: error: the following arguments are required: --output-csv" in excinfo.value.output)
+        assert("the following arguments are required: --output-csv" in excinfo.value.output)
 
     order += 1
     @pytest.mark.order(order)

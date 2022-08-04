@@ -68,9 +68,8 @@ class SchedulerLogParser(ABC):
             if not path.exists(input_csv):
                 raise FileNotFoundError(f"Input CSV file doesn't exist: {input_csv}")
             self._input_csv_fh = open(input_csv, 'r', newline='')
-            self._csv_reader = csv.reader(self._input_csv_fh, dialect='excel')
-            self._input_line_number = 0
-            self._read_csv_header()
+            self._csv_dict_reader = csv.DictReader(self._input_csv_fh, dialect='excel')
+            self._input_line_number = 1
         else:
             self._input_csv_fh = None
         self._num_input_jobs = 0
@@ -80,7 +79,13 @@ class SchedulerLogParser(ABC):
             if not path.exists(output_dir):
                 makedirs(output_dir)
             self._output_csv_fh = open(output_csv, 'w', newline='')
-            self._csv_writer = csv.writer(self._output_csv_fh, dialect='excel', lineterminator='\n')
+            self._output_field_names = self._get_job_field_names()
+            # Profiling showed that the dict writer is slightly slower
+            self._use_csv_dict_writer = False
+            if not self._use_csv_dict_writer:
+                self._csv_writer = csv.writer(self._output_csv_fh, dialect='excel', lineterminator='\n')
+            else:
+                self._csv_dict_writer = csv.DictWriter(self._output_csv_fh, self._output_field_names, dialect='excel', lineterminator='\n', extrasaction='ignore')
             self._write_csv_header()
         else:
             self._output_csv_fh = None
@@ -125,19 +130,8 @@ class SchedulerLogParser(ABC):
         '''
         return self._num_output_jobs
 
-    def _write_csv_header(self) -> None:
-        '''
-        Writes the CSV header line to the output csv file.
-
-        Called by the constructor if an output csv filename provided.
-
-        Raises:
-            RuntimeError: If no output csv file handle exists.
-        '''
-        if not self._output_csv_fh:
-            raise RuntimeError(f"_write_csv_header called without self._output_csv_fh being set.")
-        if not self._csv_writer:
-            raise RuntimeError(f"_write_csv_header called without self._csv_writer being set.")
+    @staticmethod
+    def _get_job_field_names():
         dummy_job = SchedulerJobInfo(
             job_id = '1',
             resource_request = 'rusage[mem=6291456,xcelium_sc=1:duration=1m]',
@@ -149,14 +143,34 @@ class SchedulerLogParser(ABC):
             start_time = '1970-01-01T00:00:01',
             finish_time = '1970-01-01T00:00:05',
         )
-        job_fields = dummy_job.__dict__
-        self._output_field_names = []
-        for field_name in job_fields.keys():
+        field_names = []
+        job_dict = dummy_job.__dict__
+        for field_name in job_dict.keys():
             if field_name[-3:] in ['_dt', '_td']:
                 continue
-            self._output_field_names.append(field_name)
-        logger.debug(f"self._output_field_names={self._output_field_names}")
-        self._csv_writer.writerow(self._output_field_names)
+            field_names.append(field_name)
+        logger.debug(f"field_names={field_names}")
+        return field_names
+
+    def _write_csv_header(self) -> None:
+        '''
+        Writes the CSV header line to the output csv file.
+
+        Called by the constructor if an output csv filename provided.
+
+        Raises:
+            RuntimeError: If no output csv file handle exists.
+        '''
+        if not self._output_csv_fh:
+            raise RuntimeError(f"_write_csv_header called without self._output_csv_fh being set.")
+        if not self._use_csv_dict_writer:
+            if not self._csv_writer:
+                raise RuntimeError(f"_write_csv_header called without self._csv_writer being set.")
+            self._csv_writer.writerow(self._output_field_names)
+        else:
+            if not self._csv_dict_writer:
+                raise RuntimeError(f"_write_csv_header called without self._csv_dict_writer being set.")
+            self._csv_dict_writer.writeheader()
 
     def write_job_to_csv(self, job) -> None:
         '''
@@ -167,36 +181,26 @@ class SchedulerLogParser(ABC):
         '''
         if not self._output_csv_fh:
             raise RuntimeError(f"write_job_to_csv called without self._output_csv_fh being set.")
-        if not self._csv_writer:
-            raise RuntimeError(f"write_job_to_csv called without self._csv_writer being set.")
-        field_values = []
-        for field_name in self._output_field_names:
-            field_value = job.__dict__[field_name]
-            if field_value == None:
-                field_value = ''
-            else:
-                field_value = str(field_value)
-            field_values.append(field_value)
-        self._csv_writer.writerow(field_values)
+        if not self._use_csv_dict_writer:
+            if not self._csv_writer:
+                raise RuntimeError(f"write_job_to_csv called without self._csv_writer being set.")
+        else:
+            if not self._csv_dict_writer:
+                raise RuntimeError(f"_write_csv_header called without self._csv_dict_writer being set.")
+
+        if not self._use_csv_dict_writer:
+            field_values = []
+            for field_name in self._output_field_names:
+                field_value = job.__dict__[field_name]
+                if field_value == None:
+                    field_value = ''
+                else:
+                    field_value = str(field_value)
+                field_values.append(field_value)
+            self._csv_writer.writerow(field_values)
+        else:
+            self._csv_dict_writer.writerow(job.__dict__)
         self._num_output_jobs += 1
-
-    def _read_csv_header(self):
-        '''
-        Reads the CSV header line from the input csv file.
-
-        Called by the constructor if an input csv filename provided.
-
-        Raises:
-            RuntimeError: If no input csv file handle exists.
-        '''
-        if not self._input_csv_fh:
-            raise RuntimeError(f"_read_csv_header called without self._input_csv_fh being set.")
-        if not self._csv_reader:
-            raise RuntimeError(f"_read_csv_header called without self._csv_reader being set.")
-        self._input_field_names = next(self._csv_reader)
-        self._input_line_number += 1
-        logger.debug(f"_input_job_field_names={self._input_field_names}")
-        logger.debug(f"{len(self._input_field_names)} input fields")
 
     def _read_job_from_csv(self):
         '''
@@ -210,31 +214,22 @@ class SchedulerLogParser(ABC):
         Returns:
             SchedulerJobInfo: Parsed job or None if there are no more jobs to be parsed.
         '''
-        if not self._input_csv_fh:
-            raise RuntimeError(f"_read_job_from_csv called without input_csv being set.")
-        if not self._csv_reader:
-            raise RuntimeError(f"_read_job_from_csv called without self._csv_reader being set.")
+        if not self._csv_dict_reader:
+            raise RuntimeError(f"_read_job_from_csv called without self._csv_dict_reader being set.")
         while True:
             try:
-                field_values = next(self._csv_reader)
+                job_dict = next(self._csv_dict_reader)
             except StopIteration:
                 return None
             self._input_line_number += 1
-            logger.debug(f"    {len(field_values)} field values")
-            field_dict = {}
-            for index, field_name in enumerate(self._input_field_names):
-                if field_name[-3:] in ['_dt', '_td']:
-                    continue
-                field_dict[field_name] = field_values[index]
             try:
-                job = SchedulerJobInfo.from_dict(field_dict)
-            except ValueError as e:
-                logger.error(f"Exception reading {self._input_csv}, line {self._input_line_number}: {e}\nfields:\n{','.join(field_values)}")
+                job = SchedulerJobInfo.from_dict(job_dict)
+            except Exception as e:
+                logger.error(f"Exception reading {self._input_csv}, line {self._input_line_number}: {e}\njob_dict: {json.dumps(job_dict, indent=4)}")
                 self._num_errors += 1
                 raise
             self._num_input_jobs += 1
             return job
-        raise RuntimeError('Did not find a job or EOF.')
 
     def _job_in_time_window(self, job: SchedulerJobInfo):
         '''

@@ -52,12 +52,15 @@ class SchedulerJobInfo:
         start_time:str,
         finish_time:str,
         # Optional fields
-        resource_request:str='',
         ineligible_pend_time:str=None,
         eligible_time:str=None,
         requeue_time:str=None,
         wait_time:str=None,
         run_time:str=None,
+
+        queue:str=None,
+        project:str=None,
+        licenses:str=None,
 
         exit_status:int=None,
 
@@ -71,6 +74,8 @@ class SchedulerJobInfo:
         ru_oublock:int=None,
         ru_stime:float=None,
         ru_utime:float=None,
+
+        resource_request:str='',
         ):
         '''
         Constructor
@@ -92,12 +97,15 @@ class SchedulerJobInfo:
             start_time (str): Date and time that the job started on the compute node
             finish_time (str): Date and time that the job finished.
 
-            resource_request (str): Additional resources requested by the job, for example, licenses
             ineligible_pend_time (str): LSF: The time that the job was pending because it was ineligible to run because of unmet dependencies
             eligible_time (str): Slurm: Date and time when the job became eligible to run. Can be used to calculate ineligible_pend_time.
             requeue_time (str): LSF: The job's requeue time.
             wait_time (str): The time that the job waited to start after it was eligible.
             run_time (str): The time that the job ran. It should be the difference between finish_time and start_time.
+
+            queue (str): queue that the job was submitted to.
+            project (str): project that the job belongs to
+            licenses (str): comma separated list of licenses used by the job. Format: license1[:int][license2[:int]]
 
             exit_status (int):
 
@@ -111,6 +119,8 @@ class SchedulerJobInfo:
             ru_oublock (int):
             ru_stime (int):
             ru_utime (int):
+
+            resource_request (str): Additional resources requested by the job, for example, licenses
 
         Returns:
             `SchedulerJobInfo`
@@ -128,7 +138,6 @@ class SchedulerJobInfo:
         (self.finish_time, self.finish_time_dt) = SchedulerJobInfo.fix_datetime(finish_time)
 
         # Optional fields
-        self.resource_request = resource_request
         try:
             (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
         except:
@@ -155,6 +164,10 @@ class SchedulerJobInfo:
             logger.debug(f"Invalid ineligible_pend_time: {run_time}")
             pass
 
+        self.queue = queue
+        self.project = project
+        self.licenses = licenses
+
         self.exit_status = SchedulerJobInfo.fix_int(exit_status)
 
         self.ru_inblock = SchedulerJobInfo.fix_int(ru_inblock)
@@ -167,6 +180,8 @@ class SchedulerJobInfo:
         self.ru_oublock = SchedulerJobInfo.fix_int(ru_oublock)
         self.ru_stime = SchedulerJobInfo.fix_duration(ru_stime)[0]
         self.ru_utime = SchedulerJobInfo.fix_duration(ru_utime)[0]
+
+        self.resource_request = resource_request
 
         if not self.ineligible_pend_time:
             if self.eligible_time:
@@ -196,60 +211,40 @@ class SchedulerJobInfo:
             self.run_time_td = self.finish_time_dt - self.start_time_dt
             self.run_time = SchedulerJobInfo.timedelta_to_string(self.run_time_td)
 
-
     @staticmethod
     def from_dict(field_dict: dict):
         job_id = int(field_dict['job_id'])
-        del field_dict['job_id']
         num_cores = int(field_dict['num_cores'])
-        del field_dict['num_cores']
         max_mem_gb = float(field_dict['max_mem_gb'])
-        del field_dict['max_mem_gb']
         num_hosts = int(field_dict['num_hosts'])
-        del field_dict['num_hosts']
         submit_time = str(field_dict['submit_time'])
-        del field_dict['submit_time']
         start_time = str(field_dict['start_time'])
-        del field_dict['start_time']
         finish_time = str(field_dict['finish_time'])
-        del field_dict['finish_time']
 
-        resource_request = str(field_dict['resource_request'])
-        del field_dict['resource_request']
         ineligible_pend_time = str(field_dict['ineligible_pend_time'])
-        del field_dict['ineligible_pend_time']
         eligible_time = str(field_dict['eligible_time'])
-        del field_dict['eligible_time']
         requeue_time = str(field_dict['requeue_time'])
-        del field_dict['requeue_time']
         wait_time = str(field_dict['wait_time'])
-        del field_dict['wait_time']
         run_time = str(field_dict['run_time'])
-        del field_dict['run_time']
+
+        queue = field_dict.get('queue', None)
+        project = field_dict.get('project', None)
+        licenses = field_dict.get('licensese', None)
 
         exit_status = SchedulerJobInfo.fix_int(field_dict['exit_status'])
-        del field_dict['exit_status']
 
         ru_inblock = SchedulerJobInfo.fix_int(field_dict['ru_inblock'])
-        del field_dict['ru_inblock']
         ru_majflt = SchedulerJobInfo.fix_int(field_dict['ru_majflt'])
-        del field_dict['ru_majflt']
         ru_maxrss = SchedulerJobInfo.fix_int(field_dict['ru_maxrss'])
-        del field_dict['ru_maxrss']
         ru_minflt = SchedulerJobInfo.fix_int(field_dict['ru_minflt'])
-        del field_dict['ru_minflt']
         ru_msgrcv = SchedulerJobInfo.fix_int(field_dict['ru_msgrcv'])
-        del field_dict['ru_msgrcv']
         ru_msgsnd = SchedulerJobInfo.fix_int(field_dict['ru_msgsnd'])
-        del field_dict['ru_msgsnd']
         ru_nswap = SchedulerJobInfo.fix_int(field_dict['ru_nswap'])
-        del field_dict['ru_nswap']
         ru_oublock = SchedulerJobInfo.fix_int(field_dict['ru_oublock'])
-        del field_dict['ru_oublock']
         ru_stime = str(field_dict['ru_stime'])
-        del field_dict['ru_stime']
         ru_utime = str(field_dict['ru_utime'])
-        del field_dict['ru_utime']
+
+        resource_request = str(field_dict['resource_request'])
 
         return SchedulerJobInfo(
             job_id = job_id,
@@ -260,12 +255,15 @@ class SchedulerJobInfo:
             start_time = start_time,
             finish_time = finish_time,
             # Optional fields
-            resource_request = resource_request,
             ineligible_pend_time = ineligible_pend_time,
             eligible_time = eligible_time,
             requeue_time = requeue_time,
             wait_time = wait_time,
             run_time = run_time,
+
+            queue = queue,
+            project = project,
+            licenses = licenses,
 
             exit_status = exit_status,
 
@@ -279,6 +277,8 @@ class SchedulerJobInfo:
             ru_oublock = ru_oublock,
             ru_stime = ru_stime,
             ru_utime = ru_utime,
+
+            resource_request = resource_request,
         )
 
     DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -287,8 +287,20 @@ class SchedulerJobInfo:
     HOUR_SECONDS = MINUTE_SECONDS * 60
     DAY_SECONDS = HOUR_SECONDS * 24
 
+    def to_dict(self) -> dict:
+        d = self.__dict__.copy()
+        del d['submit_time_dt']
+        del d['start_time_dt']
+        del d['finish_time_dt']
+        del d['eligible_time_dt']
+        del d['wait_time_td']
+        del d['run_time_td']
+        del d['ineligible_pend_time_td']
+        del d['requeue_time_td']
+        return d
+
     def fields(self):
-        return self.__dict__.keys()
+        return self.to_dict().keys()
 
     @staticmethod
     def fix_datetime(value):
