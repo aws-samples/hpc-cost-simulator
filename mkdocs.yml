@@ -7,6 +7,8 @@ nav:
   - 'LSFLogParser.md'
   - 'SlurmLogParser.md'
   - 'JobAnalyzer.md'
+  - 'Output.md'
+  - 'config.md'
 strict: true
 theme:
   name: mkdocs
@@ -18,3 +20,4 @@ theme:
   nav_style: dark
   features:
     - navigation.tabs
+ 
