@@ -393,14 +393,17 @@ class LSFLogParser(SchedulerLogParser):
                             allocSlot = fields.pop(0)
                             logger.debug(f"        allocSlot[{idx}]: {allocSlot}")
                     elif field_name == 'indexRangeCnt':
+                        record['indexRange'] = []
                         for idx in range(0, field):
-                            indexRangeStart1 = fields.pop(0)
-                            indexRangeEnd1 = fields.pop(0)
-                            indexRangeStep1 = fields.pop(0)
-                            indexRangeStartN = fields.pop(0)
-                            indexRangeEndN = fields.pop(0)
-                            indexRangeStepN = fields.pop(0)
-                            logger.debug(f"        indexRange[{idx}]: indexRangeStart1{indexRangeStart1} indexRangeEnd1={indexRangeEnd1} indexRangeStep1={indexRangeStep1} indexRangeStartN={indexRangeStartN} indexRangeEndN={indexRangeEndN} indexRangeStepN={indexRangeStepN}")
+                            indexRangeStart = fields.pop(0)
+                            indexRangeEnd = fields.pop(0)
+                            indexRangeStep = fields.pop(0)
+                            record['indexRange'].append({
+                                'indexRangeStart': indexRangeStart,
+                                'indexRangeEnd': indexRangeEnd,
+                                'indexRangeStep': indexRangeStep
+                                })
+                            logger.debug(f"        indexRange[{idx}]: indexRangeStart={indexRangeStart} indexRangeEnd={indexRangeEnd} indexRangeStep={indexRangeStep}")
                     elif field_name == 'numGPURusages':
                         for idx in range(0, field):
                             hostname = fields.pop(0)
