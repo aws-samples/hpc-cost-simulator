@@ -1,2 +1,1 @@
 job_id,num_cores,max_mem_gb,num_hosts,submit_time,start_time,finish_time,ineligible_pend_time,eligible_time,requeue_time,wait_time,run_time,queue,project,licenses,exit_status,ru_inblock,ru_majflt,ru_maxrss,ru_minflt,ru_msgrcv,ru_msgsnd,ru_nswap,ru_oublock,ru_stime,ru_utime,resource_request
-203,1,0.09765625,1,2022-06-24T12:15:37,2022-06-24T12:15:37,2022-06-24T12:15:46,0:00:00,2022-06-24T12:15:37,0:00:00,0:00:00,0:00:09,queue1,project1,,33280,-1,-1,-1,-1,-1,-1,-1,-1,,,select[type == local] order[r15s:pg] span[hosts=1]
