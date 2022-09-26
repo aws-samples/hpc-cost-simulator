@@ -21,12 +21,12 @@ SPDX-License-Identifier: MIT-0
 
 from abc import ABC, abstractmethod
 import csv
+import json
 import logging
 from os import makedirs, path
 from os.path import dirname, realpath
 from SchedulerJobInfo import SchedulerJobInfo
 from typing import List
-import yaml
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')

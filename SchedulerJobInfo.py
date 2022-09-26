@@ -141,28 +141,28 @@ class SchedulerJobInfo:
         try:
             (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
         except:
-            logger.debug(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
-            pass
+            logger.warning(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
+            self.ineligible_pend_time = self.ineligible_pend_time_td = None
         try:
             (self.eligible_time, self.eligible_time_dt) = SchedulerJobInfo.fix_datetime(eligible_time)
         except:
-            logger.debug(f"Invalid ineligible_pend_time: {eligible_time}")
-            pass
+            logger.warning(f"Invalid eligible_time: {eligible_time}")
+            self.eligible_time = self.eligible_time_dt = None
         try:
             (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
         except:
-            logger.debug(f"Invalid ineligible_pend_time: {requeue_time}")
-            pass
+            logger.warning(f"Invalid requeue_time: {requeue_time}")
+            self.requeue_time = self.requeue_time_td = None
         try:
             (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
         except:
-            logger.debug(f"Invalid ineligible_pend_time: {wait_time}")
-            pass
+            logger.warning(f"Invalid wait_time: {wait_time}")
+            self.wait_time = self.wait_time_td = None
         try:
             (self.run_time, self.run_time_td) = SchedulerJobInfo.fix_duration(run_time)
         except:
-            logger.debug(f"Invalid ineligible_pend_time: {run_time}")
-            pass
+            logger.warning(f"Invalid run_time: {run_time}")
+            self.run_time = self.run_time_td = None
 
         self.queue = queue
         self.project = project
