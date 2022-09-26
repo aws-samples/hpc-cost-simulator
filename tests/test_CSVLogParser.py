@@ -152,3 +152,20 @@ class TestCSVLogParser:
             print(f"output:\n{e.output}")
             raise
         assert(filecmp.cmp(output_csv, input_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_main_invalid_run_time(self):
+        self.cleanup_output_files()
+        input_dir = 'test_files/CSVLogParser/issues/53'
+        input_csv = path.join(input_dir, 'jobs.csv')
+        output_dir = 'output/CSVLogParser'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        exp_jobs_csv = path.join(input_dir, 'exp_jobs.csv')
+        try:
+            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        assert(filecmp.cmp(output_csv, exp_jobs_csv, shallow=False))

@@ -1,0 +1,3 @@
+job_id,num_cores,max_mem_gb,num_hosts,submit_time,start_time,finish_time,ineligible_pend_time,eligible_time,requeue_time,wait_time,run_time,queue,project,licenses,exit_status,ru_inblock,ru_majflt,ru_maxrss,ru_minflt,ru_msgrcv,ru_msgsnd,ru_nswap,ru_oublock,ru_stime,ru_utime,resource_request
+67108865,1,0.09765625,1,2022-02-18T17:32:41,2022-02-18T17:36:39,2022-02-18T17:41:55,0:02:01,2022-02-18T17:34:42,,0:01:57,abcd,partition1,,,0,73400,15160,117702656,,,,,,0:01:03.182000,0:01:07.402000,
+543119,1,0.339874267578125,1,2021-10-27T00:52:06,2021-10-27T00:52:09,2021-10-27T00:51:30,0:00:00,2021-10-27T00:52:06,0:00:00,0:00:03,"-1 day, 23:59:21",batch,default,,0,16,0,273704,207829,0,0,0,88992,0:00:00.606907,0:00:14.834744,select[ type == any] order[r15s:pg]
