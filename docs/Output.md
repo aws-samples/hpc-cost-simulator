@@ -12,10 +12,10 @@ HCS generates multiple output files:
  
 ### hourly_stats.xlsx
 
-This is the main output file, and will be analyzed moving forward. All other files are only used for groubleshooting and or re-running a subset of the analysis.
+This is the main output file, and will be analyzed moving forward. All other files are only used for troubleshooting and or re-running a subset of the analysis.
 
 The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
-For example, in the following example the "**First hout to analyze**" was changed to only include the last 12 months worth of data.
+For example, in the following example the "**First hour to analyze**" was changed to only include the last 12 months worth of data.
 
 ![Cost Summary](images/cost-summary.png)
 

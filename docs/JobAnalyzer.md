@@ -7,7 +7,7 @@ The [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main
 
 It produces an hour-by-hour cost simulation, placing the output in the `output/` subfolder (by default).
 
-For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend calling perfoming the analysis in separate stages (see "How data is analyzed") in [index.md](index.md).
+For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend perfoming the analysis in separate stages (see "How data is analyzed") in [index.md](index.md).
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ For convenience, the analyzer can call the parser and analyze the output in 1 st
 
 1. the virtual environment created by the setup script. run `source setup.sh` to setup the virtual environment.
 2. `config.yml` which defines the configuration of the analysis. 
-For more detials on the configuration file, see the [configuration documentation](config.md)
+For more details on the configuration file, see the [configuration documentation](config.md)
 3. [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json) which contains instance type details and pricing.
 The file is part of the repository, but if you want to download an update list of instances and their prices, please see [Updating the Instance Type Information](UpdateInstanceDatabase.md)
 
