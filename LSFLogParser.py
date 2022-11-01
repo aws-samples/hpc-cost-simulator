@@ -23,6 +23,8 @@ from os.path import basename, dirname, realpath
 import re
 from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
+from sys import exit
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -507,6 +509,7 @@ def main() -> None:
     parser.add_argument("--default-max-mem-gb", type=float, default=0.0, required=False, help="Default maximum memory for a job in GB.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
+    parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
     args = parser.parse_args()
 
@@ -514,6 +517,10 @@ def main() -> None:
         logger.setLevel(logging.DEBUG)
         SchedulerJobInfo_logger.setLevel(logging.DEBUG)
         SchedulerLogParser_logger.setLevel(logging.DEBUG)
+        VersionCheck_logger.setLevel(logging.DEBUG)
+
+    if not args.disable_version_check and not VersionCheck().check_git_version():
+        exit(1)
 
     logger.info('Started LSF log parser')
     logger.info(f"LSF logfile directory: {args.logfile_dir}")

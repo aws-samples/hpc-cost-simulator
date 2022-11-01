@@ -190,7 +190,7 @@ class TestJobAnalyzer(unittest.TestCase):
     def test_missing_parser(self):
         self.cleanup_output_files()
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', 'output'], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', 'output'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('The following arguments are required: parser' in excinfo.value.output)
@@ -205,7 +205,7 @@ class TestJobAnalyzer(unittest.TestCase):
         self._remove_instance_type_info()
 
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', 'output/JobAnalyzer/lsf', 'csv', '--input-csv', 'test_files/LSFLogParser/exp_jobs.csv'], stderr=subprocess.STDOUT, encoding='utf8', env=environ)
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--disable-version-check', '--output-dir', 'output/JobAnalyzer/lsf', 'csv', '--input-csv', 'test_files/LSFLogParser/exp_jobs.csv'], stderr=subprocess.STDOUT, encoding='utf8', env=environ)
             print(output)
             assert(False)
         except CalledProcessError as e:
@@ -725,7 +725,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_dir = 'output/JobAnalyzer/multi-hour'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, '-d', 'csv', '--input-csv', jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, '-d', 'csv', '--input-csv', jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")
@@ -776,7 +776,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'accelerator', '--logfile-dir', test_files_dir], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'accelerator', '--logfile-dir', test_files_dir], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")
@@ -812,7 +812,7 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'accelerator', '--sql-input-file', sql_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'accelerator', '--sql-input-file', sql_input_file], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")
@@ -852,7 +852,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = input_csv
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")
@@ -894,7 +894,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--debug', 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--debug', 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -932,7 +932,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = input_csv
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -969,7 +969,7 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/multi-node'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -1004,7 +1004,7 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/array'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, '--debug', 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -1038,7 +1038,7 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_csv_files_dir = 'test_files/JobAnalyzer/slurm/long'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, 'slurm', '--sacct-input-file', sacct_input_file], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -1073,13 +1073,13 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._use_static_instance_type_info()
 
-        output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', 'output/JobAnalyzer/slurm', 'slurm'], stderr=subprocess.STDOUT, encoding='utf8')
+        output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', 'output/JobAnalyzer/slurm', 'slurm'], stderr=subprocess.STDOUT, encoding='utf8')
 
         self.cleanup_output_files()
         output_dir = 'output/JobAnalyzer/slurm'
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--output-dir', output_dir, 'slurm'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, 'slurm'], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -1097,7 +1097,7 @@ class TestJobAnalyzer(unittest.TestCase):
         input_csv = path.join(test_files_dir, 'jobs.csv')
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(exp_csv_files_dir, 'exp_jobs.csv')
-        args = ['./JobAnalyzer.py', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir]
+        args = ['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir]
         if queues:
             args.extend(['--queues', queues])
             print(f"args: {args}")
@@ -1175,7 +1175,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = input_csv
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./JobAnalyzer.py', '--acknowledge-config', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('No instance types selected by instance_mapping' in excinfo.value.output)
@@ -1194,7 +1194,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = input_csv
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise
@@ -1228,7 +1228,7 @@ class TestJobAnalyzer(unittest.TestCase):
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output(['./JobAnalyzer.py', '--acknowledge-config', '--config', self.CONFIG_FILENAME, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--config', self.CONFIG_FILENAME, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(e.output)
             raise

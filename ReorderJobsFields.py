@@ -13,8 +13,10 @@ import json
 import logging
 from os import makedirs, path, rename, system
 from os.path import basename, dirname, realpath
+from sys import exit
 from tempfile import NamedTemporaryFile
 from typing import List
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -33,11 +35,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Reorder jobs fields.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input-csv", required=True, help="CSV file with parsed job info.")
     parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
+    parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
     args = parser.parse_args()
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
+        VersionCheck_logger.setLevel(logging.DEBUG)
+
+    if not args.disable_version_check and not VersionCheck().check_git_version():
+        exit(1)
 
     if not path.exists(args.input_csv):
         raise FileNotFoundError(f"Input CSV file doesn't exist: {args.input_csv}")
