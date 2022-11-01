@@ -23,7 +23,7 @@ class TestAcceleratorLogParser:
     @pytest.mark.order(order)
     def test_main_no_args(self):
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./AcceleratorLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./AcceleratorLogParser.py', '--disable-version-check'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: one of the arguments --show-data-collection-cmd --sql-output-file --sql-input-file is required" in excinfo.value.output)
@@ -33,7 +33,7 @@ class TestAcceleratorLogParser:
     def test_main_no_sql_file_arg(self):
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./AcceleratorLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: one of the arguments --show-data-collection-cmd --sql-output-file --sql-input-file is required" in excinfo.value.output)
@@ -45,7 +45,7 @@ class TestAcceleratorLogParser:
         sql_input_file = 'test_files/sql_output.txt'
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./AcceleratorLogParser.py', '--sql-output-file', sql_output_file, '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--sql-output-file', sql_output_file, '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("AcceleratorLogParser.py: error: argument --sql-input-file: not allowed with argument --sql-output-file" in excinfo.value.output)
@@ -55,7 +55,7 @@ class TestAcceleratorLogParser:
     def test_main_no_output_csv_file_args(self):
         sql_output_file = 'output/sql_output.txt'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./AcceleratorLogParser.py', '--sql-output-file', sql_output_file], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--sql-output-file', sql_output_file], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("the following arguments are required: --output-csv" in excinfo.value.output)
@@ -68,7 +68,7 @@ class TestAcceleratorLogParser:
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         exp_output_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
         try:
-            output = check_output(['./AcceleratorLogParser.py', '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -84,7 +84,7 @@ class TestAcceleratorLogParser:
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         exp_output_csv = 'test_files/AcceleratorLogParser/exp_jobs_default_mem_1gb.csv'
         try:
-            output = check_output(['./AcceleratorLogParser.py', '--default-mem-gb', '1', '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--default-mem-gb', '1', '--sql-input-file', sql_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -117,7 +117,7 @@ class TestAcceleratorLogParser:
         sql_output_file = 'output/sql_output.txt'
         output_csv = 'output/AcceleratorLogParser/jobs.csv'
         try:
-            check_output(['./AcceleratorLogParser.py', '--sql-output-file', sql_output_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./AcceleratorLogParser.py', '--disable-version-check', '--sql-output-file', sql_output_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")

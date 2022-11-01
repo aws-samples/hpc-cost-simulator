@@ -99,7 +99,7 @@ class TestSlurmLogParser:
     def test_main_no_args(self):
         self.cleanup_files()
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./SlurmLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("SlurmLogParser.py: error: one of the arguments --show-data-collection-cmd --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
@@ -112,7 +112,7 @@ class TestSlurmLogParser:
         sacct_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser.jobs.csv'
         try:
-            output = check_output(['./SlurmLogParser.py', '--show-data-collection-cmd'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./SlurmLogParser.py', '--disable-version-check', '--show-data-collection-cmd'], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -128,7 +128,7 @@ class TestSlurmLogParser:
         sacct_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser.jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./SlurmLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("SlurmLogParser.py: error: one of the arguments --show-data-collection-cmd --sacct-output-file --sacct-input-file is required" in excinfo.value.output)
@@ -141,7 +141,7 @@ class TestSlurmLogParser:
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt-invalid')
         output_csv = 'output/SlurmLogParser.jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert(f"Sacct file doesn't exist: {sacct_input_file}" in excinfo.value.output)
@@ -154,7 +154,7 @@ class TestSlurmLogParser:
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser/jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("4 errors while parsing jobs" in excinfo.value.output)
@@ -170,7 +170,7 @@ class TestSlurmLogParser:
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser/jobs.csv'
         try:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -186,7 +186,7 @@ class TestSlurmLogParser:
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser/issues/17/jobs.csv'
         try:
-            output = check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -207,7 +207,7 @@ class TestSlurmLogParser:
         output_csv = 'output/SlurmLogParser/jobs.csv'
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs-v1.csv')
         try:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -223,7 +223,7 @@ class TestSlurmLogParser:
         output_csv = 'output/SlurmLogParser/jobs.csv'
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs-v2.csv')
         try:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -243,7 +243,7 @@ class TestSlurmLogParser:
 
         test_files_dir = 'test_files/SlurmLogParser'
         output_csv = 'output/SlurmLogParser/jobs.csv'
-        check_output(['./SlurmLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        check_output(['./SlurmLogParser.py', '--disable-version-check', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         # Can't check output because we won't know what it is.
 
     order += 1
@@ -255,7 +255,7 @@ class TestSlurmLogParser:
         output_csv = 'output/SlurmLogParser/jobs.csv'
         expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -271,7 +271,7 @@ class TestSlurmLogParser:
         sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
         output_csv = 'output/SlurmLogParser/jobs.csv'
         try:
-            check_output(['./SlurmLogParser.py', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")

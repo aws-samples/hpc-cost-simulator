@@ -41,7 +41,7 @@ class TestSortJobs(unittest.TestCase):
     def test_no_args(self):
         self._cleanup_output_files()
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./SortJobs.py', '--output-dir', self.OUTPUT_DIR], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SortJobs.py', '--disable-version-check', '--output-dir', self.OUTPUT_DIR], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('the following arguments are required: --input-csv, --output-csv' in excinfo.value.output)
@@ -59,7 +59,7 @@ class TestSortJobs(unittest.TestCase):
         expected_sorted_jobs_csv = path.join(self.OUTPUT_DIR, 'sorted_jobs.csv')
         # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            check_output(['./SortJobs.py', '--input-csv', unsorted_jobs_csv, '--output-csv', sorted_jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./SortJobs.py', '--disable-version-check', '--input-csv', unsorted_jobs_csv, '--output-csv', sorted_jobs_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.stdout}")

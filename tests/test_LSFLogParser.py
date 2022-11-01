@@ -204,7 +204,7 @@ class TestLSFLogParser:
     def test_missing_args(self):
         self.cleanup_files()
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output([self.lsfLogParser], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('the following arguments are required: --logfile-dir, --output-csv' in excinfo.value.output)
@@ -216,7 +216,7 @@ class TestLSFLogParser:
         self.cleanup_files()
         output_csv = 'jobs.csv'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output([self.lsfLogParser, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('the following arguments are required: --logfile-dir' in excinfo.value.output)
@@ -228,7 +228,7 @@ class TestLSFLogParser:
         self.cleanup_files()
         test_files_dir = 'test_files/LSFLogParser/acct'
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert('the following arguments are required: --output-csv' in excinfo.value.output)
@@ -248,7 +248,7 @@ class TestLSFLogParser:
         output_csv = 'jobs.csv'
         makedirs(output_dir)
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], cwd=output_dir, stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], cwd=output_dir, stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -270,7 +270,7 @@ class TestLSFLogParser:
         output_dir = 'output/LSFLogParser/not-enough-fields'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -291,7 +291,7 @@ class TestLSFLogParser:
         output_dir = 'output/LSFLogParser/issues/gl-9'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -311,7 +311,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '--debug'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '--debug'], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -331,7 +331,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         with pytest.raises(CalledProcessError) as excinfo:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         print(f"returncode: {excinfo.value.returncode}")
         print(f"output:\n{excinfo.value.output}")
@@ -351,7 +351,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -371,7 +371,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         with pytest.raises(CalledProcessError) as excinfo:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         print(f"returncode: {excinfo.value.returncode}")
         print(f"output:\n{excinfo.value.output}")
@@ -391,7 +391,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
@@ -411,7 +411,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
@@ -431,7 +431,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
@@ -451,7 +451,7 @@ class TestLSFLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
         try:
-            output = check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb), '-d'], stderr=subprocess.STDOUT, encoding='utf8')
             print(f"output:\n{output}")
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
@@ -467,7 +467,7 @@ class TestLSFLogParser:
         output_dir = 'output/LSFLogParser/acct'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -483,7 +483,7 @@ class TestLSFLogParser:
         output_dir = 'output/LSFLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output([self.lsfLogParser, '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output([self.lsfLogParser, '--disable-version-check', '--logfile-dir', test_files_dir, '--output-csv', output_csv, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -506,7 +506,7 @@ class TestLSFLogParser:
         makedirs(output_dir)
         self.gen_lsb_acct(lsb_acct_filename, number_of_tests)
         try:
-            output = check_output(['python', '-m', 'cProfile', '-s', 'cumtime', './LSFLogParser.py', '--default-max-mem-gb', '0', '--logfile-dir', output_dir, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['python', '-m', 'cProfile', '-s', 'cumtime', './LSFLogParser.py', '--disable-version-check', '--default-max-mem-gb', '0', '--logfile-dir', output_dir, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
