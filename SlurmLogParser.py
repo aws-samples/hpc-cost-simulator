@@ -214,7 +214,7 @@ class SlurmLogParser(SchedulerLogParser):
         sacct_write_fh = open(self._sacct_output_file, 'w')
 
         logger.debug(f"Calling sacct")
-        args = self.get_sacct_command_args()
+        args = self.get_sacct_command_args(self._starttime, self._endtime)
         rc = subprocess.call(args, stdout=sacct_write_fh, stderr=subprocess.STDOUT, encoding='UTF-8') # nosec
         sacct_write_fh.close()
         if rc:
