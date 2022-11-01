@@ -41,6 +41,7 @@ from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_
 from SlurmLogParser import SlurmLogParser, logger as SlurmLogParser_logger
 from sys import exit
 import typing
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 import yaml
 
 logger = logging.getLogger(__file__)
@@ -1324,6 +1325,8 @@ def main():
 
         parser.add_argument("--projects", default=None, help="Comma separated list of regular expressions of projects to include/exclude. Prefix the project with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
 
+        parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
+
         parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
         args = parser.parse_args()
 
@@ -1335,6 +1338,10 @@ def main():
             SchedulerJobInfo_logger.setLevel(logging.DEBUG)
             SchedulerLogParser_logger.setLevel(logging.DEBUG)
             SlurmLogParser_logger.setLevel(logging.DEBUG)
+            VersionCheck_logger.setLevel(logging.DEBUG)
+
+        if not args.disable_version_check and not VersionCheck().check_git_version():
+            exit(1)
 
         if not args.parser:
             logger.error("The following arguments are required: parser")

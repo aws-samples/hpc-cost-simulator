@@ -100,6 +100,7 @@ from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_
 import subprocess # nosec
 from subprocess import CalledProcessError, check_output # nosec
 from textwrap import dedent
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -334,12 +335,17 @@ def main():
     parser.add_argument("--default-mem-gb", required=False, default=AcceleratorLogParser.DEFAULT_MEMORY_GB, help="Default amount of memory (in GB) requested for jobs that do not have a memory request.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
+    parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
     args = parser.parse_args()
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
         SchedulerLogParser_logger.setLevel(logging.DEBUG)
+        VersionCheck_logger.setLevel(logging.DEBUG)
+
+    if not args.disable_version_check and not VersionCheck().check_git_version():
+        exit(1)
 
     if args.show_data_collection_cmd:
         print(dedent(f"""\

@@ -11,7 +11,9 @@ import csv
 import logging
 from os import makedirs, path, remove, system
 from os.path import basename, dirname, realpath
+from sys import exit
 from tempfile import NamedTemporaryFile
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -53,7 +55,7 @@ class JobSorter:
         reorder_fh = NamedTemporaryFile(mode='w', prefix=f"{basename(self._output_csv)}-", dir=self._output_dir, delete=False)
         reorder_filename = reorder_fh.name
         reorder_fh.close()
-        system(f"{dirname(__file__)}/ReorderJobsFields.py --input-csv {self._input_csv} --output-csv {reorder_filename}") #nosec
+        system(f"{dirname(__file__)}/ReorderJobsFields.py --disable-version-check --input-csv {self._input_csv} --output-csv {reorder_filename}") #nosec
 
         # Read the CSV header to find out which field is the eligible_time
         reorder_fh = open(reorder_filename, 'r', newline='')
@@ -74,12 +76,17 @@ def main() -> None:
     '''
     parser = argparse.ArgumentParser(description="Sort jobs by eligible_time.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input-csv", required=True, help="CSV file with parsed job info.")
+    parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
     parser.add_argument("--output-csv", required=True, help="CSV file with parsed job completion records")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
     args = parser.parse_args()
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
+        VersionCheck_logger.setLevel(logging.DEBUG)
+
+    if not args.disable_version_check and not VersionCheck().check_git_version():
+        exit(1)
 
     logger.info('Started Job sorter')
     logger.info(f"Reading CSV input from {args.input_csv}")

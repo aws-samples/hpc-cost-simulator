@@ -13,6 +13,7 @@ from os import path
 from os.path import realpath
 from SchedulerJobInfo import SchedulerJobInfo
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
+from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
 logger = logging.getLogger(__file__)
 logger_formatter = logging.Formatter('%(levelname)s:%(asctime)s: %(message)s')
@@ -91,12 +92,17 @@ def main() -> None:
     parser.add_argument("--output-csv", required=False, help="CSV file where parsed jobs will be written.")
     parser.add_argument("--starttime", help="Select jobs after the specified time. Format YYYY-MM-DDTHH:MM:SS")
     parser.add_argument("--endtime", help="Select jobs before the specified time. Format YYYY-MM-DDTHH:MM:SS")
+    parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
     parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
     args = parser.parse_args()
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
         SchedulerLogParser_logger.setLevel(logging.DEBUG)
+        VersionCheck_logger.setLevel(logging.DEBUG)
+
+    if not args.disable_version_check and not VersionCheck().check_git_version():
+        exit(1)
 
     logger.info('Started CSV log parser')
     if not path.exists(args.input_csv):
