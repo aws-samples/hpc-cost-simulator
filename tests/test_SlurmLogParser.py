@@ -230,6 +230,24 @@ class TestSlurmLogParser:
 
     order += 1
     @pytest.mark.order(order)
+    def test_issue_63(self):
+        self.cleanup_files()
+        test_files_dir = 'test_files/SlurmLogParser/issues/63'
+        sacct_input_file = path.join(test_files_dir, 'sacct-output.txt')
+        output_csv = 'output/SlurmLogParser/issues/63/jobs.csv'
+        try:
+            output = check_output(['./SlurmLogParser.py', '--disable-version-check', '--sacct-input-file', sacct_input_file, '--output-csv', output_csv, '-d'], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(f"returncode: {e.returncode}")
+            print(f"output:\n{e.output}")
+            raise
+        print(output)
+
+        expected_jobs_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        assert(filecmp.cmp(output_csv, expected_jobs_csv, shallow=False))
+
+    order += 1
+    @pytest.mark.order(order)
     def test_main_sacct_input_file_v1(self):
         '''
         Test with the original format that doesn't have the Partition field
