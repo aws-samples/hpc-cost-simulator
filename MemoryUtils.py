@@ -31,7 +31,9 @@ MEM_SUFFIX = {
 }
 
 def mem_string_to_float(string_value: str) -> float:
-    logger.debug(f"string_value={string_value}")
+    logger.debug(f"mem_string_to_float({string_value})")
+    if not string_value:
+        raise ValueError("Empty string cannot be converted to float")
     match = re.match(r'(^[0-9.e-]+)([kmgtp])$', string_value, re.IGNORECASE)
     if match:
         value = float(match.group(1))
@@ -47,4 +49,7 @@ def mem_string_to_float(string_value: str) -> float:
     return value
 
 def mem_string_to_int(string_value: str) -> int:
+    logger.debug(f"mem_string_to_int({string_value})")
+    if not string_value:
+        raise ValueError("Empty string cannot be converted to int")
     return int(round(mem_string_to_float(string_value)))
