@@ -47,7 +47,7 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./CSVLogParser.py'], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check'], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("CSVLogParser.py: error: the following arguments are required: --input-csv" in excinfo.value.output)
@@ -61,7 +61,7 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./CSVLogParser.py', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check', '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         assert("CSVLogParser.py: error: the following arguments are required: --input-csv" in excinfo.value.output)
 
@@ -73,7 +73,7 @@ class TestCSVLogParser:
         input_csv = path.join(test_files_dir, 'exp_jobs.csv')
         output_dir = 'output/CSVLogParser'
         try:
-            output = check_output(['./CSVLogParser.py', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -87,7 +87,7 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            output = check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            output = check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
             print(output)
         except CalledProcessError as e:
             print(f"return code: {e.returncode}")
@@ -97,7 +97,7 @@ class TestCSVLogParser:
 
         input_csv = output_csv
         with pytest.raises(CalledProcessError) as excinfo:
-            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(excinfo.value)
         print(excinfo.value.output)
         assert("Input and output CSV cannot be the same" in excinfo.value.output)
@@ -109,7 +109,7 @@ class TestCSVLogParser:
         input_csv = 'test_files/AcceleratorLogParser/exp_jobs.csv'
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
-        output = check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        output = check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         print(output)
         assert(filecmp.cmp(output_csv, input_csv, shallow=False))
 
@@ -120,7 +120,7 @@ class TestCSVLogParser:
         input_csv = 'test_files/LSFLogParser/exp_jobs.csv'
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
-        check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         assert(filecmp.cmp(output_csv, input_csv, shallow=False))
 
     order += 1
@@ -131,7 +131,7 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -146,7 +146,7 @@ class TestCSVLogParser:
         output_dir = 'output/CSVLogParser'
         output_csv = path.join(output_dir, 'jobs.csv')
         try:
-            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
@@ -163,7 +163,7 @@ class TestCSVLogParser:
         output_csv = path.join(output_dir, 'jobs.csv')
         exp_jobs_csv = path.join(input_dir, 'exp_jobs.csv')
         try:
-            check_output(['./CSVLogParser.py', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            check_output(['./CSVLogParser.py', '--disable-version-check', '--input-csv', input_csv, '--output-csv', output_csv], stderr=subprocess.STDOUT, encoding='utf8')
         except CalledProcessError as e:
             print(f"returncode: {e.returncode}")
             print(f"output:\n{e.output}")
