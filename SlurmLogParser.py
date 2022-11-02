@@ -314,6 +314,7 @@ class SlurmLogParser(SchedulerLogParser):
             return None
         job_fields['JobID'] = job_fields['JobID'].replace('.batch', '')
         job_fields['JobID'] = job_fields['JobID'].replace('.extern', '')
+        job_fields['JobID'] = job_fields['JobID'].replace('.interactive', '')
         match = re.match(r'(\d+)\.(.+)$', job_fields['JobID'])
         if match:
             job_fields['JobID'] = match.group(1)
