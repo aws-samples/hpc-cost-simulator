@@ -293,6 +293,12 @@ class SlurmLogParser(SchedulerLogParser):
                 logger.debug(f"    {field_name}: '{field_value}' {type(field_value)}")
                 job_fields[field_name] = field_value
                 if field_name == 'State':
+                    if job_fields['State'] not in self.SLURM_STATE_CODES:
+                        # Handle case where state is 'CANCELLED by uid'
+                        if re.match(r'CANCELLED', job_fields['State']):
+                            job_fields['State'] = 'CANCELLED'
+                        else:
+                            raise ValueError(f"Invalid state: {job_fields['State']}")
                     # Need to stop processing lines with invalid states since following fields may be invalid and cause errors.
                     if job_fields['State'] in self.SLURM_STATE_CODES_TO_IGNORE:
                         logger.debug(f"    Ignored state: {field_value}")
