@@ -9,13 +9,13 @@ HCS generates multiple output files:
 |summary.csv                        |1         |Aggregated summary of all your jobs (statistics). This data also appears in the Excel output file                               |
 |hourly_stats.csv                   |1         |Host simulation output, includes. This data also appears in the Excel output file.                                              |
 |JobAnalyzer-####-##-##_##-##-##.log|1         |Simulation log file for trouble shooting                                                                                        |
- 
+
 ### hourly_stats.xlsx
 
-This is the main output file, and will be analyzed moving forward. All other files are only used for groubleshooting and or re-running a subset of the analysis.
+This is the main output file, and will be analyzed moving forward. All other files are only used for troubleshooting and or re-running a subset of the analysis.
 
 The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
-For example, in the following example the "**First hout to analyze**" was changed to only include the last 12 months worth of data.
+For example, in the following example the "**First hour to analyze**" was changed to only include the last 12 months worth of data.
 
 ![Cost Summary](images/cost-summary.png)
 
@@ -43,7 +43,7 @@ Select **Add-ins** on the lower left.
 
 If the **Solver Add-in** isn't active then select **Manage: Excel Add-ins** and click **Go**.
 
-![solver add-in](images/solver-add-in.png) 
+![solver add-in](images/solver-add-in.png)
 
 Select the **Solver Add-in** and click **OK**.
 
@@ -80,21 +80,21 @@ Optionally, you may add constraints for the Savings Plan commit cells.
 
 **Windows:**
 
-![solver parameters Windows](images/solver-parameters.png)      
+![solver parameters Windows](images/solver-parameters.png)
 
 **Mac OS**
 
-![solver parameters Mac](images/MacSolverAddIn.png) 
+![solver parameters Mac](images/MacSolverAddIn.png)
 
 Then click **Solve** and wait while the Solver calculates the savings plan commits
 that will minimie your overall costs.
 The solver may run a while, but when it finishes then save the results.
 
-**Windows:** 
+**Windows:**
 
 ![Save Solver Results](images/solver-results.png)
 
-**Mac OS:** 
+**Mac OS:**
 
 ![Save Solver Results](images/MacSolverResults.png)
 

@@ -314,6 +314,7 @@ class SlurmLogParser(SchedulerLogParser):
             return None
         job_fields['JobID'] = job_fields['JobID'].replace('.batch', '')
         job_fields['JobID'] = job_fields['JobID'].replace('.extern', '')
+        job_fields['JobID'] = job_fields['JobID'].replace('.interactive', '')
         match = re.match(r'(\d+)\.(.+)$', job_fields['JobID'])
         if match:
             job_fields['JobID'] = match.group(1)
@@ -482,7 +483,7 @@ def main():
     parser = argparse.ArgumentParser(description="Parse Slurm logs.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     slurm_mutex_group = parser.add_mutually_exclusive_group(required=True)
     slurm_mutex_group.add_argument("--show-data-collection-cmd", action='store_const', const=True, default=False, help="Show the command to create SACCT_OUTPUT_FILE.")
-    slurm_mutex_group.add_argument("--sacct-output-file", help="File where the output of sacct will be written. Cannot be used with --sacct-file. Required if --sacct-input-file not set.")
+    slurm_mutex_group.add_argument("--sacct-output-file", help="File where the output of sacct will be written. Cannot be used with --sacct-input-file. Required if --sacct-input-file not set.")
     slurm_mutex_group.add_argument("--sacct-input-file", help="File with the output of sacct so can process sacct output offline. Cannot be used with --sacct-output-file. Required if --sacct-output-file not set.")
     parser.add_argument("--output-csv", required=False, help="CSV file with parsed job completion records")
     parser.add_argument("--slurm-root", required=False, help="Directory that contains the Slurm bin directory.")
@@ -510,7 +511,7 @@ def main():
 
             Then you can parse OUTPUT_FILE using the following command:
 
-                {__file__} --sql-output-file OUTPUT_FILE --output-csv OUTPUT_CSV
+                {__file__} --sacct-input-file OUTPUT_FILE --output-csv OUTPUT_CSV
         """))
         exit(0)
 
