@@ -16,9 +16,9 @@ When running in this mode, provide the file path to HCS using the  `--sacct-inpu
 
 Online means HCS will call the `sacct` command directly, which requires the Linux machine to have `sacct` installed and configured as well as the permissions to access accounting records from **all users**.
 
-Running in this mode will store the output of the `sacct` command in a CSV file to allow additional analysis to be done offline (minimizing calls the Slurm headnode). You need to provide the name of this CSV file using the `--sacct-output-file` argument. 
+Running in this mode will store the output of the `sacct` command in a CSV file to allow additional analysis to be done offline (minimizing calls the Slurm head node). You need to provide the name of this CSV file using the `--sacct-output-file` argument.
 
-If the Slurm `bin` folder is not in your path, you will also need to provide the `--slurm-root` argumarnt, pointing to the Slurm `bin` folder.
+If the Slurm `bin` folder is not in your path, you will also need to provide the `--slurm-root` argument, pointing to the Slurm `bin` folder.
 
 **Note**: You can't use both `--sacct-input-file` and `--sacct-output-file` together.
 
@@ -35,7 +35,7 @@ sacct --allusers --parsable2 --noheader --format State,JobID,ReqCPUS,ReqMem,ReqN
 ```
 
 ## Parsing the Job Completion Data
-First you must source the setup script to activate the virtual environment and install all the dependedncies in it.
+First you must source the setup script to activate the virtual environment and install all the dependencies in it.
 
 ```
 source setup.sh
@@ -84,5 +84,5 @@ optional arguments:
 
 ## What's next?
 
-Once completed, you can run step #3 (cost simulation) by following the instructions in for the [JobAnalyzer](JobAnalyzer.md).
+Once completed, you can run step #3 (cost simulation) by following the instructions for the [JobAnalyzer](JobAnalyzer.md).
 Since you already generated a CSV file, you will use [JobAnalyzer](JobAnalyzer.md) with the `csv` option.

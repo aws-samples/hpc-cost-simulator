@@ -30,7 +30,7 @@ source setup.sh
 
 ## Outputs
 
-By default, HCS places all output files in the `output/` folder (this can be changed usign the `--output-dir` parameter to `JobAnalyzer.py`).
+By default, HCS places all output files in the `output/` folder (this can be changed using the `--output-dir` parameter to `JobAnalyzer.py`).
 **Note:** The output folder will get overwritten without prompting you for approval.
 
 ## Full Syntax
@@ -101,7 +101,7 @@ The tool supports 5 parser types:
 
 ```
     accelerator         Parse Accelerator (nc) job information
-    lsf                 Parse LSF accounting ercords (lsb.acct fiels)
+    lsf                 Parse LSF accounting records (lsb.acct fields)
     slurm               Parse Slurm job information
     csv                 Parse CSV from a previously parsed job information.
     hourly_stats        Parse the hourly output files from a previous run
@@ -175,4 +175,4 @@ Note: The tool will call `sacct` to get accounting logs, if you don't have it in
 
 
 ## What's Next?
-Once completed, you can find your Excel report under `output/hourly_stats.xlsx`. You can share it with your AWS acocunt team (Recommended) for further cost optimization guidance, or you can learn more about the data in the Excel in the [Output](Output.md) documentation page.
+Once completed, you can find your Excel report under `output/hourly_stats.xlsx`. You can share it with your AWS account team (Recommended) for further cost optimization guidance, or you can learn more about the data in the Excel in the [Output](Output.md) documentation page.

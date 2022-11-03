@@ -1,23 +1,23 @@
 # HPC Cost Simulator (HCS)
 
-HPC Cost Simulator (HCS) enables custoemrs to simulate their High Performance Computing (HPC) costs on AWS.
+HPC Cost Simulator (HCS) enables customers to simulate their High Performance Computing (HPC) costs on AWS.
 To simulate your future costs, HCS analyzes past job records (scheduler accounting database) and performs hour-by-hour cost analysis.
 
-Supported schedulers: 
+Supported schedulers:
 
-* IBM LSF 
+* IBM LSF
 * SchedMD Slurm
 * Altair Accelerator
 
 The output allows customers to:
 
 1. Estimate their Amazon Elastic Compute Cloud (Amazon EC2) costs hour-by-hour
-2. Choose the optimal consumption model to minimize costs, including [Savings Plans](https://aws.amazon.com/savingsplans/), [Reserved Instances](https://aws.amazon.com/ec2/pricing/reserved-instances/) and [Spot Instaces](https://aws.amazon.com/ec2/spot/) 
+2. Choose the optimal consumption model to minimize costs, including [Savings Plans](https://aws.amazon.com/savingsplans/), [Reserved Instances](https://aws.amazon.com/ec2/pricing/reserved-instances/) and [Spot Instances](https://aws.amazon.com/ec2/spot/)
 3. Get statistics about their workloads, locating specific job configurations that are waiting in queue longer, reducing engineering productivity.
 
 ## Data privacy
-HCS avoids the need to share scheduler logs with AWS. Scheduler logs include business sensitive data (tape out dates, project names) and PII (user names). 
-Instead, customers run HCS on premises, creating an anonymized output that may be shared with your AWS account team to get additional cost optimizaiton guidance.
+HCS avoids the need to share scheduler logs with AWS. Scheduler logs include business sensitive data (tape out dates, project names) and PII (user names).
+Instead, customers run HCS on premises, creating an anonymized output that may be shared with your AWS account team to get additional cost optimization guidance.
 
 The output file (located under the `output/` directory if not otherwise specified) is a simple Excel (.xslx), allowing you to audit its contents before sharing it.
 
@@ -28,12 +28,12 @@ The analysis is a 4-step process:
 | # | Step | Description |
 | --- | --- | --- |
 |1| Data Collection | Collect accounting records from the database.|
-|2| Formatting|Parsing the scheduler accounting database - this takes the scheudler specific format, and converts the job records to a uniform format (not scheduler specific).|
+|2| Formatting|Parsing the scheduler accounting database - this takes the scheduler specific format, and converts the job records to a uniform format (not scheduler specific).|
 |3| Cost Simulation | Performing cost simulation using the output from step 2.|
-|4| Analysis | Analyzing the output, building a complete cost model. This can be done using your AWS account team.| 
+|4| Analysis | Analyzing the output, building a complete cost model. This can be done using your AWS account team.|
 
 
-## Prerequisits
+## Prerequisites
 
 * Python 3.6 or newer
 * sudo access to install any required tools
@@ -47,7 +47,7 @@ source setup.sh
 ```
 
 ## Configuration
-HCS comes preconfigured with a few best practices for analyzing an Electronics Design Automation (EDA) workload. You can edit the configuration by editing `config.yml` before running HCS. We encourage you to read the file before running to tool, to know what parameters are used to simulate the workload.
+HCS comes pre-configured with a few best practices for analyzing an Electronics Design Automation (EDA) workload. You can edit the configuration by editing `config.yml` before running HCS. We encourage you to read the file before running to tool, to know what parameters are used to simulate the workload.
 
 A **partial** list of these configuration parameters includes:
 
@@ -59,8 +59,8 @@ A **partial** list of these configuration parameters includes:
 ## Instance Type Information
 
 To perform cost simulation, HCS requires a list of available instance types in the region and their prices that is stored in [instance_type_info.json](https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json).
-HCS comes pre-populated with the databased, and we priodically update it to reflect new instance types, prices etc. 
-However, to update it youself , see [Updating Instance Type Information](UpdateInstanceDatabase.md)
+HCS comes pre-populated with the database, and we periodically update it to reflect new instance types, prices etc.
+However, to update it yourself , see [Updating Instance Type Information](UpdateInstanceDatabase.md)
 
 
 # Running the Tool
@@ -73,7 +73,7 @@ These steps are scheduler-specific and are explained in each scheduler's documen
 - [SchedMD Slurm](SlurmLogParser.md)
 - [Altair Engineering Accelerator](AcceleratorLogParser.md)
 
-If you want to parse data from an unsupported scheduler, you can export the accounting data from that scheudler generating your own CSV, as long as you CSV structure defined in [Understanding the CSV format](UnderstandingCSVformat.md)
+If you want to parse data from an unsupported scheduler, you can export the accounting data from that scheduler generating your own CSV, as long as you CSV structure defined in [Understanding the CSV format](UnderstandingCSVformat.md)
 
 ## Step 3
 
@@ -83,9 +83,9 @@ Once completed, you can run step #3 (cost simulation) by following the instructi
 **Notes for step #3**
 
 1. The job analyzer can call the parser (step 2), however, parsing is the longest step so it is recommended that you run it separately.
-2. The job analyzer can be run with different configuration file (`config.yml`) on the same job data. 
-For example: 
- - Simulating your workload costs with and without Spot Instaces
+2. The job analyzer can be run with different configuration file (`config.yml`) on the same job data.
+For example:
+ - Simulating your workload costs with and without Spot Instances
  - Simulating your costs with different instance families
 
 ## Step 4
