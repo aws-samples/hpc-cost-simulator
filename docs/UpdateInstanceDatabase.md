@@ -13,7 +13,7 @@ To be able to update the EC2 Instance Type Information you need:
 1. AWS CLI installed
 2. AWS CLI Profile with the permissions shown below
 
-#### Required AWS permissions 
+#### Required AWS permissions
 
 ```
 {
@@ -69,7 +69,3 @@ optional arguments:
                         (default: None)
   --debug, -d           Enable debug messages (default: False)
 ```
-
-
-
-

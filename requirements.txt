@@ -1,7 +1,9 @@
 bandit # For security scan
 black
 boto3==1.20.38
+botocore
 colored==1.4.2
+GitPython
 mkdocs
 mypy
 openpyxl

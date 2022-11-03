@@ -33,6 +33,8 @@ if ! yum list installed mkdocs &> /dev/null; then
     echo "Installing mkdocs"
     if ! sudo yum -y install mkdocs; then
         echo -e "\nwarning: Could not install mkdocs. Will not be able to display docs in your browsers."
+    else
+        echo "Installed mkdocs"
     fi
 fi
 
@@ -41,6 +43,8 @@ if ! python3 --version &> /dev/null; then
     if ! sudo yum -y install python3; then
         echo -e "\nerror: Could not install python3. All of the scripts require python 3.6 or later."
         return
+    else
+        echo "Installed python3"
     fi
 fi
 # Python version >= 3.6 required
@@ -53,11 +57,7 @@ if [[ $python_major_version -lt 3 ]] || [[ $python_minor_version -lt 6 ]]; then
     # To simplify installation don't require >3.6 which is latest natively supported version on CentOS 7.
     # Left the installation steps for documentation purposes in case needed in the future.
     return
-else
-    python3_path=$(which python3)
 fi
-python_version=$(python3 --version 2>&1 | awk '{print $2}')
-which python3
 
 # Create python virtual environment
 if [ ! -e .venv/bin/activate ]; then
