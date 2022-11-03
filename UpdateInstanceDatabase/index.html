@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Altair Accelerator - HPC Cost Simulator</title>
+        <title>Updating the Instance Type Information - HPC Cost Simulator</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -38,8 +38,8 @@
                             <li class="navitem">
                                 <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Altair Accelerator</a>
+                            <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
                                 <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
@@ -65,17 +65,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href=".." class="nav-link">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="../LSFLogParser/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/AcceleratorLogParser.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/UpdateInstanceDatabase.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -95,22 +85,22 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#altair-accelerator" class="nav-link">Altair Accelerator</a>
+            <li class="nav-item" data-level="1"><a href="#updating-the-instance-type-information" class="nav-link">Updating the Instance Type Information</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#collecting-the-data" class="nav-link">Collecting the data</a>
+            <li class="nav-item" data-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
               <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#parsing-the-job-completion-data" class="nav-link">Parsing the Job Completion Data</a>
+            <li class="nav-item" data-level="4"><a href="#required-aws-permissions" class="nav-link">Required AWS permissions</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#running-the-update" class="nav-link">Running the update</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="3"><a href="#full-syntax" class="nav-link">Full Syntax:</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's next?</a>
-              <ul class="nav flex-column">
               </ul>
             </li>
               </ul>
@@ -120,63 +110,60 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="altair-accelerator">Altair Accelerator</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a> script queries the Accelerator results database, parses the job completion data, and saves it into a CSV file.</p>
-<h2 id="collecting-the-data">Collecting the data</h2>
-<p>To see data collection command syntax, run:</p>
+<h1 id="updating-the-instance-type-information">Updating the Instance Type Information</h1>
+<p>While we update the HCS Instance Type Information with each new release, you can update it yourself to get updated instance types and prices for one region or all regions.
+The Instance Type Information is stored in JSON format in  <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a></p>
+<p><strong>Note</strong>: Running the script without specifying a region will collect the data for all instance types across all available regions, which may take a few minutes to complete.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To be able to update the EC2 Instance Type Information you need:</p>
+<ol>
+<li>AWS CLI installed</li>
+<li>AWS CLI Profile with the permissions shown below</li>
+</ol>
+<h4 id="required-aws-permissions">Required AWS permissions</h4>
+<pre><code>{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+            &quot;Sid&quot;: &quot;GetEC2InstanceTypeInfo&quot;,
+            &quot;Effect&quot;: &quot;Allow&quot;,
+            &quot;Action&quot;: [
+                &quot;ec2:DescribeInstanceTypes&quot;,
+                &quot;ec2:DescribeRegions&quot;,
+                &quot;ec2:DescribeSpotPriceHistory&quot;,
+                &quot;pricing:GetProducts&quot;
+            ],
+            &quot;Resource&quot;: &quot;*&quot;
+        }
+    ]
+}
+</code></pre>
+<h2 id="running-the-update">Running the update</h2>
+<p>Once your source <code>setup.sh</code> to setup the virtual environment, you can run  <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/EC2InstanceTypeInfoPkg/get_ec2_instance_info.py">get_instance_type_info.py</a> to update the Instance Database:</p>
 <pre><code>source setup.sh
-./AcceleratorLogParser.py --show-data-collection-cmd
+rm instance_type_info.json
+./get_ec2_instance_info.py --input instance_type_info.json --region eu-west-1
 </code></pre>
-<p>For example, as of this writing, the command is:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select jobs.id, jobs.submittime, jobs.starttime, jobs.endtime, resources.name, jobs.exitstatus, jobs.maxram, jobs.maxvm, jobs.cputime, jobs.susptime from jobs inner join resources on jobs.resourcesid=resources.id&quot; &gt; sql-output.txt
-</code></pre>
-<p>This command should run on a node connected to the Altair Accelerator head node, and with a user with permissions to see the jobs from all users.</p>
-<p><strong>Note:</strong> To be able to run the command, you first need to source the <code>vovrc.sh</code> script located in your <code>/common/etc</code> subfolder of your Altair install folder.</p>
-<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
-<p>The parsed data will be written in the output directory which will be created if it does not exist.</p>
-<pre><code>./AcceleratorLogParser.py \
-    --sql-output-file sql-output.txt \
-    --output-csv output/jobs.csv
-</code></pre>
-<h2 id="full-syntax">Full Syntax</h2>
-<pre><code>usage: AcceleratorLogParser.py [-h]
-                               (--show-data-collection-cmd | --sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
-                               [--output-csv OUTPUT_CSV]
-                               [--default-mem-gb DEFAULT_MEM_GB]
-                               [--starttime STARTTIME] [--endtime ENDTIME]
-                               [--debug]
+<p><strong>Note:</strong> If the script fails to complete for all regions, you can restart it without losing the data already collected by rerunning it with the <code>--input</code> parameter and providing the partial output from the previous run (<code>instance_type_info.json</code>)</p>
+<h3 id="full-syntax">Full Syntax:</h3>
+<pre><code>usage: get_ec2_instance_info.py [-h] [--region REGION] [--input INPUT]
+                                [--output-csv OUTPUT_CSV] [--debug]
 
-Parse Altair Accelerator logs.
+Get EC2 instance pricing info.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --show-data-collection-cmd
-                        Show the command to create the SQL_OUTPUT_FILE.
-                        (default: False)
-  --sql-output-file SQL_OUTPUT_FILE
-                        File where the output of sql query will be written.
-                        Cannot be used with --sql-input-file. Required if
-                        --sql-input-file not set. (default: None)
-  --sql-input-file SQL_INPUT_FILE
-                        File with the output of sql query so can process it
-                        offline. Cannot be used with --sql-output-file.
-                        Required if --sql-output-file not set. (default: None)
-  --output-csv OUTPUT_CSV
-                        CSV file with parsed job completion records (default:
+  --region REGION, -r REGION
+                        AWS region(s) to get info for. (default: [])
+  --input INPUT, -i INPUT
+                        JSON input file. Reads existing info from previous
+                        runs. Can speed up rerun if a region failed. (default:
                         None)
-  --default-mem-gb DEFAULT_MEM_GB
-                        Default amount of memory (in GB) requested for jobs
-                        that do not have a memory request. (default: 0.0)
-  --starttime STARTTIME
-                        Select jobs after the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --debug, -d           Enable debug mode (default: False)
-</code></pre>
-<h2 id="whats-next">What's next?</h2>
-<p>Once completed, you can run step #3 (cost simulation) by following the instructions in for the <a href="../JobAnalyzer/">JobAnalyzer</a>
-Since you already generated a CSV file, you will use <a href="../JobAnalyzer/">JobAnalyzer</a> with the <code>csv</code> option.</p></div>
+  --output-csv OUTPUT_CSV, -o OUTPUT_CSV
+                        CSV output file. Default: instance_type_info.csv
+                        (default: None)
+  --debug, -d           Enable debug messages (default: False)
+</code></pre></div>
             </div>
         </div>
 

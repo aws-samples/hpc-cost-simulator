@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Altair Accelerator - HPC Cost Simulator</title>
+        <title>Understanding the CSV format - HPC Cost Simulator</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -38,8 +38,8 @@
                             <li class="navitem">
                                 <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Altair Accelerator</a>
+                            <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
                                 <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
@@ -65,17 +65,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href=".." class="nav-link">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="../LSFLogParser/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/AcceleratorLogParser.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/UnderstandingCSVformat.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -95,21 +85,17 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#altair-accelerator" class="nav-link">Altair Accelerator</a>
+            <li class="nav-item" data-level="1"><a href="#understanding-the-csv-format" class="nav-link">Understanding the CSV format</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#collecting-the-data" class="nav-link">Collecting the data</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#parsing-the-job-completion-data" class="nav-link">Parsing the Job Completion Data</a>
+            <li class="nav-item" data-level="2"><a href="#csv-structure" class="nav-link">CSV structure</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
+            <li class="nav-item" data-level="2"><a href="#required-fields" class="nav-link">Required Fields</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's next?</a>
+            <li class="nav-item" data-level="2"><a href="#optional-fields" class="nav-link">Optional Fields</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -120,63 +106,155 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="altair-accelerator">Altair Accelerator</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a> script queries the Accelerator results database, parses the job completion data, and saves it into a CSV file.</p>
-<h2 id="collecting-the-data">Collecting the data</h2>
-<p>To see data collection command syntax, run:</p>
-<pre><code>source setup.sh
-./AcceleratorLogParser.py --show-data-collection-cmd
-</code></pre>
-<p>For example, as of this writing, the command is:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select jobs.id, jobs.submittime, jobs.starttime, jobs.endtime, resources.name, jobs.exitstatus, jobs.maxram, jobs.maxvm, jobs.cputime, jobs.susptime from jobs inner join resources on jobs.resourcesid=resources.id&quot; &gt; sql-output.txt
-</code></pre>
-<p>This command should run on a node connected to the Altair Accelerator head node, and with a user with permissions to see the jobs from all users.</p>
-<p><strong>Note:</strong> To be able to run the command, you first need to source the <code>vovrc.sh</code> script located in your <code>/common/etc</code> subfolder of your Altair install folder.</p>
-<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
-<p>The parsed data will be written in the output directory which will be created if it does not exist.</p>
-<pre><code>./AcceleratorLogParser.py \
-    --sql-output-file sql-output.txt \
-    --output-csv output/jobs.csv
-</code></pre>
-<h2 id="full-syntax">Full Syntax</h2>
-<pre><code>usage: AcceleratorLogParser.py [-h]
-                               (--show-data-collection-cmd | --sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
-                               [--output-csv OUTPUT_CSV]
-                               [--default-mem-gb DEFAULT_MEM_GB]
-                               [--starttime STARTTIME] [--endtime ENDTIME]
-                               [--debug]
-
-Parse Altair Accelerator logs.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --show-data-collection-cmd
-                        Show the command to create the SQL_OUTPUT_FILE.
-                        (default: False)
-  --sql-output-file SQL_OUTPUT_FILE
-                        File where the output of sql query will be written.
-                        Cannot be used with --sql-input-file. Required if
-                        --sql-input-file not set. (default: None)
-  --sql-input-file SQL_INPUT_FILE
-                        File with the output of sql query so can process it
-                        offline. Cannot be used with --sql-output-file.
-                        Required if --sql-output-file not set. (default: None)
-  --output-csv OUTPUT_CSV
-                        CSV file with parsed job completion records (default:
-                        None)
-  --default-mem-gb DEFAULT_MEM_GB
-                        Default amount of memory (in GB) requested for jobs
-                        that do not have a memory request. (default: 0.0)
-  --starttime STARTTIME
-                        Select jobs after the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --debug, -d           Enable debug mode (default: False)
-</code></pre>
-<h2 id="whats-next">What's next?</h2>
-<p>Once completed, you can run step #3 (cost simulation) by following the instructions in for the <a href="../JobAnalyzer/">JobAnalyzer</a>
-Since you already generated a CSV file, you will use <a href="../JobAnalyzer/">JobAnalyzer</a> with the <code>csv</code> option.</p></div>
+<h1 id="understanding-the-csv-format">Understanding the CSV format</h1>
+<p>The CSV files generated by parsing LSF / Slurm / Accelerator job completion records all have the same structure. This simplifies the cost simulation, as only 1 input type is processed.</p>
+<p>You can also generate this CSV file yourself from any other scheduler and use <a href="../JobAnalyzer/">JobAnalyzer.py</a> to parse that, but you need to adhere to the structure below (The order of the fields in the CSV file do not matter, but the names of the fields do).</p>
+<h2 id="csv-structure">CSV structure</h2>
+<p>There is no standard for CSV files, but the JobAnalyzer.py expects the files to be written in the "Microsoft Excel" dialect, adn field names must be in the first row.</p>
+<h2 id="required-fields">Required Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>job_id</td>
+<td>string</td>
+<td>Job id</td>
+</tr>
+<tr>
+<td>num_cores</td>
+<td>int</td>
+<td>Total number of cores allocated to the job</td>
+</tr>
+<tr>
+<td>max_mem_gb</td>
+<td>float</td>
+<td>Total amount of memory allocated to the job in GB</td>
+</tr>
+<tr>
+<td>num_hosts</td>
+<td>int</td>
+<td>Number of hosts. In Slurm this is the number of nodes. The number of cores should be evenly divisible by the number of hosts. For LSF this is typically 1.</td>
+</tr>
+<tr>
+<td>submit_time</td>
+<td>datetime string</td>
+<td>Time that the job was submitted. All times are expected to be in the format <em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em></td>
+</tr>
+<tr>
+<td>start_time</td>
+<td>datetime string</td>
+<td>Time that the job started.</td>
+</tr>
+<tr>
+<td>finish_time</td>
+<td>datetime string</td>
+<td>Time that the job finished.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="optional-fields">Optional Fields</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>resource_request</td>
+<td>string</td>
+<td>Resources requested by the job. For LSF this is the effective resource request. For Slurm it is the job constraints.</td>
+</tr>
+<tr>
+<td>ineligible_pend_time</td>
+<td>timedelta string</td>
+<td>Duration that the job was ineligible to run. This is what LSF writes. Defaults to max(0, eligible_time - start_time). Format for timedelta strings is <em>h</em>:<em>mm</em>:<em>ss</em>.</td>
+</tr>
+<tr>
+<td>eligible_time</td>
+<td>datetime string</td>
+<td>Time that the job became eligible to run. Defaults to the start_time + ineligible_pend_time.</td>
+</tr>
+<tr>
+<td>requeue_time</td>
+<td>datetime string</td>
+<td>Time that the job was requeued. Currently not used.</td>
+</tr>
+<tr>
+<td>wait_time</td>
+<td>timedelta string</td>
+<td>Time that job was pending after it was eligible to run. Default start_time - eligible_time.</td>
+</tr>
+<tr>
+<td>run_time</td>
+<td>timedelta string</td>
+<td>Time that the job ran. Default: finish_time - start_time</td>
+</tr>
+<tr>
+<td>exit_status</td>
+<td>int</td>
+<td>Effective return code of the job. Default: 0</td>
+</tr>
+<tr>
+<td>ru_majflt</td>
+<td>float</td>
+<td>Number of page faults</td>
+</tr>
+<tr>
+<td>ru_maxrss</td>
+<td>float</td>
+<td>Maximum shared text size</td>
+</tr>
+<tr>
+<td>ru_minflt</td>
+<td>float</td>
+<td>Number of page reclaims</td>
+</tr>
+<tr>
+<td>ru_msgsnd</td>
+<td>float</td>
+<td>Number of System V IPC messages sent</td>
+</tr>
+<tr>
+<td>ru_msgrcv</td>
+<td>float</td>
+<td>Number of messages received</td>
+</tr>
+<tr>
+<td>ru_nswap</td>
+<td>float</td>
+<td>Number of times the process was swapped out</td>
+</tr>
+<tr>
+<td>ru_inblock</td>
+<td>float</td>
+<td>Number of block input operations</td>
+</tr>
+<tr>
+<td>ru_oublock</td>
+<td>float</td>
+<td>Number of block output operations</td>
+</tr>
+<tr>
+<td>ru_stime</td>
+<td>float</td>
+<td>System time used</td>
+</tr>
+<tr>
+<td>ru_utime</td>
+<td>float</td>
+<td>User time used</td>
+</tr>
+</tbody>
+</table></div>
             </div>
         </div>
 

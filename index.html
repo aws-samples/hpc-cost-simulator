@@ -36,19 +36,25 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem active">
-                                <a href="." class="nav-link">HPC Cost Simulator</a>
+                                <a href="." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
                             <li class="navitem">
-                                <a href="AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                                <a href="AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
-                                <a href="LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                                <a href="LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
                             </li>
                             <li class="navitem">
-                                <a href="SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                                <a href="SlurmLogParser/" class="nav-link">Slurm</a>
                             </li>
                             <li class="navitem">
                                 <a href="JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="Output/" class="nav-link">Output</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="config/" class="nav-link">Config</a>
                             </li>
                         </ul>
 
@@ -89,14 +95,26 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#hpc-cost-simulator" class="nav-link">HPC Cost Simulator</a>
+            <li class="nav-item" data-level="1"><a href="#hpc-cost-simulator-hcs" class="nav-link">HPC Cost Simulator (HCS)</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#dependencies" class="nav-link">Dependencies</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-level="3"><a href="#instance-type-information" class="nav-link">Instance Type Information</a>
+            <li class="nav-item" data-level="2"><a href="#data-privacy" class="nav-link">Data privacy</a>
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-level="2"><a href="#how-data-is-analyzed" class="nav-link">How data is analyzed</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#configuration" class="nav-link">Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#instance-type-information" class="nav-link">Instance Type Information</a>
+              <ul class="nav flex-column">
               </ul>
             </li>
               </ul>
@@ -104,28 +122,16 @@
             
             <li class="nav-item" data-level="1"><a href="#running-the-tool" class="nav-link">Running the Tool</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#job-parsing" class="nav-link">Job Parsing</a>
+            <li class="nav-item" data-level="2"><a href="#steps-1-2" class="nav-link">Steps 1 &amp; 2</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#job-analysis" class="nav-link">Job Analysis</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-level="3"><a href="#summarycsv" class="nav-link">summary.csv</a>
+            <li class="nav-item" data-level="2"><a href="#step-3" class="nav-link">Step 3</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="3"><a href="#hourly_statscsv" class="nav-link">hourly_stats.csv</a>
+            <li class="nav-item" data-level="2"><a href="#step-4" class="nav-link">Step 4</a>
               <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="3"><a href="#hourly_statsxlsx" class="nav-link">hourly_stats.xlsx</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-level="4"><a href="#optimize-savings-plans-using-excel-solver" class="nav-link">Optimize Savings Plans Using Excel Solver</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
               </ul>
             </li>
               </ul>
@@ -135,595 +141,102 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="hpc-cost-simulator">HPC Cost Simulator</h1>
-<p>This tool analyzes the jobs that have been run on compute clusters managed by the IBM LSF, SchedMD Slurm, and Altair Accelerator schedulers and simulates the hourly cost of running the jobs on AWS.
-The AWS Cloud Economics team can use this data to build a commercial proposal to optimize the cost using Saving Plans and Reserved Instances.</p>
-<p>Since scheduler data can indicate business sensitive data (tape out dates, project names) and PII (user names), this tool anonymizes all aspects of the data to meet the security and privacy requirements of Semiconductor companies.
-All output files are clear-text CSV files for auditability.</p>
-<p>The tool consists of two steps.
-The first is the parsing of the scheduler job completion data and is scheduler specific.
-The output of the parser is a CSV file with the job data that is required for cost analysis.
-The second step is processing the job data and simulating the cost of running them on AWS.</p>
-<h2 id="dependencies">Dependencies</h2>
+<h1 id="hpc-cost-simulator-hcs">HPC Cost Simulator (HCS)</h1>
+<p>HPC Cost Simulator (HCS) enables customers to simulate their High Performance Computing (HPC) costs on AWS.
+To simulate your future costs, HCS analyzes past job records (scheduler accounting database) and performs hour-by-hour cost analysis.</p>
+<p>Supported schedulers:</p>
 <ul>
-<li>Python 3.6 or newer</li>
-<li>sudo access to install any required tools</li>
+<li>IBM LSF</li>
+<li>SchedMD Slurm</li>
+<li>Altair Accelerator</li>
 </ul>
-<p>A bash setup script is provided to install the required yum packages, create a Python virtual environment with all required Python packages, and activate the virtual environment.
-The pip packages and versions are listed in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/requirements.txt">requirements.txt</a>.
-The setup script must be sourced, not executed, to set up the environment to run the tool.</p>
-<pre><code>source setup.sh
-</code></pre>
-<h3 id="instance-type-information">Instance Type Information</h3>
-<p>The tool requires a list of available instance types in the region and their prices that is stored in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a>.
-The version that comes with the tool has the data for all regions that was complete when it was generated.
-This is provided for convenience so that the customer can run the tool without an AWS account or IAM permissions.</p>
-<p><strong>NOTE</strong>: Since available instance types and prices change over time this file should be updated before before being used.</p>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/EC2InstanceTypeInfoPkg/get_ec2_instance_info.py">get_instance_type_info.py</a> script can be used to update <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a>.
-It requires the following IAM permissions.</p>
-<pre><code>{
-    &quot;Version&quot;: &quot;2012-10-17&quot;,
-    &quot;Statement&quot;: [
-        {
-            &quot;Sid&quot;: &quot;GetEC2InstanceTypeInfo&quot;,
-            &quot;Effect&quot;: &quot;Allow&quot;,
-            &quot;Action&quot;: [
-                &quot;ec2:DescribeInstanceTypes&quot;,
-                &quot;ec2:DescribeRegions&quot;,
-                &quot;ec2:DescribeSpotPriceHistory&quot;,
-                &quot;pricing:GetProducts&quot;
-            ],
-            &quot;Resource&quot;: &quot;*&quot;
-        }
-    ]
-}
-</code></pre>
-<p>To get information just for one region run the following commands.</p>
-<pre><code>source setup.sh
-rm instance_type_info.json
-get_ec2_instance_info.py --input instance_type_info.json --region REGION
-</code></pre>
-<p>You can get the information for all regions by leaving off the --region argument.</p>
-<pre><code>source setup.sh
-rm instance_type_info.json
-get_ec2_instance_info.py --input instance_type_info.json
-</code></pre>
-<h1 id="running-the-tool">Running the Tool</h1>
-<h2 id="job-parsing">Job Parsing</h2>
-<p>The scheduler parsers parse the scheduler-specific job completion data and saves it to a common CSV format.
-The parsers are scheduler specific Python scripts.</p>
-<ul>
-<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a></li>
-<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a></li>
-<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a></li>
-</ul>
-<p>Parsing can take several hours to complete and we recommend testing on a small subset of the accounting records before running on the entire dataset.</p>
-<h2 id="job-analysis">Job Analysis</h2>
-<p>After the job completion data has been parsed, the job analyzer analyzes the CSV file, simulates the costs on AWS, and builds the output files.</p>
-<ul>
-<li><code>summary.csv</code></li>
-<li><code>summary_stats.csv</code></li>
-<li><code>hourly_stats.csv</code></li>
-<li><code>hourly_stats.xlsx</code></li>
-</ul>
-<p>The job analyzer can call the parser, however, parsing is the longest step so it is recommended that it be run separately from the job analyzer.
-The parser output is a CSV file that can be used as the input to the job analyzer.
-The job analyzer runs relatively quickly and can be run with different configurations on the same job data.</p>
-<h3 id="summarycsv">summary.csv</h3>
-<p>Provides aggregated data on the jobs (at the individual task level) including the number of jobs, the total runtime, and the total wait time. These provide a high-level understanding of the customer's workload and helps us show the customer how much of their workload needs high memory instances (usually only a small percentage) and therefore the opportunity for savings from right-sizing their compute instaces.</p>
-<p>The wait time only includes the time the job waited after it was eligible to run.
-For example, if the job was waiting on a license or a dependency on another job, then the time that the jobs was ineligble to run is
-not included in the wait time.
-The reported wait time is the time that the job waited for compute resources to become available.</p>
-<p>Example:</p>
+<p>The output allows customers to:</p>
+<ol>
+<li>Estimate their Amazon Elastic Compute Cloud (Amazon EC2) costs hour-by-hour</li>
+<li>Choose the optimal consumption model to minimize costs, including <a href="https://aws.amazon.com/savingsplans/">Savings Plans</a>, <a href="https://aws.amazon.com/ec2/pricing/reserved-instances/">Reserved Instances</a> and <a href="https://aws.amazon.com/ec2/spot/">Spot Instances</a></li>
+<li>Get statistics about their workloads, locating specific job configurations that are waiting in queue longer, reducing engineering productivity.</li>
+</ol>
+<h2 id="data-privacy">Data privacy</h2>
+<p>HCS avoids the need to share scheduler logs with AWS. Scheduler logs include business sensitive data (tape out dates, project names) and PII (user names).
+Instead, customers run HCS on premises, creating an anonymized output that may be shared with your AWS account team to get additional cost optimization guidance.</p>
+<p>The output file (located under the <code>output/</code> directory if not otherwise specified) is a simple Excel (.xslx), allowing you to audit its contents before sharing it.</p>
+<h2 id="how-data-is-analyzed">How data is analyzed</h2>
+<p>The analysis is a 4-step process:</p>
 <table>
 <thead>
 <tr>
-<th>MemorySize</th>
-<th>0-1 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>1-5 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>5-20 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>20-60 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>60-240 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>240-1440 Minutes</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
-<th>1440-1000000 Min</th>
-<th>&lt;--</th>
-<th>&lt;--</th>
+<th>#</th>
+<th>Step</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td></td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>&lt;--</td>
-<td>Job count</td>
-<td>Total duration</td>
-<td>Total wait time</td>
-</tr>
-<tr>
-<td>0-1GB</td>
-<td>1451224</td>
-<td>295357</td>
-<td>0</td>
-<td>298597</td>
-<td>711710</td>
-<td>0</td>
-<td>268244</td>
-<td>2464401</td>
-<td>0</td>
-<td>84075</td>
-<td>2832260</td>
-<td>0</td>
-<td>48673</td>
-<td>5699891</td>
-<td>0</td>
-<td>21450</td>
-<td>14928398</td>
-<td>&lt;--</td>
-<td>37222</td>
-<td>940366200</td>
-<td>0</td>
-</tr>
-<tr>
-<td>1-2GB</td>
-<td>7800</td>
-<td>4645</td>
-<td>0</td>
-<td>33076</td>
-<td>88381</td>
-<td>0</td>
-<td>27230</td>
-<td>285958</td>
-<td>0</td>
-<td>11301</td>
-<td>390683</td>
-<td>0</td>
-<td>9244</td>
-<td>1129832</td>
-<td>0</td>
-<td>5195</td>
-<td>3431642</td>
-<td>&lt;--</td>
-<td>4444</td>
-<td>104405917</td>
-<td>0</td>
-</tr>
-<tr>
-<td>2-4GB</td>
-<td>3866</td>
-<td>2482</td>
-<td>0</td>
-<td>68157</td>
-<td>201630</td>
-<td>0</td>
-<td>94798</td>
-<td>1120678</td>
-<td>0</td>
-<td>108126</td>
-<td>3764462</td>
-<td>0</td>
-<td>47593</td>
-<td>5155126</td>
-<td>0</td>
-<td>17470</td>
-<td>10450704</td>
-<td>&lt;--</td>
-<td>7154</td>
-<td>100846783</td>
-<td>0</td>
-</tr>
-<tr>
-<td>4-8GB</td>
-<td>425</td>
-<td>219</td>
-<td>0</td>
-<td>5352</td>
-<td>17497</td>
-<td>0</td>
-<td>9978</td>
-<td>106535</td>
-<td>0</td>
-<td>7959</td>
-<td>275142</td>
-<td>0</td>
-<td>5768</td>
-<td>701616</td>
-<td>0</td>
-<td>3831</td>
-<td>2662791</td>
-<td>&lt;--</td>
-<td>3218</td>
-<td>66155544</td>
-<td>0</td>
-</tr>
-<tr>
-<td>8-16GB</td>
-<td>759</td>
-<td>274</td>
-<td>0</td>
-<td>722</td>
-<td>2044</td>
-<td>0</td>
-<td>5904</td>
-<td>72149</td>
-<td>0</td>
-<td>4462</td>
-<td>183369</td>
-<td>0</td>
-<td>11244</td>
-<td>1307581</td>
-<td>0</td>
-<td>6363</td>
-<td>3983032</td>
-<td>&lt;--</td>
-<td>3024</td>
-<td>42831455</td>
-<td>0</td>
-</tr>
-<tr>
-<td>16-32GB</td>
-<td>389</td>
-<td>108</td>
-<td>0</td>
-<td>237</td>
-<td>771</td>
-<td>0</td>
-<td>1148</td>
-<td>14321</td>
-<td>0</td>
-<td>1573</td>
-<td>58971</td>
-<td>0</td>
-<td>2971</td>
-<td>359024</td>
-<td>0</td>
-<td>2577</td>
-<td>1766540</td>
-<td>&lt;--</td>
-<td>2017</td>
-<td>29588185</td>
-<td>0</td>
-</tr>
-<tr>
-<td>32-64GB</td>
-<td>435</td>
-<td>133</td>
-<td>0</td>
-<td>63</td>
-<td>209</td>
-<td>0</td>
-<td>605</td>
-<td>7613</td>
-<td>0</td>
-<td>1079</td>
-<td>41389</td>
-<td>0</td>
-<td>1731</td>
-<td>206706</td>
-<td>0</td>
-<td>1283</td>
-<td>1026257</td>
-<td>&lt;--</td>
-<td>1107</td>
-<td>22509888</td>
-<td>0</td>
-</tr>
-<tr>
-<td>64-128GB</td>
-<td>160</td>
-<td>60</td>
-<td>0</td>
-<td>71</td>
-<td>140</td>
-<td>0</td>
-<td>35</td>
-<td>383</td>
-<td>0</td>
-<td>110</td>
-<td>4379</td>
-<td>0</td>
-<td>244</td>
-<td>33840</td>
-<td>0</td>
-<td>408</td>
-<td>284120</td>
-<td>&lt;--</td>
-<td>285</td>
-<td>6939359</td>
-<td>0</td>
-</tr>
-<tr>
-<td>128-256GB</td>
-<td>177</td>
-<td>81</td>
-<td>0</td>
-<td>125</td>
-<td>275</td>
-<td>0</td>
-<td>107</td>
-<td>743</td>
-<td>0</td>
-<td>45</td>
-<td>1826</td>
-<td>0</td>
-<td>122</td>
-<td>15285</td>
-<td>0</td>
-<td>258</td>
-<td>206859</td>
-<td>&lt;--</td>
-<td>192</td>
-<td>5132956</td>
-<td>0</td>
-</tr>
-<tr>
-<td>256-512GB</td>
-<td>580</td>
-<td>227</td>
-<td>0</td>
-<td>297</td>
-<td>889</td>
-<td>0</td>
-<td>330</td>
-<td>3258</td>
-<td>0</td>
-<td>249</td>
-<td>9267</td>
-<td>0</td>
-<td>165</td>
-<td>20148</td>
-<td>0</td>
-<td>53</td>
-<td>35973</td>
-<td>&lt;--</td>
-<td>69</td>
-<td>1955220</td>
-<td>0</td>
-</tr>
-<tr>
-<td>512-1000000GB</td>
-<td>498</td>
-<td>249</td>
-<td>0</td>
-<td>447</td>
-<td>918</td>
-<td>0</td>
-<td>226</td>
-<td>2116</td>
-<td>0</td>
-<td>141</td>
-<td>4907</td>
-<td>0</td>
-<td>45</td>
-<td>5168</td>
-<td>0</td>
-<td>41</td>
-<td>29869</td>
-<td>&lt;--</td>
-<td>26</td>
-<td>729017</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<p>In this (real customer) example, over 95% of the jobs were not memory intensive (below 32GB/Core), but the customer is sizing their entire HPC fleet for the more memory intensive 5% of the workload.</p>
-<h3 id="hourly_statscsv">hourly_stats.csv</h3>
-<p>Provides an hour-by-hour cost simulation broken down by spot and on-demand costs.</p>
-<table>
-<thead>
-<tr>
-<th>Relative Hour</th>
-<th>Total OnDemand Costs</th>
-<th>Total Spot Cost</th>
-<th>m5</th>
-<th>r5</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>8.93</td>
-<td>0.00</td>
-<td>8.93</td>
-<td>0.00</td>
-</tr>
 <tr>
 <td>1</td>
-<td>10.97</td>
-<td>0.00</td>
-<td>10.97</td>
-<td>0.00</td>
+<td>Data Collection</td>
+<td>Collect accounting records from the database.</td>
 </tr>
 <tr>
 <td>2</td>
-<td>11.02</td>
-<td>0.00</td>
-<td>11.02</td>
-<td>0.00</td>
+<td>Formatting</td>
+<td>Parsing the scheduler accounting database - this takes the scheduler specific format, and converts the job records to a uniform format (not scheduler specific).</td>
 </tr>
 <tr>
 <td>3</td>
-<td>10.88</td>
-<td>0.00</td>
-<td>10.88</td>
-<td>0.00</td>
+<td>Cost Simulation</td>
+<td>Performing cost simulation using the output from step 2.</td>
 </tr>
 <tr>
 <td>4</td>
-<td>11.02</td>
-<td>0.00</td>
-<td>11.02</td>
-<td>0.00</td>
-</tr>
-<tr>
-<td>5</td>
-<td>10.96</td>
-<td>0.00</td>
-<td>10.96</td>
-<td>0.00</td>
-</tr>
-<tr>
-<td>6</td>
-<td>11.00</td>
-<td>0.00</td>
-<td>11.00</td>
-<td>0.00</td>
-</tr>
-<tr>
-<td>7</td>
-<td>11.02</td>
-<td>0.00</td>
-<td>11.02</td>
-<td>0.00</td>
-</tr>
-<tr>
-<td>8</td>
-<td>11.03</td>
-<td>0.00</td>
-<td>11.03</td>
-<td>0.00</td>
-</tr>
-<tr>
-<td>9</td>
-<td>11.22</td>
-<td>0.00</td>
-<td>11.16</td>
-<td>0.05</td>
-</tr>
-<tr>
-<td>10</td>
-<td>12.93</td>
-<td>0.00</td>
-<td>11.26</td>
-<td>1.66</td>
-</tr>
-<tr>
-<td>11</td>
-<td>12.98</td>
-<td>0.00</td>
-<td>11.54</td>
-<td>1.44</td>
-</tr>
-<tr>
-<td>12</td>
-<td>13.04</td>
-<td>0.00</td>
-<td>11.21</td>
-<td>1.82</td>
-</tr>
-<tr>
-<td>13</td>
-<td>10.25</td>
-<td>0.00</td>
-<td>10.21</td>
-<td>0.03</td>
-</tr>
-<tr>
-<td>14</td>
-<td>11.92</td>
-<td>0.00</td>
-<td>11.07</td>
-<td>0.84</td>
-</tr>
-<tr>
-<td>15</td>
-<td>15.58</td>
-<td>0.00</td>
-<td>11.53</td>
-<td>4.05</td>
-</tr>
-<tr>
-<td>16</td>
-<td>13.97</td>
-<td>0.00</td>
-<td>12.09</td>
-<td>1.87</td>
-</tr>
-<tr>
-<td>17</td>
-<td>17.04</td>
-<td>0.00</td>
-<td>12.82</td>
-<td>4.21</td>
-</tr>
-<tr>
-<td>18</td>
-<td>25.28</td>
-<td>0.00</td>
-<td>12.23</td>
-<td>13.05</td>
+<td>Analysis</td>
+<td>Analyzing the output, building a complete cost model. This can be done using your AWS account team.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="hourly_statsxlsx">hourly_stats.xlsx</h3>
-<p>The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
-For example, in the following example the "<strong>First hout to analyze</strong>" was changed to only include the last 12 months worth of data.</p>
-<p><img alt="Cost Summary" src="images/cost-summary.png" /></p>
-<p>The <strong>InstanceFamilySummary</strong> worksheet can be used to get insights into the predicted usage of different instance families.
-In this example it shows that the c6i family is used the most with very little utilization of other instance families.
-The average hourly use can be used to help choose the upper constraint for the savings plans.</p>
-<p><img alt="Instance Family Summary" src="images/instance-family-info.png" /></p>
-<h4 id="optimize-savings-plans-using-excel-solver">Optimize Savings Plans Using Excel Solver</h4>
-<p>Excel includes a numerical solver that can be used to optimize the use of Savings Plans to reduce your compute costs.
-The instructions for setting up the solver are on the "<strong>CostSummary</strong>" tab of the spreadsheet.</p>
-<p>First, enable the Excel solver.
-Select <strong>File</strong> -&gt; <strong>Options</strong></p>
-<p><img alt="file-options" src="images/file-options.png" /></p>
-<p>Select <strong>Add-ins</strong> on the lower left.</p>
-<p><img alt="add-ins" src="images/add-ins-1.png" /></p>
-<p>If the <strong>Solver Add-in</strong> isn't active then select <strong>Manage: Excel Add-ins</strong> and click <strong>Go</strong>.</p>
-<p>Select the <strong>Solver Add-in</strong> and click <strong>OK</strong>.</p>
-<p><img alt="solver add-in" src="images/solver-add-in.png" /></p>
-<p>If the <strong>Solver Add-in</strong> is already active then it will show up like this.</p>
-<p><img alt="solver add-in activated" src="images/add-ins-2.png" /></p>
-<p>Now you are ready to run the solver.
-Copy the original values by selecting column B and pasting the values into column C.
-Then select the <strong>Data</strong> menu select <strong>Solver</strong> on the ribbon.
- the <strong>Solver Add-in</strong> is already active then it will show up like this.</p>
-<p><img alt="copy values" src="images/copy-values.png" /></p>
-<p>Configure the solver by selecting the total cost as the <strong>Objective</strong>.
-Then select the Savings Plan commit cells in <strong>By Changing Variable Cells:</strong>.
-Then add constraints for the Savings Plan commit cells.
-Then click <strong>Solve</strong> and wait while the Solver calculates the savings plan commits
-that will minimie your overall costs.</p>
-<p><img alt="solver parameters" src="images/solver-parameters.png" /></p>
-<p>The solver may run a while, but when it finishes then save the results.</p>
-<p><img alt="Save Solver Results" src="images/solver-results.png" /></p>
-<p>The spreadsheet will then show the savings plan commits that minimize the total costs.
-In this case Savings Plans were able to reduce total costs by about 10%.
-Note that this is due to the very variable nature of the jobs.
-The more sustained usage that you have, the more cost-effective Savings Plans will be.</p>
-<p><img alt="Optimized cost" src="images/solver-savings.png" /></p>
-<p>This graph shows the variability of the workload.</p>
-<p><img alt="Optimized cost" src="images/core-hours-chart.png" /></p></div>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Python 3.6 or newer</li>
+<li>sudo access to install any required tools</li>
+<li>Recommended: CentOS 7 or higher</li>
+</ul>
+<p>A bash setup script is provided to install the required packages and create a Python virtual environment. The pip packages and versions are listed in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/requirements.txt">requirements.txt</a>.
+The setup script must be sourced, not executed, to set up the environment to run the tool.</p>
+<pre><code>source setup.sh
+</code></pre>
+<h2 id="configuration">Configuration</h2>
+<p>HCS comes pre-configured with a few best practices for analyzing an Electronics Design Automation (EDA) workload. You can edit the configuration by editing <code>config.yml</code> before running HCS. We encourage you to read the file before running to tool, to know what parameters are used to simulate the workload.</p>
+<p>A <strong>partial</strong> list of these configuration parameters includes:</p>
+<ul>
+<li>AWS region</li>
+<li>Instance selection guidelines</li>
+<li>Savings Plans selection guidelines</li>
+<li>Spot selection guidelines</li>
+</ul>
+<h2 id="instance-type-information">Instance Type Information</h2>
+<p>To perform cost simulation, HCS requires a list of available instance types in the region and their prices that is stored in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a>.
+HCS comes pre-populated with the database, and we periodically update it to reflect new instance types, prices etc.
+However, to update it yourself , see <a href="UpdateInstanceDatabase/">Updating Instance Type Information</a></p>
+<h1 id="running-the-tool">Running the Tool</h1>
+<h2 id="steps-1-2">Steps 1 &amp; 2</h2>
+<p>These steps are scheduler-specific and are explained in each scheduler's documentation page:</p>
+<ul>
+<li><a href="LSFLogParser/">IBM LSF</a></li>
+<li><a href="SlurmLogParser/">SchedMD Slurm</a></li>
+<li><a href="AcceleratorLogParser/">Altair Engineering Accelerator</a></li>
+</ul>
+<p>If you want to parse data from an unsupported scheduler, you can export the accounting data from that scheduler generating your own CSV, as long as you CSV structure defined in <a href="UnderstandingCSVformat/">Understanding the CSV format</a></p>
+<h2 id="step-3">Step 3</h2>
+<p>Once completed, you can run step #3 (cost simulation) by following the instructions in for the <a href="JobAnalyzer/">JobAnalyzer</a></p>
+<p><strong>Notes for step #3</strong></p>
+<ol>
+<li>The job analyzer can call the parser (step 2), however, parsing is the longest step so it is recommended that you run it separately.</li>
+<li>The job analyzer can be run with different configuration file (<code>config.yml</code>) on the same job data.
+For example:</li>
+<li>Simulating your workload costs with and without Spot Instances</li>
+<li>Simulating your costs with different instance families</li>
+</ol>
+<h2 id="step-4">Step 4</h2>
+<p>For analysis, you can either share the Excel file from step #3 with your AWS account team, or read the <a href="Output/">Output</a> page for more details.</p></div>
             </div>
         </div>
 
@@ -803,6 +316,6 @@ The more sustained usage that you have, the more cost-effective Savings Plans wi
 </html>
 
 <!--
-MkDocs version : 1.3.0
-Build Date UTC : 2022-07-06 23:59:58.676167+00:00
+MkDocs version : 1.3.1
+Build Date UTC : 2022-11-03 22:18:32.703520+00:00
 -->

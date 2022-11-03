@@ -36,19 +36,25 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href=".." class="nav-link">HPC Cost Simulator</a>
+                                <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
                             <li class="navitem">
-                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
-                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
                             </li>
                             <li class="navitem">
-                                <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm</a>
                             </li>
                             <li class="navitem active">
                                 <a href="./" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../Output/" class="nav-link">Output</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../config/" class="nav-link">Config</a>
                             </li>
                         </ul>
 
@@ -64,7 +70,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../Output/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -95,11 +101,16 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#configuration" class="nav-link">Configuration</a>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-level="1"><a href="#performing-the-cost-simulation" class="nav-link">Performing the cost simulation</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#outputs" class="nav-link">Outputs</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
               <ul class="nav flex-column">
             <li class="nav-item" data-level="3"><a href="#arguments-that-apply-to-all-schedulers" class="nav-link">Arguments that apply to all schedulers</a>
               <ul class="nav flex-column">
@@ -109,33 +120,21 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-accelerator" class="nav-link">Parser-specific Arguments - Accelerator</a>
+            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-accelerator" class="nav-link">Parser-Specific Arguments - Accelerator</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-lsf" class="nav-link">Parser-specific Arguments - LSF</a>
+            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-lsf" class="nav-link">Parser-Specific Arguments - LSF</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-slurm" class="nav-link">Parser-specific Arguments - Slurm</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="3"><a href="#analyzing-pre-parsed-csv-job-data" class="nav-link">Analyzing Pre-Parsed CSV Job Data</a>
+            <li class="nav-item" data-level="3"><a href="#parser-specific-arguments-slurm" class="nav-link">Parser-Specific Arguments - Slurm</a>
               <ul class="nav flex-column">
               </ul>
             </li>
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#data-used" class="nav-link">Data Used</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#jobs-csv-file-format" class="nav-link">Jobs CSV File Format</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#savings-plan-optimization" class="nav-link">Savings Plan Optimization</a>
+            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's Next?</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -147,72 +146,39 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="job-analyzer">Job Analyzer</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> script post-processes the output of the parsers to provide an analysis of running the jobs on AWS.
-For convenience, the analyzer can call the parser and analyze the output in 1 step.</p>
+<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> performs the cost simulation using the outputs from
+<a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a>,
+<a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a> or
+<a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a></p>
+<p>It produces an hour-by-hour cost simulation, placing the output in the <code>output/</code> subfolder (by default).</p>
+<p>For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend performing the analysis in separate stages (see "How data is analyzed") in <a href="..">index.md</a>.</p>
 <h2 id="prerequisites">Prerequisites</h2>
-<p><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> relies on  <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a> which contains instance type details and pricing.
-If the file doesn't exist in the same directory as the script then it will attempt to create it using the AWS API.
-For details on the required IAM permissions see the <a href="..#instance-type-information">main documentation page</a>.</p>
-<h2 id="configuration">Configuration</h2>
-<p>All configuration parameters are stored in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/config.yml">config.yml</a>.
-The schema of the configuration file is contained in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/config_schema.yml">config_schema.yml</a>
-and contains a list of all the options.
-See comments within the files for details of each parameter's use.</p>
-<p>Key configuration parameters that you may want to change include.</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>instance_mapping: region_name</td>
-<td>eu-west-1</td>
-<td>The region where the AWS instances will run.</td>
-</tr>
-<tr>
-<td>instance_mapping: instance_prefix_list</td>
-<td>[c6i, m5., r5., c5., z1d, x2i]</td>
-<td>Instance types to be used during the analysis</td>
-</tr>
-<tr>
-<td>consumption_model_mapping: maximum_minutes_for_spot</td>
-<td>60</td>
-<td>Threshold for using on-demand instances instead of spot instances.</td>
-</tr>
-<tr>
-<td>consumption_model_mapping: ec2_savings_plan_duration</td>
-<td>3</td>
-<td>Duration of the savings plan. Valid values: [1, 3]</td>
-</tr>
-<tr>
-<td>consumption_model_mapping: ec2_savings_plan_payment_option</td>
-<td>'All Upfront'</td>
-<td>Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront']</td>
-</tr>
-<tr>
-<td>consumption_model_mapping:</td>
-<td>3</td>
-<td>Duration of the savings plan. Valid values: [1, 3]</td>
-</tr>
-<tr>
-<td>consumption_model_mapping:</td>
-<td>'All Upfront'</td>
-<td>Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront']</td>
-</tr>
-</tbody>
-</table>
-<h2 id="usage">Usage</h2>
+<p><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> relies on:</p>
+<ol>
+<li>the virtual environment created by the setup script. run <code>source setup.sh</code> to setup the virtual environment.</li>
+<li><code>config.yml</code> which defines the configuration of the analysis.
+For more details on the configuration file, see the <a href="../config/">configuration documentation</a></li>
+<li><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/instance_type_info.json">instance_type_info.json</a> which contains instance type details and pricing.
+The file is part of the repository, but if you want to download an update list of instances and their prices, please see <a href="../UpdateInstanceDatabase/">Updating the Instance Type Information</a></li>
+</ol>
+<h1 id="performing-the-cost-simulation">Performing the cost simulation</h1>
+<p>Once you generated a CSV file from your Scheduler (See instructions for <a href="../LSFLogParser/">IBM LSF</a>, <a href="../SlurmLogParser/">SchedMD Slurm</a> abd <a href="../AcceleratorLogParser/">Altair Engineering Accelerator</a>) you can perform the cost simulation (step 3) using <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a></p>
+<p>To parse the CSV file into the final anonymized Excel report, run:</p>
+<pre><code>source setup.sh
+./JobAnalyzer.py csv --input-csv INPUT_CSV_FILE_NAME
+</code></pre>
+<h2 id="outputs">Outputs</h2>
+<p>By default, HCS places all output files in the <code>output/</code> folder (this can be changed using the <code>--output-dir</code> parameter to <code>JobAnalyzer.py</code>).
+<strong>Note:</strong> The output folder will get overwritten without prompting you for approval.</p>
+<h2 id="full-syntax">Full Syntax</h2>
 <p>Arguments provided to <code>JobAnalyzer</code> are required in a specific order:</p>
 <pre><code>    ./JobAnalyzer.py &lt;Arguments that apply to all schedulers&gt; &lt;Parser type&gt; &lt;Parser-specific Arguments&gt;
 </code></pre>
 <p>These are the common arguments.</p>
 <pre><code>usage: JobAnalyzer.py [-h] [--starttime STARTTIME] [--endtime ENDTIME]
-                      [--config CONFIG] [--output-dir OUTPUT_DIR]
-                      [--output-csv OUTPUT_CSV] [--debug]
+                      [--config CONFIG] [--acknowledge-config]
+                      [--output-dir OUTPUT_DIR] [--output-csv OUTPUT_CSV]
+                      [--debug]
                       parser ...
 
 Analyze jobs
@@ -225,6 +191,8 @@ positional arguments:
     csv                 Parse CSV from already parsed job information.
     lsf                 Parse LSF logfiles
     slurm               Parse Slurm job information
+    hourly_stats        Parse hourly_stats file so can create Excel workbook
+                        (xlsx).
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -234,6 +202,8 @@ optional arguments:
   --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
                         DDTHH:MM:SS (default: None)
   --config CONFIG       Configuration file. (default: ./config.yml)
+  --acknowledge-config  Acknowledge configuration file contents so don't get
+                        prompt. (default: False)
   --output-dir OUTPUT_DIR
                         Directory where output will be written (default:
                         output)
@@ -253,13 +223,14 @@ optional arguments:
   --help, -h                Show help message
 </code></pre>
 <h3 id="parser-type">Parser Type</h3>
-<p>The tool supports 4 parser types:</p>
+<p>The tool supports 5 parser types:</p>
 <pre><code>    accelerator         Parse Accelerator (nc) job information
-    lsf                 Parse LSF accounting ercords (lsb.acct fiels)
+    lsf                 Parse LSF accounting records (lsb.acct fields)
     slurm               Parse Slurm job information
     csv                 Parse CSV from a previously parsed job information.
+    hourly_stats        Parse the hourly output files from a previous run
 </code></pre>
-<h3 id="parser-specific-arguments-accelerator">Parser-specific Arguments - Accelerator</h3>
+<h3 id="parser-specific-arguments-accelerator">Parser-Specific Arguments - Accelerator</h3>
 <pre><code>usage: JobAnalyzer.py accelerator [-h] [--default-mem-gb DEFAULT_MEM_GB]
                                   (--sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
 
@@ -267,7 +238,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --default-mem-gb DEFAULT_MEM_GB
                         Default amount of memory (in GB) requested for jobs.
-                        (default: 0.098)
+                        (default: 0.0)
   --sql-output-file SQL_OUTPUT_FILE
                         File where the output of sql query will be written.
                         Cannot be used with --sql-input-file. Required if
@@ -283,7 +254,7 @@ optional arguments:
                         offline. Cannot be used with --sql-output-file.
                         Required if --sql-output-file not set. (default: None)
 </code></pre>
-<h3 id="parser-specific-arguments-lsf">Parser-specific Arguments - LSF</h3>
+<h3 id="parser-specific-arguments-lsf">Parser-Specific Arguments - LSF</h3>
 <pre><code>usage: JobAnalyzer.py lsf [-h] [--logfile-dir LOGFILE_DIR]
                           --default-max-mem-gb DEFAULT_MAX_MEM_GB
 
@@ -295,7 +266,7 @@ optional arguments:
                         Default maximum memory for a job in GB. (default:
                         None)
 </code></pre>
-<h3 id="parser-specific-arguments-slurm">Parser-specific Arguments - Slurm</h3>
+<h3 id="parser-specific-arguments-slurm">Parser-Specific Arguments - Slurm</h3>
 <pre><code>usage: JobAnalyzer.py slurm [-h] [--slurm-root SLURM_ROOT]
                             [--sacct-output-file SACCT_OUTPUT_FILE | --sacct-input-file SACCT_INPUT_FILE]
 
@@ -315,175 +286,8 @@ optional arguments:
                         (default: None)
 </code></pre>
 <p>Note: The tool will call <code>sacct</code> to get accounting logs, if you don't have it installed on the machine, please see the <a href="../SlurmLogParser/">SlurmLogParser.py documentation</a> for details on how to save them to a CSV file.</p>
-<h3 id="analyzing-pre-parsed-csv-job-data">Analyzing Pre-Parsed CSV Job Data</h3>
-<pre><code>usage: JobAnalyzer.py csv [-h] --input-csv INPUT_CSV
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --input-csv INPUT_CSV
-                        CSV file with parsed job info from scheduler parser.
-                        (default: None)
-</code></pre>
-<h2 id="data-used">Data Used</h2>
-<p>The parser parses out and saves the minimum amount of data required to do the analysis.
-The fields are documented in the <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SchedulerJobInfo.py">SchedulerJobInfo.py</a> module.
-The intent is only to store timestamp information, the number of cores and amount of memory requested by each job,
-and actual resource usage information, if available such as the user time, system time, and max memory used.</p>
-<h2 id="jobs-csv-file-format">Jobs CSV File Format</h2>
-<p>The format out the CSV files that the parsers write is flexible and JobAnalyzer.py can use any CSV file that containes the required information.
-This can be useful if you are using a different scheduler or storing the job information in something like Splunk.
-As long as you can export the required data into a CSV file, then JobAnalyzer.py can parse it.</p>
-<p>The order of the fields in the CSV file do not matter, but the names of the fields do.
-There is no standard for CSV files, but the JobAnalyzer.py expects the files to be written in the "Microsoft Excel" dialect.
-The field names must be in the first row.</p>
-<p>The required fields are:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>job_id</td>
-<td>string</td>
-<td>Job id</td>
-</tr>
-<tr>
-<td>num_cores</td>
-<td>int</td>
-<td>Total number of cores allocated to the job</td>
-</tr>
-<tr>
-<td>max_mem_gb</td>
-<td>float</td>
-<td>Total amount of memory allocated to the job in GB</td>
-</tr>
-<tr>
-<td>num_hosts</td>
-<td>int</td>
-<td>Number of hosts. In Slurm this is the number of nodes. The number of cores should be evenly divisible by the number of hosts. For LSF this is typically 1.</td>
-</tr>
-<tr>
-<td>submit_time</td>
-<td>datetime string</td>
-<td>Time that the job was submitted. All times are expected to be in the format <em>YYYY</em>-<em>MM</em>-<em>DD</em>T<em>hh</em>:<em>mm</em>:<em>ss</em></td>
-</tr>
-<tr>
-<td>start_time</td>
-<td>datetime string</td>
-<td>Time that the job started.</td>
-</tr>
-<tr>
-<td>finish_time</td>
-<td>datetime string</td>
-<td>Time that the job finished.</td>
-</tr>
-</tbody>
-</table>
-<p>The optional fields are:</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>resource_request</td>
-<td>string</td>
-<td>Resources requested by the job. For LSF this is the effective resource request. For Slurm it is the job constraints.</td>
-</tr>
-<tr>
-<td>ineligible_pend_time</td>
-<td>timedelta string</td>
-<td>Duration that the job was ineligible to run. This is what LSF writes. Defaults to max(0, eligible_time - start_time). Format for timedelta strings is <em>h</em>:<em>mm</em>:<em>ss</em>.</td>
-</tr>
-<tr>
-<td>eligible_time</td>
-<td>datetime string</td>
-<td>Time that the job became eligible to run. Defaults to the start_time + ineligible_pend_time.</td>
-</tr>
-<tr>
-<td>requeue_time</td>
-<td>datetime string</td>
-<td>Time that the job was requeued. Currently not used.</td>
-</tr>
-<tr>
-<td>wait_time</td>
-<td>timedelta string</td>
-<td>Time that job was pending after it was eligible to run. Default start_time - eligible_time.</td>
-</tr>
-<tr>
-<td>run_time</td>
-<td>timedelta string</td>
-<td>Time that the job ran. Default: finish_time - start_time</td>
-</tr>
-<tr>
-<td>exit_status</td>
-<td>int</td>
-<td>Effective return code of the job. Default: 0</td>
-</tr>
-<tr>
-<td>ru_majflt</td>
-<td>float</td>
-<td>Number of page faults</td>
-</tr>
-<tr>
-<td>ru_maxrss</td>
-<td>float</td>
-<td>Maximum shared text size</td>
-</tr>
-<tr>
-<td>ru_minflt</td>
-<td>float</td>
-<td>Number of page reclaims</td>
-</tr>
-<tr>
-<td>ru_msgsnd</td>
-<td>float</td>
-<td>Number of System V IPC messages sent</td>
-</tr>
-<tr>
-<td>ru_msgrcv</td>
-<td>float</td>
-<td>Number of messages received</td>
-</tr>
-<tr>
-<td>ru_nswap</td>
-<td>float</td>
-<td>Number of times the process was swapped out</td>
-</tr>
-<tr>
-<td>ru_inblock</td>
-<td>float</td>
-<td>Number of block input operations</td>
-</tr>
-<tr>
-<td>ru_oublock</td>
-<td>float</td>
-<td>Number of block output operations</td>
-</tr>
-<tr>
-<td>ru_stime</td>
-<td>float</td>
-<td>System time used</td>
-</tr>
-<tr>
-<td>ru_utime</td>
-<td>float</td>
-<td>User time used</td>
-</tr>
-</tbody>
-</table>
-<h2 id="savings-plan-optimization">Savings Plan Optimization</h2>
-<p>The script writes an Excel Workbook that allows you to view the analysis and analyze the impact of savings plan on the overall costs.
-Excel also has a Solver add-in that will automatically optimize the savings plan values to minimize the costs.
-The steps to configure the solver are included in the spreadsheet and are on the <a href="..#optimize-savings-plans-using-excel-solver">main page</a>.</p></div>
+<h2 id="whats-next">What's Next?</h2>
+<p>Once completed, you can find your Excel report under <code>output/hourly_stats.xlsx</code>. You can share it with your AWS account team (Recommended) for further cost optimization guidance, or you can learn more about the data in the Excel in the <a href="../Output/">Output</a> documentation page.</p></div>
             </div>
         </div>
 

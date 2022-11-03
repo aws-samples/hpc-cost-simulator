@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Slurm Log Parser - HPC Cost Simulator</title>
+        <title>Slurm - HPC Cost Simulator</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -36,19 +36,25 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href=".." class="nav-link">HPC Cost Simulator</a>
+                                <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
                             <li class="navitem">
-                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
-                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF Parser</a>
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
                             </li>
                             <li class="navitem active">
-                                <a href="./" class="nav-link">Slurm Log Parser</a>
+                                <a href="./" class="nav-link">Slurm</a>
                             </li>
                             <li class="navitem">
                                 <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../Output/" class="nav-link">Output</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../config/" class="nav-link">Config</a>
                             </li>
                         </ul>
 
@@ -89,21 +95,33 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#slurm-log-parser" class="nav-link">Slurm Log Parser</a>
+            <li class="nav-item" data-level="1"><a href="#slurm" class="nav-link">Slurm</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#online" class="nav-link">Online</a>
+            <li class="nav-item" data-level="2"><a href="#modes-of-running-the-tool" class="nav-link">Modes of running the tool</a>
               <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#offline" class="nav-link">Offline</a>
+            <li class="nav-item" data-level="3"><a href="#offline-recommended" class="nav-link">Offline - Recommended</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+            <li class="nav-item" data-level="3"><a href="#online" class="nav-link">Online</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#collecting-the-data" class="nav-link">Collecting the data</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             <li class="nav-item" data-level="2"><a href="#parsing-the-job-completion-data" class="nav-link">Parsing the Job Completion Data</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's next?</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -114,28 +132,46 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="slurm-log-parser">Slurm Log Parser</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a> script calls Slurm <code>sacct</code>, parses the job completion data, and generates a CSV file that can be used by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a>.
-It has 2 modes of operation, online and offline.</p>
-<h2 id="online">Online</h2>
-<p>Online means the tool will call the <code>sacct</code> command directly, which requires the Linux machine running the tool to have <code>sacct</code> installed and configured as well as the permissions to access accounting records from all users.
-When running in this mode, the output of <code>sacct</code> will be stored to a CSV file defined by the <code>--sacct-output-file</code> parameter.</p>
-<h2 id="offline">Offline</h2>
-<p>If running this tool on a Linux machine not connected to the Slurm head-node, you can first extract the <code>sacct</code> output to a CSV file and then run the tool offline to analyze it.
-When running in this mode, the tool expects an existing file, defined by the <code>--sacct-input-file</code> argument, that contains the output of <code>saact</code>.</p>
+<h1 id="slurm">Slurm</h1>
+<p><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a> parses the Slurm Accounting Database records, and its output is then used by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> for cost simulation.</p>
+<h2 id="modes-of-running-the-tool">Modes of running the tool</h2>
+<p><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a> has 2 modes of operation, online and offline.</p>
+<h3 id="offline-recommended">Offline - Recommended</h3>
+<p>In offline mode, the job completion data is extracted using <code>sacct</code> ahead of processing (not as part of the script execution). This allows processing to happen on a Linux machine not configured as part of the Slurm cluster (non production machine).</p>
+<p>When running in this mode, provide the file path to HCS using the  <code>--sacct-input-file</code> argument.</p>
+<h3 id="online">Online</h3>
+<p>Online means HCS will call the <code>sacct</code> command directly, which requires the Linux machine to have <code>sacct</code> installed and configured as well as the permissions to access accounting records from <strong>all users</strong>.</p>
+<p>Running in this mode will store the output of the <code>sacct</code> command in a CSV file to allow additional analysis to be done offline (minimizing calls the Slurm head node). You need to provide the name of this CSV file using the <code>--sacct-output-file</code> argument.</p>
+<p>If the Slurm <code>bin</code> folder is not in your path, you will also need to provide the <code>--slurm-root</code> argument, pointing to the Slurm <code>bin</code> folder.</p>
 <p><strong>Note</strong>: You can't use both <code>--sacct-input-file</code> and <code>--sacct-output-file</code> together.</p>
-<h2 id="usage">Usage</h2>
-<pre><code>usage: SlurmLogParser.py [-h] [--slurm-root SLURM_ROOT]
-                         (--sacct-output-file SACCT_OUTPUT_FILE | --sacct-input-file SACCT_INPUT_FILE)
-                         --output-csv OUTPUT_CSV [--debug]
+<h2 id="collecting-the-data">Collecting the data</h2>
+<p>To see data collection command syntax, run:</p>
+<pre><code>source setup.sh
+./SlurmLogParser.py --show-data-collection-cmd
+</code></pre>
+<p>As of this writing, the command is:</p>
+<pre><code>sacct --allusers --parsable2 --noheader --format State,JobID,ReqCPUS,ReqMem,ReqNodes,Constraints,Submit,Eligible,Start,Elapsed,Suspended,End,ExitCode,DerivedExitCode,AllocNodes,NCPUS,MaxDiskRead,MaxDiskWrite,MaxPages,MaxRSS,MaxVMSize,CPUTime,UserCPU,SystemCPU,TotalCPU,Partition --starttime 1970-01-01T0:00:00 &gt; SlurmAccounting.csv
+</code></pre>
+<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
+<p>First you must source the setup script to activate the virtual environment and install all the dependencies in it.</p>
+<pre><code>source setup.sh
+./SlurmLogParser.py \
+    --sacct-input-file SlurmAccounting.csv \
+    --output-csv jobs.csv
+</code></pre>
+<h2 id="full-syntax">Full Syntax</h2>
+<pre><code>usage: SlurmLogParser.py [-h]
+                         (--show-data-collection-cmd | --sacct-output-file SACCT_OUTPUT_FILE | --sacct-input-file SACCT_INPUT_FILE)
+                         [--output-csv OUTPUT_CSV] [--slurm-root SLURM_ROOT]
+                         [--starttime STARTTIME] [--endtime ENDTIME] [--debug]
 
 Parse Slurm logs.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --slurm-root SLURM_ROOT
-                        Directory that contains the Slurm bin directory.
-                        (default: None)
+  --show-data-collection-cmd
+                        Show the command to create SACCT_OUTPUT_FILE.
+                        (default: False)
   --sacct-output-file SACCT_OUTPUT_FILE
                         File where the output of sacct will be written. Cannot
                         be used with --sacct-file. Required if --sacct-input-
@@ -143,25 +179,24 @@ optional arguments:
   --sacct-input-file SACCT_INPUT_FILE
                         File with the output of sacct so can process sacct
                         output offline. Cannot be used with --sacct-output-
-                        file. Required if --sacct-output-file not set. (default: None)
-
+                        file. Required if --sacct-output-file not set.
+                        (default: None)
   --output-csv OUTPUT_CSV
-                        CSV file with parsed job completion records (default: None)
+                        CSV file with parsed job completion records (default:
+                        None)
+  --slurm-root SLURM_ROOT
+                        Directory that contains the Slurm bin directory.
+                        (default: None)
+  --starttime STARTTIME
+                        Select jobs after the specified time. Format YYYY-MM-
+                        DDTHH:MM:SS (default: None)
+  --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
+                        DDTHH:MM:SS (default: None)
   --debug, -d           Enable debug mode (default: False)
 </code></pre>
-<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
-<p>First you must source the setup script to make sure that all required packages are installed.</p>
-<pre><code>source setup.sh
-</code></pre>
-<p>This creates a python virtual environment and activates it.</p>
-<p>The script calls <code>sacct</code> so your environment should be set up so that the Slurm scripts are in the path.
-Otherwise you can pass the path to the scripts usingn the <code>--slurm-root</code> argument which should point to the
-path that contains the Slurm <code>bin</code> directory.</p>
-<p>The parsed data will be written in the <code>output</code> directory which will be created if it does not exist.</p>
-<pre><code>./SlurmLogParser.py \
-    --sacct-output-file output/sacct-output.txt \
-    --output-csv output/jobs.csv
-</code></pre></div>
+<h2 id="whats-next">What's next?</h2>
+<p>Once completed, you can run step #3 (cost simulation) by following the instructions for the <a href="../JobAnalyzer/">JobAnalyzer</a>.
+Since you already generated a CSV file, you will use <a href="../JobAnalyzer/">JobAnalyzer</a> with the <code>csv</code> option.</p></div>
             </div>
         </div>
 

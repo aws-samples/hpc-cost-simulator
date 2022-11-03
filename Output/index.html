@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Altair Accelerator - HPC Cost Simulator</title>
+        <title>Output - HPC Cost Simulator</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -38,8 +38,8 @@
                             <li class="navitem">
                                 <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
-                            <li class="navitem active">
-                                <a href="./" class="nav-link">Altair Accelerator</a>
+                            <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
                                 <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
@@ -50,8 +50,8 @@
                             <li class="navitem">
                                 <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
                             </li>
-                            <li class="navitem">
-                                <a href="../Output/" class="nav-link">Output</a>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Output</a>
                             </li>
                             <li class="navitem">
                                 <a href="../config/" class="nav-link">Config</a>
@@ -65,17 +65,17 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href=".." class="nav-link">
+                                <a rel="prev" href="../JobAnalyzer/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../LSFLogParser/" class="nav-link">
+                                <a rel="next" href="../config/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/AcceleratorLogParser.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/Output.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -95,22 +95,26 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#altair-accelerator" class="nav-link">Altair Accelerator</a>
+            <li class="nav-item" data-level="1"><a href="#output" class="nav-link">Output</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#collecting-the-data" class="nav-link">Collecting the data</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#parsing-the-job-completion-data" class="nav-link">Parsing the Job Completion Data</a>
+            <li class="nav-item" data-level="3"><a href="#hourly_statsxlsx" class="nav-link">hourly_stats.xlsx</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
+            <li class="nav-item" data-level="3"><a href="#savings-plan-optimization" class="nav-link">Savings Plan Optimization</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="4"><a href="#windows" class="nav-link">Windows:</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's next?</a>
+            <li class="nav-item" data-level="4"><a href="#mac-os" class="nav-link">Mac OS:</a>
               <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="4"><a href="#optimize-savings-plans-using-excel-solver" class="nav-link">Optimize Savings Plans Using Excel Solver</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
               </ul>
@@ -120,63 +124,98 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="altair-accelerator">Altair Accelerator</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py">AcceleratorLogParser.py</a> script queries the Accelerator results database, parses the job completion data, and saves it into a CSV file.</p>
-<h2 id="collecting-the-data">Collecting the data</h2>
-<p>To see data collection command syntax, run:</p>
-<pre><code>source setup.sh
-./AcceleratorLogParser.py --show-data-collection-cmd
-</code></pre>
-<p>For example, as of this writing, the command is:</p>
-<pre><code>nc cmd vovsql_query -e &quot;select jobs.id, jobs.submittime, jobs.starttime, jobs.endtime, resources.name, jobs.exitstatus, jobs.maxram, jobs.maxvm, jobs.cputime, jobs.susptime from jobs inner join resources on jobs.resourcesid=resources.id&quot; &gt; sql-output.txt
-</code></pre>
-<p>This command should run on a node connected to the Altair Accelerator head node, and with a user with permissions to see the jobs from all users.</p>
-<p><strong>Note:</strong> To be able to run the command, you first need to source the <code>vovrc.sh</code> script located in your <code>/common/etc</code> subfolder of your Altair install folder.</p>
-<h2 id="parsing-the-job-completion-data">Parsing the Job Completion Data</h2>
-<p>The parsed data will be written in the output directory which will be created if it does not exist.</p>
-<pre><code>./AcceleratorLogParser.py \
-    --sql-output-file sql-output.txt \
-    --output-csv output/jobs.csv
-</code></pre>
-<h2 id="full-syntax">Full Syntax</h2>
-<pre><code>usage: AcceleratorLogParser.py [-h]
-                               (--show-data-collection-cmd | --sql-output-file SQL_OUTPUT_FILE | --sql-input-file SQL_INPUT_FILE)
-                               [--output-csv OUTPUT_CSV]
-                               [--default-mem-gb DEFAULT_MEM_GB]
-                               [--starttime STARTTIME] [--endtime ENDTIME]
-                               [--debug]
-
-Parse Altair Accelerator logs.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --show-data-collection-cmd
-                        Show the command to create the SQL_OUTPUT_FILE.
-                        (default: False)
-  --sql-output-file SQL_OUTPUT_FILE
-                        File where the output of sql query will be written.
-                        Cannot be used with --sql-input-file. Required if
-                        --sql-input-file not set. (default: None)
-  --sql-input-file SQL_INPUT_FILE
-                        File with the output of sql query so can process it
-                        offline. Cannot be used with --sql-output-file.
-                        Required if --sql-output-file not set. (default: None)
-  --output-csv OUTPUT_CSV
-                        CSV file with parsed job completion records (default:
-                        None)
-  --default-mem-gb DEFAULT_MEM_GB
-                        Default amount of memory (in GB) requested for jobs
-                        that do not have a memory request. (default: 0.0)
-  --starttime STARTTIME
-                        Select jobs after the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --endtime ENDTIME     Select jobs before the specified time. Format YYYY-MM-
-                        DDTHH:MM:SS (default: None)
-  --debug, -d           Enable debug mode (default: False)
-</code></pre>
-<h2 id="whats-next">What's next?</h2>
-<p>Once completed, you can run step #3 (cost simulation) by following the instructions in for the <a href="../JobAnalyzer/">JobAnalyzer</a>
-Since you already generated a CSV file, you will use <a href="../JobAnalyzer/">JobAnalyzer</a> with the <code>csv</code> option.</p></div>
+<h1 id="output">Output</h1>
+<p>HCS generates multiple output files:</p>
+<table>
+<thead>
+<tr>
+<th>File Name</th>
+<th>Quantity</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hourly_stats.xlsx</td>
+<td>1</td>
+<td>The full anonymized output, the only file you'll share with your AWS account team (should you choose to do so</td>
+</tr>
+<tr>
+<td>hourly-######.csv</td>
+<td>1 per hour</td>
+<td>Temporary files, includes all the jobs that started in a specific hour</td>
+</tr>
+<tr>
+<td>summary.csv</td>
+<td>1</td>
+<td>Aggregated summary of all your jobs (statistics). This data also appears in the Excel output file</td>
+</tr>
+<tr>
+<td>hourly_stats.csv</td>
+<td>1</td>
+<td>Host simulation output, includes. This data also appears in the Excel output file.</td>
+</tr>
+<tr>
+<td>JobAnalyzer-####-##-##_##-##-##.log</td>
+<td>1</td>
+<td>Simulation log file for trouble shooting</td>
+</tr>
+</tbody>
+</table>
+<h3 id="hourly_statsxlsx">hourly_stats.xlsx</h3>
+<p>This is the main output file, and will be analyzed moving forward. All other files are only used for troubleshooting and or re-running a subset of the analysis.</p>
+<p>The Excel spreadsheet provides a convenient way to view the data and perform calculations on it.
+For example, in the following example the "<strong>First hour to analyze</strong>" was changed to only include the last 12 months worth of data.</p>
+<p><img alt="Cost Summary" src="../images/cost-summary.png" /></p>
+<p>The <strong>InstanceFamilySummary</strong> worksheet can be used to get insights into the predicted usage of different instance families.
+In this example it shows that the c6i family is used the most with very little utilization of other instance families.
+The average hourly use can be used to help choose the upper constraint for the savings plans.</p>
+<p><img alt="Instance Family Summary" src="../images/instance-family-info.png" /></p>
+<h3 id="savings-plan-optimization">Savings Plan Optimization</h3>
+<p><code>hourly_stats.xlsx</code> allows you to optimize your costs further by simulating the impact of <a href="https://aws.amazon.com/savingsplans/">Savings Plans</a> (SP) on your overall costs, and finding the optimal SP cost for your workload. To do this, you will need to enable Excel's numerical solver add-in.</p>
+<p>To use the solver, you first need to enable it.</p>
+<h4 id="windows">Windows:</h4>
+<p>Select <strong>File</strong> -&gt; <strong>Options</strong></p>
+<p><img alt="file-options" src="../images/file-options.png" /></p>
+<p>Select <strong>Add-ins</strong> on the lower left.</p>
+<p><img alt="add-ins" src="../images/add-ins-1.png" /></p>
+<p>If the <strong>Solver Add-in</strong> isn't active then select <strong>Manage: Excel Add-ins</strong> and click <strong>Go</strong>.</p>
+<p><img alt="solver add-in" src="../images/solver-add-in.png" /></p>
+<p>Select the <strong>Solver Add-in</strong> and click <strong>OK</strong>.</p>
+<p>If the <strong>Solver Add-in</strong> is already active then it will show up like this.</p>
+<p><img alt="solver add-in activated" src="../images/add-ins-2.png" /></p>
+<h4 id="mac-os">Mac OS:</h4>
+<p>Select <strong>Tools</strong> -&gt; <strong>Options</strong></p>
+<p><img alt="Tools-Add-Ins" src="../images/MacAddIn.png" /></p>
+<p>If the <strong>Solver Add-in</strong> isn't active then select it and click <strong>OK</strong>.</p>
+<p><img alt="Tools-Add-Ins" src="../images/MacEnableSolver.png" /></p>
+<h4 id="optimize-savings-plans-using-excel-solver">Optimize Savings Plans Using Excel Solver</h4>
+<p>Now you are ready to run the solver.
+Copy the original values by selecting column B and pasting the values into column C (This will allow you to compare before vs. after cost optimization).</p>
+<p>Then select the <strong>Data</strong> menu select <strong>Solver</strong> on the ribbon.</p>
+<p>Configure the solver by selecting the total cost as the <strong>Objective</strong>.
+Then select the Savings Plan commit cells in <strong>By Changing Variable Cells</strong>.</p>
+<p>Do <strong>not</strong> select the total cell, only the $ value for specific instance family types:</p>
+<p><img alt="Solver Configuration" src="../images/MacSolverConfiguration.png" /></p>
+<p>Optionally, you may add constraints for the Savings Plan commit cells.</p>
+<p><strong>Windows:</strong></p>
+<p><img alt="solver parameters Windows" src="../images/solver-parameters.png" /></p>
+<p><strong>Mac OS</strong></p>
+<p><img alt="solver parameters Mac" src="../images/MacSolverAddIn.png" /></p>
+<p>Then click <strong>Solve</strong> and wait while the Solver calculates the savings plan commits
+that will minimize your overall costs.
+The solver may run a while, but when it finishes then save the results.</p>
+<p><strong>Windows:</strong></p>
+<p><img alt="Save Solver Results" src="../images/solver-results.png" /></p>
+<p><strong>Mac OS:</strong></p>
+<p><img alt="Save Solver Results" src="../images/MacSolverResults.png" /></p>
+<p>The spreadsheet will then show the savings plan commits that minimize the total costs.
+In this case Savings Plans were able to reduce total costs by about 10%.
+Note that this is due to the very variable nature of the jobs.
+The more uniform usage you have, the more cost-effective Savings Plans will be.</p>
+<p><img alt="Optimized cost" src="../images/solver-savings.png" /></p>
+<p>This graph shows the variability of the workload.</p>
+<p><img alt="Optimized cost" src="../images/core-hours-chart.png" /></p></div>
             </div>
         </div>
 

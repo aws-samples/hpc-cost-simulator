@@ -7,15 +7,15 @@
         
         
         
-        <link rel="shortcut icon" href="/img/favicon.ico">
-        <title>HPC Cost Simulator</title>
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
-        <link href="/css/font-awesome.min.css" rel="stylesheet">
-        <link href="/css/base.css" rel="stylesheet">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Config - HPC Cost Simulator</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
 
-        <script src="/js/jquery-1.10.2.min.js" defer></script>
-        <script src="/js/bootstrap.min.js" defer></script>
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/python.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
@@ -25,7 +25,7 @@
     <body>
         <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand" href="/.">HPC Cost Simulator</a>
+                <a class="navbar-brand" href="..">HPC Cost Simulator</a>
                 <!-- Expander button -->
                 <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
@@ -36,25 +36,25 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href="/." class="nav-link">HPC Cost Simulator (HCS)</a>
+                                <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
                             <li class="navitem">
-                                <a href="/AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem">
-                                <a href="/LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
                             </li>
                             <li class="navitem">
-                                <a href="/SlurmLogParser/" class="nav-link">Slurm</a>
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm</a>
                             </li>
                             <li class="navitem">
-                                <a href="/JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                                <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
                             </li>
                             <li class="navitem">
-                                <a href="/Output/" class="nav-link">Output</a>
+                                <a href="../Output/" class="nav-link">Output</a>
                             </li>
-                            <li class="navitem">
-                                <a href="/config/" class="nav-link">Config</a>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Config</a>
                             </li>
                         </ul>
 
@@ -65,7 +65,17 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a href="https://github.com/aws-samples/hpc-cost-simulator" class="nav-link"><i class="fa fa-github"></i> GitHub</a>
+                                <a rel="prev" href="../Output/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/config.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -74,15 +84,78 @@
 
         <div class="container">
             <div class="row">
-
-    <div class="row-fluid">
-      <div id="main-content" class="span12">
-        <h1 id="404-page-not-found" style="text-align: center">404</h1>
-        <p style="text-align: center"><strong>Page not found</strong></p>
-      </div>
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
     </div>
 
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="2"><a href="#configuration" class="nav-link">Configuration</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
 
+<h2 id="configuration">Configuration</h2>
+<p>All configuration parameters are stored in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/config.yml">config.yml</a>.
+The schema of the configuration file is contained in <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/config_schema.yml">config_schema.yml</a>
+and contains a list of all the options.
+See comments within the files for details of each parameter's use.</p>
+<p>Key configuration parameters that you may want to change include.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>instance_mapping: region_name</td>
+<td>eu-west-1</td>
+<td>The region where the AWS instances will run. Since instance availability and prices vary by region, this has direct impact on costs</td>
+</tr>
+<tr>
+<td>instance_mapping: instance_prefix_list</td>
+<td>[c6i, m5., r5., c5., z1d, x2i]</td>
+<td>Instance types to be used during the analysis</td>
+</tr>
+<tr>
+<td>consumption_model_mapping: maximum_minutes_for_spot</td>
+<td>60</td>
+<td>Threshold for using on-demand instances instead of spot instances.</td>
+</tr>
+<tr>
+<td>consumption_model_mapping: ec2_savings_plan_duration</td>
+<td>3</td>
+<td>Duration of the savings plan. Valid values: [1, 3]</td>
+</tr>
+<tr>
+<td>consumption_model_mapping: ec2_savings_plan_payment_option</td>
+<td>'All Upfront'</td>
+<td>Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront']</td>
+</tr>
+<tr>
+<td>consumption_model_mapping:</td>
+<td>3</td>
+<td>Duration of the savings plan. Valid values: [1, 3]</td>
+</tr>
+<tr>
+<td>consumption_model_mapping:</td>
+<td>'All Upfront'</td>
+<td>Payment option. Valid values: ['All Upfront', 'Partial Upfront', 'No Upfront']</td>
+</tr>
+</tbody>
+</table></div>
             </div>
         </div>
 
@@ -91,11 +164,11 @@
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>
-            var base_url = "/",
+            var base_url = "..",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="/js/base.js" defer></script>
-        <script src="/search/main.js" defer></script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>IBM Spectrum LSF Parser - HPC Cost Simulator</title>
+        <title>IBM Spectrum LSF - HPC Cost Simulator</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -36,19 +36,25 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="navitem">
-                                <a href=".." class="nav-link">HPC Cost Simulator</a>
+                                <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
                             </li>
                             <li class="navitem">
-                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator Log Parsing</a>
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
                             </li>
                             <li class="navitem active">
-                                <a href="./" class="nav-link">IBM Spectrum LSF Parser</a>
+                                <a href="./" class="nav-link">IBM Spectrum LSF</a>
                             </li>
                             <li class="navitem">
-                                <a href="../SlurmLogParser/" class="nav-link">Slurm Log Parser</a>
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm</a>
                             </li>
                             <li class="navitem">
                                 <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../Output/" class="nav-link">Output</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../config/" class="nav-link">Config</a>
                             </li>
                         </ul>
 
@@ -89,13 +95,17 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-level="1"><a href="#ibm-spectrum-lsf-parser" class="nav-link">IBM Spectrum LSF Parser</a>
+            <li class="nav-item" data-level="1"><a href="#ibm-spectrum-lsf" class="nav-link">IBM Spectrum LSF</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
+            <li class="nav-item" data-level="2"><a href="#parsing-the-accounting-log-files" class="nav-link">Parsing the accounting log files</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-level="2"><a href="#parsing-the-log-files" class="nav-link">Parsing the Log Files</a>
+            <li class="nav-item" data-level="2"><a href="#full-syntax" class="nav-link">Full Syntax</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#whats-next" class="nav-link">What's next?</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -106,11 +116,24 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="ibm-spectrum-lsf-parser">IBM Spectrum LSF Parser</h1>
-<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a> script parses the <code>lsb.acct*</code> files in the LSF logfile directory and writes the parsed data into a CSV file that can be read by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a>.</p>
-<h2 id="usage">Usage</h2>
+<h1 id="ibm-spectrum-lsf">IBM Spectrum LSF</h1>
+<p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a> script parses the <code>lsb.acct*</code> files in the LSF <code>logfile</code> directory and writes the parsed data into a CSV file that can be read by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a>.</p>
+<h2 id="parsing-the-accounting-log-files">Parsing the accounting log files</h2>
+<p>First you must source the setup script to make sure that all required packages are installed.</p>
+<pre><code>source setup.sh
+</code></pre>
+<p>This creates a python virtual environment and activates it.</p>
+<p>The script will parse all of the files that start with <code>lsb.acct*</code> in the logfile directory.
+The parsed data will be written in the output directory which will be created if it does not exist.
+The parsed job data will be written out in csv format.</p>
+<pre><code>./LSFLogParser.py \
+    --logfile-dir &lt;logfile-dir&gt; \
+    --output-csv jobs.csv
+</code></pre>
+<p><strong>Note:</strong> The parser expects the file names to <strong>start</strong> with <code>lsb.acct</code>, do not rename the files.</p>
+<h2 id="full-syntax">Full Syntax</h2>
 <pre><code>usage: LSFLogParser.py [-h] --logfile-dir LOGFILE_DIR --output-csv OUTPUT_CSV
-                       --default-max-mem-gb DEFAULT_MAX_MEM_GB
+                       [--default-max-mem-gb DEFAULT_MAX_MEM_GB]
                        [--starttime STARTTIME] [--endtime ENDTIME] [--debug]
 
 Parse LSF logs.
@@ -123,8 +146,7 @@ optional arguments:
                         CSV file with parsed job completion records (default:
                         None)
   --default-max-mem-gb DEFAULT_MAX_MEM_GB
-                        Default maximum memory for a job in GB. (default:
-                        None)
+                        Default maximum memory for a job in GB. (default: 0.0)
   --starttime STARTTIME
                         Select jobs after the specified time. Format YYYY-MM-
                         DDTHH:MM:SS (default: None)
@@ -132,18 +154,9 @@ optional arguments:
                         DDTHH:MM:SS (default: None)
   --debug, -d           Enable debug mode (default: False)
 </code></pre>
-<h2 id="parsing-the-log-files">Parsing the Log Files</h2>
-<p>First you must source the setup script to make sure that all required packages are installed.</p>
-<pre><code>source setup.sh
-</code></pre>
-<p>This creates a python virtual environment and activates it.</p>
-<p>The script will parse all of the files that start with <code>lsb.acct*</code> in the logfile directory.
-The parsed data will be written in the output directory which will be created if it does not exist.
-The parsed job data will be written out in csv format.</p>
-<pre><code>./LSFLogParser.py \
-    --logfile-dir &lt;logfile-dir&gt; \
-    --output-csv output/jobs.csv
-</code></pre></div>
+<h2 id="whats-next">What's next?</h2>
+<p>Once completed, you can run step #3 (cost simulation) by following the instructions in for the <a href="../JobAnalyzer/">JobAnalyzer</a>
+Since you already generated a CSV file, you will use <a href="../JobAnalyzer/">JobAnalyzer</a> with the <code>csv</code> option.</p></div>
             </div>
         </div>
 
