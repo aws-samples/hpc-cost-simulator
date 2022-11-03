@@ -2,10 +2,10 @@
 
 HCS generates multiple output files:
 
-|File Name                          |Qantity   |Description                                                                                                                     |
+|File Name                          | Quantity   |Description                                                                                                                     |
 |-----------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------|
 |hourly_stats.xlsx                  |1         |The full anonymized output, the only file you'll share with your AWS account team (should you choose to do so                   |
-|hourly-######.csv                  |1 per hour|Temporary files, includes all the jobs that started in a secific hour                                                           |
+|hourly-######.csv                  |1 per hour|Temporary files, includes all the jobs that started in a specific hour                                                           |
 |summary.csv                        |1         |Aggregated summary of all your jobs (statistics). This data also appears in the Excel output file                               |
 |hourly_stats.csv                   |1         |Host simulation output, includes. This data also appears in the Excel output file.                                              |
 |JobAnalyzer-####-##-##_##-##-##.log|1         |Simulation log file for trouble shooting                                                                                        |
@@ -27,7 +27,7 @@ The average hourly use can be used to help choose the upper constraint for the s
 
 ### Savings Plan Optimization
 
-`houly_stats.xlsx` allows you to optimize your costs further by simulating the impact of [Savings Plans](https://aws.amazon.com/savingsplans/) (SP) on your overall costs, and finding the optimal SP cost for your workload. To do this, you will need to enable Excel's numerical solver add-in.
+`hourly_stats.xlsx` allows you to optimize your costs further by simulating the impact of [Savings Plans](https://aws.amazon.com/savingsplans/) (SP) on your overall costs, and finding the optimal SP cost for your workload. To do this, you will need to enable Excel's numerical solver add-in.
 
 To use the solver, you first need to enable it.
 
@@ -87,7 +87,7 @@ Optionally, you may add constraints for the Savings Plan commit cells.
 ![solver parameters Mac](images/MacSolverAddIn.png)
 
 Then click **Solve** and wait while the Solver calculates the savings plan commits
-that will minimie your overall costs.
+that will minimize your overall costs.
 The solver may run a while, but when it finishes then save the results.
 
 **Windows:**

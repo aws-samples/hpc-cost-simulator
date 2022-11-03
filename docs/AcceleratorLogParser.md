@@ -13,9 +13,9 @@ For example, as of this writing, the command is:
 nc cmd vovsql_query -e "select jobs.id, jobs.submittime, jobs.starttime, jobs.endtime, resources.name, jobs.exitstatus, jobs.maxram, jobs.maxvm, jobs.cputime, jobs.susptime from jobs inner join resources on jobs.resourcesid=resources.id" > sql-output.txt
 ```
 
-This command should run on a node connected to the Altiar Accelerator head node, and with a user with permissions to see the jobs from all users.
+This command should run on a node connected to the Altair Accelerator head node, and with a user with permissions to see the jobs from all users.
 
-**Note:** To be able to run the command, youfirst need to source the `vovrc.sh` script located in your `/common/etc` subfolder of your Altair install folder.
+**Note:** To be able to run the command, you first need to source the `vovrc.sh` script located in your `/common/etc` subfolder of your Altair install folder.
 
 ## Parsing the Job Completion Data
 
