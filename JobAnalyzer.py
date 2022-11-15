@@ -711,6 +711,8 @@ class JobAnalyzer:
         xls_locked = XlsProtection(locked=True)
         xls_unlocked = XlsProtection(locked=False)
 
+        excel_wb.calcMode = 'auto'
+
         # Create worksheets
         excel_summary_ws = excel_wb.active
         excel_summary_ws.title = 'CostSummary'
