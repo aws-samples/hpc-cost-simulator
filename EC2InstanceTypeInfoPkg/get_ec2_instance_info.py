@@ -3,6 +3,7 @@
 import argparse
 from botocore.exceptions import NoCredentialsError
 from EC2InstanceTypeInfoPkg.EC2InstanceTypeInfo import EC2InstanceTypeInfo
+import logging
 from sys import exit
 from VersionCheck import logger as VersionCheck_logger, VersionCheck
 
@@ -26,6 +27,7 @@ if __name__ == '__main__':
             print(f"Reading existing instance info from {args.input}")
         ec2InstanceTypeInfo = EC2InstanceTypeInfo(args.region, json_filename=args.input, debug=args.debug)
         if args.output_csv:
+            print(f"\nWriting output to CSV: {args.output_csv}")
             ec2InstanceTypeInfo.print_csv(args.output_csv)
     except NoCredentialsError as e:
         print('No AWS credentials found')
