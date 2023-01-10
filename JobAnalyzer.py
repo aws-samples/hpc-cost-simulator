@@ -81,10 +81,6 @@ class JobAnalyzer(JobAnalyzerBase):
         '''
         super().__init__(scheduler_parser, config_filename, output_dir, starttime, endtime, queue_filters, project_filters)
 
-        self._scheduler_parser = scheduler_parser
-        self._config_filename = config_filename
-        self._output_dir = realpath(output_dir)
-
     def get_hourly_files(self):
         '''
         Gets the hourly output files for the current job
