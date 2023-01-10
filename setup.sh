@@ -71,5 +71,7 @@ fi
 echo -e "\nInstalling python packages in .venv"
 python3 -m pip install --upgrade pip
 make .requirements_installed
+# Make sure you have the latest AWSCLI
+pip install --upgrade boto3
 
 popd &> /dev/null
