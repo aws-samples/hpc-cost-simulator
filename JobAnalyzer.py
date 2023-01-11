@@ -62,22 +62,27 @@ class JobCost:
 
 class JobAnalyzer:
 
-    def __init__(self, scheduler_parser: SchedulerLogParser, config_filename: str, output_dir: str, queue_filters: str, project_filters: str) -> None:
+    def __init__(self, scheduler_parser: SchedulerLogParser, config_filename: str, output_dir: str, starttime: str, endtime: str, queue_filters: str, project_filters: str) -> None:
         '''
         Constructor
 
         Args:
-            scheduler_parser (SchedulerLogParser)
-            config_filename: str
-            output_dir: str
-            queue_filters: str
-            project_filters: str
+            scheduler_parser (SchedulerLogParser): parser
+            config_filename (str): config file
+            output_dir (str): Output directory
+            starttime (str): Select jobs after the specified time
+            endtime (str): Select jobs after the specified time
+            queue_filters (str): Queue filters
+            project_filters (str): Project filters
         Returns:
             None
         '''
         self._scheduler_parser = scheduler_parser
         self._config_filename = config_filename
         self._output_dir = realpath(output_dir)
+
+        self._starttime = starttime
+        self._endtime = endtime
 
         if not path.exists(self._output_dir):
             logger.info(f"Output directory ({self._output_dir}) doesn't exist, creating")
@@ -92,6 +97,11 @@ class JobAnalyzer:
 
         logger.info(f"Loading configuration from {config_filename}.")
         self.config = JobAnalyzer.read_configuration(config_filename)
+
+        if self._starttime:
+            self._starttime_dt = SchedulerJobInfo.str_to_datetime(self._starttime)
+        if self._endtime:
+            self._endtime_dt = SchedulerJobInfo.str_to_datetime(self._endtime)
 
         if queue_filters != None:
             self.config['Jobs']['QueueRegExps'] = queue_filters.split(',')
@@ -439,6 +449,13 @@ class JobAnalyzer:
                 for metric in self.job_data_collector[ram][runtime]:
                     self.job_data_collector[ram][runtime][metric] = 0
         self.hourly_stats = {}
+        if self._starttime:
+            round_hour = int(self._starttime_dt.timestamp() // 3600)
+            self._init_hourly_stats_hour(round_hour)
+        if self._endtime:
+            round_hour = int(self._endtime_dt.timestamp() // 3600)
+            self._init_hourly_stats_hour(round_hour)
+
         self.total_stats = {
             'spot': 0.0,
             'on_demand': {
@@ -446,6 +463,18 @@ class JobAnalyzer:
                 'instance_families': {}
             }
         }
+
+    def _init_hourly_stats_hour(self, round_hour: int) -> None:
+        round_hour = int(round_hour)
+        if round_hour not in self.hourly_stats:
+            logger.debug(f"Added {round_hour} to hourly_stats")
+            self.hourly_stats[round_hour] = {
+                'on_demand': {
+                    'total': 0,
+                    'core_hours': {}
+                },
+                'spot': 0
+            }
 
     def _update_hourly_stats(self, round_hour: int, minutes_within_hour: float, core_hours: float, total_cost_per_hour: float, spot: bool, instance_family: str) -> None:
         '''
@@ -462,15 +491,23 @@ class JobAnalyzer:
             spot (bool): True if spot instance
             instance_family (str): Instance family used for the job
         '''
+        round_hour = int(round_hour)
+        if self._starttime:
+            if round_hour * 3600 < self._starttime_dt.timestamp():
+                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * 3600} {datetime.fromtimestamp(round_hour * 3600)}")
+                logger.debug(f"    starttime  hour={int(self._starttime_dt.timestamp() / 3600)} timestamp={self._starttime_dt.timestamp()} {self._starttime_dt}")
+                logger.debug(f"    endtime    hour={int(self._endtime_dt.timestamp() / 3600)} timestamp={self._endtime_dt.timestamp()} {self._endtime_dt}")
+                return
+
+        if self._endtime:
+            if round_hour * 3600 > self._endtime_dt.timestamp():
+                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * 3600} {datetime.fromtimestamp(round_hour * 3600)}")
+                logger.debug(f"    starttime  hour={int(self._starttime_dt.timestamp() / 3600)} timestamp={self._starttime_dt.timestamp()} {self._starttime_dt}")
+                logger.debug(f"    endtime    hour={int(self._endtime_dt.timestamp() / 3600)} timestamp={self._endtime_dt.timestamp()} {self._endtime_dt}")
+                return
+
         if round_hour not in self.hourly_stats:
-            logger.debug(f"Added {round_hour} to hourly_stats")
-            self.hourly_stats[round_hour] = {
-                'on_demand': {
-                    'total': 0,
-                    'core_hours': {}
-                },
-                'spot': 0
-            }
+            self._init_hourly_stats_hour(round_hour)
         purchase_option = 'spot' if spot == True else 'on_demand'
         cost = minutes_within_hour / 60 * total_cost_per_hour
         if spot:
@@ -497,11 +534,12 @@ class JobAnalyzer:
 
         hourly_files = self.get_hourly_files()
         if len(hourly_files) == 0:
-            logger.error(f"No hourly jobs files found")
-            exit(2)
+            logger.warning(f"No hourly jobs files found")
+            exit(0)
+        logger.info(f"Found {len(hourly_files)} hourly jobs files.")
 
-        for hourly_file in hourly_files:
-            logger.info(f"Processing {hourly_file}")
+        for hourly_file_index, hourly_file in enumerate(hourly_files):
+            logger.debug(f"Processing {hourly_file}")
             with open(hourly_file, 'r') as hourly_job_file_fh:
                 csv_reader = csv.reader(hourly_job_file_fh, dialect='excel')
                 field_names = next(csv_reader)
@@ -577,7 +615,10 @@ class JobAnalyzer:
                         self._update_hourly_stats(round_hour, runtime_minutes, core_hours, total_hourly_rate, spot_eligible, instance_family)
                         round_hour += 1
                         round_hour_seconds = round_hour * 3600
-            logger.info(f"    Finished processing ({num_jobs} jobs)")
+            logger.debug(f"    Finished processing ({num_jobs} jobs)")
+	    # Print a progress message for every 24 hours of data
+            if hourly_file_index and (hourly_file_index % 24 == 0):
+                logger.info(f"Processed {hourly_file_index + 1} / {len(hourly_files)} ({round((hourly_file_index + 1) / len(hourly_files) * 100)} %) of hourly job files.")
 
     def _write_hourly_stats(self) -> None:
         '''
@@ -605,29 +646,30 @@ class JobAnalyzer:
             instance_families = sorted(self._instance_families_used['on_demand'].keys())
             field_names = ['Relative Hour','Total OnDemand Costs','Total Spot Costs'] + instance_families
             csv_writer.writerow(field_names)
-            first_hour = hour_list[0]
-            last_hour = hour_list[-1]
-            logger.debug(f"first hour: {first_hour}")
-            logger.debug(f"last  hour: {last_hour}")
-            logger.debug(f"total hours: {last_hour - first_hour + 1}")
-            prev_relative_hour = 0
-            for hour in hour_list:
-                relative_hour = hour - first_hour
-                while prev_relative_hour < relative_hour - 1:   # add zero values for all missing hours
-                    field_values = [prev_relative_hour + 1, 0, 0]
+            if hour_list:
+                first_hour = hour_list[0]
+                last_hour = hour_list[-1]
+                logger.info(f"First hour = {first_hour} = {datetime.fromtimestamp(first_hour * 3600)}")
+                logger.info(f"Last  hour = {last_hour} = {datetime.fromtimestamp(last_hour * 3600)}")
+                logger.info(f"{last_hour - first_hour + 1} total hours")
+                prev_relative_hour = 0
+                for hour in hour_list:
+                    relative_hour = hour - first_hour
+                    while prev_relative_hour < relative_hour - 1:   # add zero values for all missing hours
+                        field_values = [prev_relative_hour + 1, 0, 0]
+                        for instance_family in instance_families:
+                            field_values.append(0)
+                        csv_writer.writerow(field_values)
+                        logger.debug(f"    empty hour: {field_values}")
+                        number_of_hours += 1
+                        prev_relative_hour += 1
+                    field_values = [relative_hour, round(self.hourly_stats[hour]['on_demand']['total'], 6), round(self.hourly_stats[hour]['spot'], 6)]
                     for instance_family in instance_families:
-                        field_values.append(0)
+                        field_values.append(round(self.hourly_stats[hour]['on_demand'].get(instance_family, 0), 6))
                     csv_writer.writerow(field_values)
-                    logger.debug(f"    empty hour: {field_values}")
-                    number_of_hours += 1
-                    prev_relative_hour += 1
-                field_values = [relative_hour, round(self.hourly_stats[hour]['on_demand']['total'], 6), round(self.hourly_stats[hour]['spot'], 6)]
-                for instance_family in instance_families:
-                    field_values.append(round(self.hourly_stats[hour]['on_demand'].get(instance_family, 0), 6))
-                csv_writer.writerow(field_values)
 
-                number_of_hours += 1
-                prev_relative_hour = relative_hour
+                    number_of_hours += 1
+                    prev_relative_hour = relative_hour
 
         summary_stats_csv = path.join(self._output_dir, 'summary_stats.csv')
         logger.info('')
@@ -706,13 +748,7 @@ class JobAnalyzer:
                     else:
                         raise ValueError(f"Unknown field name in {hourly_stats_csv}: {field_name}")
 
-                self.hourly_stats[relative_hour] = {
-                    'on_demand': {
-                        'total': total_ondemand_costs,
-                        'core_hours': {}
-                    },
-                    'spot': total_spot_costs
-                }
+                self._init_hourly_stats_hour(relative_hour)
                 for instance_family, instance_family_on_demand_cost in instance_family_on_demand_costs.items():
                     instance_type = self.instance_family_info[instance_family]['MaxInstanceType']
                     coreCount = self.instance_type_info[instance_type]['CoreCount']
@@ -1002,58 +1038,63 @@ class JobAnalyzer:
         hour_list.sort()
         number_of_hours = 0
         # convert from absolute hour to relative one (obfuscation)
-        first_hour = hour_list[0]
-        prev_relative_hour = 0
-        for hour in hour_list:
-            relative_hour = hour - first_hour
-            while prev_relative_hour < relative_hour - 1:
-                # add zero values for all missing hours
-                # Need to add hourly rate for ESP and CSP which are charged whether used or not
+        if hour_list:
+            first_hour = hour_list[0]
+            last_hour = hour_list[-1]
+            logger.info(f"First hour = {first_hour} = {datetime.fromtimestamp(first_hour * 3600)}")
+            logger.info(f"Last  hour = {last_hour} = {datetime.fromtimestamp(last_hour * 3600)}")
+            logger.info(f"{last_hour - first_hour + 1} total hours")
+            prev_relative_hour = 0
+            for hour in hour_list:
+                relative_hour = hour - first_hour
+                while prev_relative_hour < relative_hour - 1:
+                    # add zero values for all missing hours
+                    # Need to add hourly rate for ESP and CSP which are charged whether used or not
+                    row = number_of_hours + 2
+                    excel_hourly_ws[f"{hourly_column_letters['Relative Hour']}{row}"] = prev_relative_hour + 1
+                    excel_hourly_ws[f"{hourly_column_letters['Total Spot Costs']}{row}"] = 0
+                    for instance_family in instance_families:
+                        for instance_family_field_name in hourly_instance_family_field_names:
+                            excel_hourly_ws[f"{hourly_column_letters[instance_family][instance_family_field_name]}{row}"] = 0
+                    excel_hourly_ws[f"{hourly_column_letters['CSP Cost']}{row}"] = 0
+                    excel_hourly_ws[f"{hourly_column_letters['OD Cost']}{row}"] = 0
+                    excel_hourly_ws[f"{hourly_column_letters['Total Cost']}{row}"] = f"={esp_hourly_commit_cell_ref}+{csp_hourly_commit_cell_ref}"
+
+                    number_of_hours += 1
+                    prev_relative_hour += 1
+
                 row = number_of_hours + 2
-                excel_hourly_ws[f"{hourly_column_letters['Relative Hour']}{row}"] = prev_relative_hour + 1
-                excel_hourly_ws[f"{hourly_column_letters['Total Spot Costs']}{row}"] = 0
-                for instance_family in instance_families:
-                    for instance_family_field_name in hourly_instance_family_field_names:
-                        excel_hourly_ws[f"{hourly_column_letters[instance_family][instance_family_field_name]}{row}"] = 0
-                excel_hourly_ws[f"{hourly_column_letters['CSP Cost']}{row}"] = 0
-                excel_hourly_ws[f"{hourly_column_letters['OD Cost']}{row}"] = 0
-                excel_hourly_ws[f"{hourly_column_letters['Total Cost']}{row}"] = f"={esp_hourly_commit_cell_ref}+{csp_hourly_commit_cell_ref}"
+                logger.debug(f"row: {row}")
+                excel_hourly_ws.cell(row=row, column=1, value=relative_hour)
+                excel_hourly_ws.cell(row=row, column=2, value=self.hourly_stats[hour]['spot'])
+                od_cost_formula = '=0'
+                csp_cost_total_formula = '0'
+                for instance_family, instance_family_csp_discount in instance_families_by_descending_csp_discounts:
+                    instance_family_row = instance_family_rows[instance_family]
+                    # Total core hours
+                    core_hours = self.hourly_stats[hour]['on_demand']['core_hours'].get(instance_family, 0)
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['CHr']}{row}"] = core_hours
+                    # ESP core hours actually used
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['ESP CHr']}{row}"] = f"=min({hourly_column_letters[instance_family]['CHr']}{row}, InstanceFamilyRates!${instance_family_col_letters['ESP Core*Hr Commit']}${instance_family_row})"
+                    # CSP core hours used by this instance family
+                    # First calculate the remaining instance family core hours by subtracting the ESP core hours.
+                    # First calculate the remaining CSP commit available.
+                    # Then use the available CSP dollars to calculate the number of CSP core hours available
+                    # Then use as many of those CSP core hours as possible.
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['CSP CHr']}{row}"] = f"=min({hourly_column_letters[instance_family]['CHr']}{row}-{hourly_column_letters[instance_family]['ESP CHr']}{row}, ({csp_hourly_commit_cell_ref}-({csp_cost_total_formula}))/InstanceFamilyRates!${instance_family_col_letters['CSP Rate']}${instance_family_row})"
+                    # CSP Cost
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['CSP Cost']}{row}"] = f"={hourly_column_letters[instance_family]['CSP CHr']}{row}*InstanceFamilyRates!${instance_family_col_letters['CSP Rate']}${instance_family_row}"
+                    # OD core hours
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['OD CHr']}{row}"] = f"={hourly_column_letters[instance_family]['CHr']}{row}-{hourly_column_letters[instance_family]['ESP CHr']}{row}-{hourly_column_letters[instance_family]['CSP CHr']}{row}"
+                    excel_hourly_ws[f"{hourly_column_letters[instance_family]['OD Cost']}{row}"] = f"={hourly_column_letters[instance_family]['CSP CHr']}{row}*InstanceFamilyRates!$C${instance_family_row}+{hourly_column_letters[instance_family]['OD CHr']}{row}*InstanceFamilyRates!$B${instance_family_row}"
+                    csp_cost_total_formula += f"+{hourly_column_letters[instance_family]['CSP Cost']}{row}"
+                    od_cost_formula += f"+{hourly_column_letters[instance_family]['OD Cost']}{row}"
+                excel_hourly_ws[f"{hourly_column_letters['CSP Cost']}{row}"] = f"={csp_cost_total_formula}"
+                excel_hourly_ws[f"{hourly_column_letters['OD Cost']}{row}"] = f"{od_cost_formula}"
+                excel_hourly_ws[f"{hourly_column_letters['Total Cost']}{row}"] = f"={hourly_column_letters['Total Spot Costs']}{row}+{esp_hourly_commit_cell_ref}+{csp_hourly_commit_cell_ref}+{hourly_column_letters['OD Cost']}{row}"
 
                 number_of_hours += 1
-                prev_relative_hour += 1
-
-            row = number_of_hours + 2
-            logger.debug(f"row: {row}")
-            excel_hourly_ws.cell(row=row, column=1, value=relative_hour)
-            excel_hourly_ws.cell(row=row, column=2, value=self.hourly_stats[hour]['spot'])
-            od_cost_formula = '=0'
-            csp_cost_total_formula = '0'
-            for instance_family, instance_family_csp_discount in instance_families_by_descending_csp_discounts:
-                instance_family_row = instance_family_rows[instance_family]
-                # Total core hours
-                core_hours = self.hourly_stats[hour]['on_demand']['core_hours'].get(instance_family, 0)
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['CHr']}{row}"] = core_hours
-                # ESP core hours actually used
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['ESP CHr']}{row}"] = f"=min({hourly_column_letters[instance_family]['CHr']}{row}, InstanceFamilyRates!${instance_family_col_letters['ESP Core*Hr Commit']}${instance_family_row})"
-                # CSP core hours used by this instance family
-                # First calculate the remaining instance family core hours by subtracting the ESP core hours.
-                # First calculate the remaining CSP commit available.
-                # Then use the available CSP dollars to calculate the number of CSP core hours available
-                # Then use as many of those CSP core hours as possible.
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['CSP CHr']}{row}"] = f"=min({hourly_column_letters[instance_family]['CHr']}{row}-{hourly_column_letters[instance_family]['ESP CHr']}{row}, ({csp_hourly_commit_cell_ref}-({csp_cost_total_formula}))/InstanceFamilyRates!${instance_family_col_letters['CSP Rate']}${instance_family_row})"
-                # CSP Cost
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['CSP Cost']}{row}"] = f"={hourly_column_letters[instance_family]['CSP CHr']}{row}*InstanceFamilyRates!${instance_family_col_letters['CSP Rate']}${instance_family_row}"
-                # OD core hours
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['OD CHr']}{row}"] = f"={hourly_column_letters[instance_family]['CHr']}{row}-{hourly_column_letters[instance_family]['ESP CHr']}{row}-{hourly_column_letters[instance_family]['CSP CHr']}{row}"
-                excel_hourly_ws[f"{hourly_column_letters[instance_family]['OD Cost']}{row}"] = f"={hourly_column_letters[instance_family]['CSP CHr']}{row}*InstanceFamilyRates!$C${instance_family_row}+{hourly_column_letters[instance_family]['OD CHr']}{row}*InstanceFamilyRates!$B${instance_family_row}"
-                csp_cost_total_formula += f"+{hourly_column_letters[instance_family]['CSP Cost']}{row}"
-                od_cost_formula += f"+{hourly_column_letters[instance_family]['OD Cost']}{row}"
-            excel_hourly_ws[f"{hourly_column_letters['CSP Cost']}{row}"] = f"={csp_cost_total_formula}"
-            excel_hourly_ws[f"{hourly_column_letters['OD Cost']}{row}"] = f"{od_cost_formula}"
-            excel_hourly_ws[f"{hourly_column_letters['Total Cost']}{row}"] = f"={hourly_column_letters['Total Spot Costs']}{row}+{esp_hourly_commit_cell_ref}+{csp_hourly_commit_cell_ref}+{hourly_column_letters['OD Cost']}{row}"
-
-            number_of_hours += 1
-            prev_relative_hour = relative_hour
+                prev_relative_hour = relative_hour
 
         last_hour_cell.value = number_of_hours - 1
 
@@ -1387,12 +1428,12 @@ def main():
             scheduler_parser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
         elif args.parser == 'hourly_stats':
             scheduler_parser = None
-            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
             jobAnalyzer._process_hourly_jobs()
             jobAnalyzer._write_hourly_stats()
         elif args.parser == 'hourly_stats_csv':
             scheduler_parser = None
-            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
             jobAnalyzer.parse_hourly_stats_csv(args.input_hourly_stats_csv)
             jobAnalyzer._write_hourly_stats()
 
@@ -1400,7 +1441,7 @@ def main():
             if args.output_csv:
                 logger.info(f"Writing job data to {args.output_csv}")
 
-            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
 
             # Print out configuration information
             logger.info(f"""Configuration:
