@@ -13,7 +13,7 @@ import json
 import logging
 from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 import os
-from os import environ, getenv, listdir, path, system
+from os import environ, getenv, listdir, makedirs, path, system
 from os.path import abspath, dirname
 import pytest
 from SchedulerJobInfo import SchedulerJobInfo
@@ -896,41 +896,41 @@ class TestJobAnalyzer(unittest.TestCase):
         Test JobAnalyzer when parsing jobs from LSF logs.
         '''
         self._remove_credentials()
-
-        self._use_static_instance_type_info()
-
-        self.cleanup_output_files()
-        test_files_dir = 'test_files/LSFLogParser'
-        expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
-        output_dir = 'output/JobAnalyzer/lsf'
-        output_csv = path.join(output_dir, 'jobs.csv')
-        # Put this in a try block so that can print the output if an unexpected exception occurs.
         try:
-            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--debug', 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
-        except CalledProcessError as e:
-            print(e.output)
-            raise
-        print(f"output:\n{output}")
+            self._use_static_instance_type_info()
 
-        assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
+            self.cleanup_output_files()
+            test_files_dir = 'test_files/LSFLogParser'
+            expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
+            output_dir = 'output/JobAnalyzer/lsf'
+            output_csv = path.join(output_dir, 'jobs.csv')
+            # Put this in a try block so that can print the output if an unexpected exception occurs.
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--debug', 'lsf', '--logfile-dir', test_files_dir, '--default-max-mem-gb', str(self.default_max_mem_gb)], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
 
-        exp_csv_files_dir = 'test_files/JobAnalyzer/lsf'
-        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
-        act_csv_files = self._get_hourly_files(output_dir)
-        for exp_csv_file in exp_csv_files:
-            assert(exp_csv_file in act_csv_files)
-        for act_csv_file in exp_csv_files:
-            assert(act_csv_file in exp_csv_files)
-        csv_files = exp_csv_files + [
-            'hourly_stats.csv',
-            'summary.csv'
-            ]
-        for csv_file in csv_files:
-            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+            assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
 
-        self._restore_instance_type_info()
+            exp_csv_files_dir = 'test_files/JobAnalyzer/lsf'
+            exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv',
+                'summary.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
 
-        self._restore_credentials()
+            self._restore_credentials()
 
     order += 1
     @pytest.mark.order(order)
@@ -1284,6 +1284,47 @@ class TestJobAnalyzer(unittest.TestCase):
 
     order += 1
     @pytest.mark.order(order)
+    def test_issue_73_existing_hourly_files(self):
+        self._remove_credentials()
+        try:
+            self._use_static_instance_type_info()
+
+            self.cleanup_output_files()
+
+            test_files_dir = 'test_files/JobAnalyzer/issues/73'
+            output_dir = 'output/issues/73'
+
+            makedirs(output_dir)
+            system(f"cp {test_files_dir}/hourly-*.csv {output_dir}")
+            system(f"ls {output_dir}")
+
+            # Put this in a try block so that can print the output if an unexpected exception occurs.
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', output_dir, 'hourly_stats'], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+
+            exp_csv_files_dir = test_files_dir
+            exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
+
+            self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
     def test_issue_74_hpc(self):
         self._use_static_instance_type_info()
 
@@ -1321,84 +1362,86 @@ class TestJobAnalyzer(unittest.TestCase):
 
     @pytest.mark.order(-3)
     def test_get_instances(self):
-        jobAnalyzer = self.get_jobAnalyzer()
+        try:
+            jobAnalyzer = self.get_jobAnalyzer()
 
-        self.cleanup_output_files()
-        self._remove_instance_type_info()
+            self.cleanup_output_files()
+            self._remove_instance_type_info()
 
-        jobAnalyzer.get_instance_type_info()
+            jobAnalyzer.get_instance_type_info()
 
-        exp_instance_family_counts = {
-            'c5': 8,
-            'c6i': 9,
-            'c6id': 9,
-            'm5': 8,
-            'r5': 8,
-            'z1d': 6,
-            'x2idn': 3,
-            'x2iedn': 7,
-            'x2iezn': 5,
-        }
-        act_instance_family_counts = {}
-        for instance_type in jobAnalyzer.instance_types:
-            instance_family = instance_type.split('.')[0]
-            act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
-        missing_exp_instance_families = {}
-        for instance_family, act_count in act_instance_family_counts.items():
-            if instance_family not in exp_instance_family_counts:
-                missing_exp_instance_families[instance_family] = act_count
-                continue
-            assert(act_count == exp_instance_family_counts[instance_family])
-        missing_act_instance_families = {}
-        for instance_family, exp_count in exp_instance_family_counts.items():
-            if instance_family not in act_instance_family_counts:
-                missing_act_instance_families[instance_family] = exp_count
-                continue
-            assert(instance_family in act_instance_family_counts)
-        assert len(missing_exp_instance_families) == 0
-        assert len(missing_act_instance_families) == 0
-        len(jobAnalyzer.instance_types) == 63
+            exp_instance_family_counts = {
+                'c5': 8,
+                'c6i': 9,
+                'c6id': 9,
+                'm5': 8,
+                'r5': 8,
+                'z1d': 6,
+                'x2idn': 3,
+                'x2iedn': 7,
+                'x2iezn': 5,
+            }
+            act_instance_family_counts = {}
+            for instance_type in jobAnalyzer.instance_types:
+                instance_family = instance_type.split('.')[0]
+                act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
+            missing_exp_instance_families = {}
+            for instance_family, act_count in act_instance_family_counts.items():
+                if instance_family not in exp_instance_family_counts:
+                    missing_exp_instance_families[instance_family] = act_count
+                    continue
+                assert(act_count == exp_instance_family_counts[instance_family])
+            missing_act_instance_families = {}
+            for instance_family, exp_count in exp_instance_family_counts.items():
+                if instance_family not in act_instance_family_counts:
+                    missing_act_instance_families[instance_family] = exp_count
+                    continue
+                assert(instance_family in act_instance_family_counts)
+            assert len(missing_exp_instance_families) == 0
+            assert len(missing_act_instance_families) == 0
+            len(jobAnalyzer.instance_types) == 63
 
-        # Make sure get same result with cached instance_type_info.json
-        jobAnalyzer.get_instance_type_info()
+            # Make sure get same result with cached instance_type_info.json
+            jobAnalyzer.get_instance_type_info()
 
-        act_instance_family_counts = {}
-        for instance_type in jobAnalyzer.instance_types:
-            instance_family = instance_type.split('.')[0]
-            act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
-        missing_exp_instance_families = {}
-        for instance_family, act_count in act_instance_family_counts.items():
-            if instance_family not in exp_instance_family_counts:
-                missing_exp_instance_families[instance_family] = act_count
-                continue
-            assert(act_count == exp_instance_family_counts[instance_family])
-        missing_act_instance_families = {}
-        for instance_family, exp_count in exp_instance_family_counts.items():
-            if instance_family not in act_instance_family_counts:
-                missing_act_instance_families[instance_family] = exp_count
-                continue
-            assert(instance_family in act_instance_family_counts)
-        assert len(missing_exp_instance_families) == 0
-        assert len(missing_act_instance_families) == 0
-        len(jobAnalyzer.instance_types) == 63
-
-        self._remove_instance_type_info()
-        self._restore_instance_type_info()
+            act_instance_family_counts = {}
+            for instance_type in jobAnalyzer.instance_types:
+                instance_family = instance_type.split('.')[0]
+                act_instance_family_counts[instance_family] = act_instance_family_counts.get(instance_family, 0) + 1
+            missing_exp_instance_families = {}
+            for instance_family, act_count in act_instance_family_counts.items():
+                if instance_family not in exp_instance_family_counts:
+                    missing_exp_instance_families[instance_family] = act_count
+                    continue
+                assert(act_count == exp_instance_family_counts[instance_family])
+            missing_act_instance_families = {}
+            for instance_family, exp_count in exp_instance_family_counts.items():
+                if instance_family not in act_instance_family_counts:
+                    missing_act_instance_families[instance_family] = exp_count
+                    continue
+                assert(instance_family in act_instance_family_counts)
+            assert len(missing_exp_instance_families) == 0
+            assert len(missing_act_instance_families) == 0
+            len(jobAnalyzer.instance_types) == 63
+        finally:
+            self._remove_instance_type_info()
+            self._restore_instance_type_info()
 
     @pytest.mark.order(-2)
     def test_get_instance_type_info_region(self):
-        self.cleanup_output_files()
-        self._remove_instance_type_info()
         try:
-            output = check_output(['./get_ec2_instance_info.py', '--region', self.region, '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
-        except CalledProcessError as e:
-            print(e.output)
-            raise
-        print(f"output:\n{output}")
-        assert(path.exists(path.join(self.REPO_DIR, 'instance_type_info.json')))
-
-        self._remove_instance_type_info()
-        self._restore_instance_type_info()
+            self.cleanup_output_files()
+            self._remove_instance_type_info()
+            try:
+                output = check_output(['./get_ec2_instance_info.py', '--region', self.region, '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+            assert(path.exists(path.join(self.REPO_DIR, 'instance_type_info.json')))
+        finally:
+            self._remove_instance_type_info()
+            self._restore_instance_type_info()
 
     @pytest.mark.order(-1)
     def test_get_instance_type_info(self):
@@ -1407,10 +1450,14 @@ class TestJobAnalyzer(unittest.TestCase):
 
         Generate for all AWS regions.
         '''
-        self._remove_instance_type_info()
         try:
-            check_output(['./get_ec2_instance_info.py', '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
-        except CalledProcessError as e:
-            print(f"returncode: {e.returncode}")
-            print(f"output:\n{e.stdout}")
-            raise
+            self._remove_instance_type_info()
+            try:
+                check_output(['./get_ec2_instance_info.py', '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(f"returncode: {e.returncode}")
+                print(f"output:\n{e.stdout}")
+                raise
+        finally:
+            self._remove_instance_type_info()
+            self._restore_instance_type_info()
