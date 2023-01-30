@@ -1,0 +1,2 @@
+job_id,num_cores,max_mem_gb,num_hosts,submit_time,start_time,finish_time,ineligible_pend_time,eligible_time,requeue_time,wait_time,run_time,queue,project,licenses,exit_status,ru_inblock,ru_majflt,ru_maxrss,ru_minflt,ru_msgrcv,ru_msgsnd,ru_nswap,ru_oublock,ru_stime,ru_utime,resource_request
+203,1,0.0,1,2020-04-09T09:37:21,2020-04-09T09:37:21,2020-04-09T09:47:28,0:00:00,2020-04-09T09:37:21,0:00:00,0:00:00,0:10:07,,,,0,-1,-1,-1,-1,-1,-1,-1,-1,,,

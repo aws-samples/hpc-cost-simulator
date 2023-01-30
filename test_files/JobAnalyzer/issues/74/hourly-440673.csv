@@ -1,0 +1,2 @@
+start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Total Cost
+2020-04-09T09:37:21,203,1,10.1167,0.0,0.0,hpc6a.48xlarge,hpc6a,False,2.88,0.485602
