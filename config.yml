@@ -30,6 +30,7 @@ instance_mapping:
     - c5d. # ssd instances may be cheaper on spot
     - c6a
     - c6i # (9)
+    - hpc # hpc instances only come in 1 instance size
     - m5. # (8) adding a dot to block AMD instances by default
     - m5d. # ssd instances may be cheaper on spot
     - m6a

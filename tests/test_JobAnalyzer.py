@@ -210,8 +210,8 @@ class TestJobAnalyzer(unittest.TestCase):
             assert(False)
         except CalledProcessError as e:
             print(e.output)
-            assert('Unable to locate credentials.' in e.output)
-            assert('Configure your AWS CLI credentials.' in e.output)
+            assert('Failed to get EC2 instance types' in e.output)
+            assert('Configure your AWS CLI credentials.' in e.output or 'Update your AWS CLI credentials.' in e.output)
 
         self._restore_credentials()
         self._remove_instance_type_info()
@@ -318,6 +318,8 @@ class TestJobAnalyzer(unittest.TestCase):
         (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c5.2xlarge', 'c5.large', 'c5.xlarge'], False)
         assert(instance_type == 'c5.large')
         assert(price == price1)
+
+        self._restore_instance_type_info()
 
     def check_get_instance_by_spec(self, min_mem_gb: float, min_cores: int, min_freq: float, exp_instance_types: [str]):
         jobAnalyzer = self.get_jobAnalyzer()
@@ -635,6 +637,8 @@ class TestJobAnalyzer(unittest.TestCase):
         ]
         self.check_get_instance_by_spec(min_mem_gb, min_cores, min_freq, exp_instance_types)
 
+        self._restore_instance_type_info()
+
     order += 1
     @pytest.mark.order(order)
     def test_get_instance_by_pricing(self):
@@ -710,6 +714,8 @@ class TestJobAnalyzer(unittest.TestCase):
         exp_instance_type = 'c6i.8xlarge'
         assert(instance_type == exp_instance_type)
         assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
+
+        self._restore_instance_type_info()
 
     order += 1
     @pytest.mark.order(order)
@@ -790,6 +796,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(path.exists(csv_file))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -836,6 +844,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in exp_csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -874,6 +884,8 @@ class TestJobAnalyzer(unittest.TestCase):
             ]
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_instance_type_info()
 
         self._restore_credentials()
 
@@ -916,6 +928,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -954,6 +968,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -987,6 +1003,8 @@ class TestJobAnalyzer(unittest.TestCase):
             ]
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_instance_type_info()
 
         self._restore_credentials()
 
@@ -1023,6 +1041,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -1057,6 +1077,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
         self._restore_credentials()
 
     order += 1
@@ -1083,6 +1105,8 @@ class TestJobAnalyzer(unittest.TestCase):
         except CalledProcessError as e:
             print(e.output)
             raise
+
+        self._restore_instance_type_info()
 
         self._restore_credentials()
 
@@ -1127,6 +1151,8 @@ class TestJobAnalyzer(unittest.TestCase):
             ]
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_instance_type_info()
 
         self._restore_credentials()
 
@@ -1181,6 +1207,8 @@ class TestJobAnalyzer(unittest.TestCase):
         assert('No instance types selected by instance_mapping' in excinfo.value.output)
         assert(excinfo.value.returncode == 2)
 
+        self._restore_instance_type_info()
+
     order += 1
     @pytest.mark.order(order)
     def test_issue_13_no_spot_pricing(self):
@@ -1216,6 +1244,8 @@ class TestJobAnalyzer(unittest.TestCase):
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
 
+        self._restore_instance_type_info()
+
     order += 1
     @pytest.mark.order(order)
     def test_issue_31_negative_wait_time(self):
@@ -1249,6 +1279,45 @@ class TestJobAnalyzer(unittest.TestCase):
             ]
         for csv_file in csv_files:
             assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+
+        self._restore_instance_type_info()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_74_hpc(self):
+        self._use_static_instance_type_info()
+
+        self.cleanup_output_files()
+        test_files_dir = 'test_files/JobAnalyzer/issues/74'
+        config_file = path.join(test_files_dir, 'config.yml')
+        input_csv = path.join(test_files_dir, 'jobs.csv')
+        output_dir = 'output/JobAnalyzer/issues/74'
+        output_csv = path.join(output_dir, 'jobs.csv')
+        expected_output_csv = path.join(test_files_dir, 'exp_jobs.csv')
+        try:
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--config', config_file, '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+        except CalledProcessError as e:
+            print(e.output)
+            raise
+        print(f"output:\n{output}")
+
+        assert(filecmp.cmp(output_csv, expected_output_csv, shallow=False))
+
+        exp_csv_files_dir = 'test_files/JobAnalyzer/issues/74'
+        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+        act_csv_files = self._get_hourly_files(output_dir)
+        for exp_csv_file in exp_csv_files:
+            assert(exp_csv_file in act_csv_files)
+        for act_csv_file in exp_csv_files:
+            assert(act_csv_file in exp_csv_files)
+        csv_files = exp_csv_files + [
+            'hourly_stats.csv',
+            'summary.csv'
+            ]
+        for csv_file in csv_files:
+            assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
+
+        self._restore_instance_type_info()
 
     @pytest.mark.order(-3)
     def test_get_instances(self):
