@@ -63,6 +63,18 @@ class JobCost:
 class JobAnalyzer:
 
     def __init__(self, scheduler_parser: SchedulerLogParser, config_filename: str, output_dir: str, queue_filters: str, project_filters: str) -> None:
+        '''
+        Constructor
+
+        Args:
+            scheduler_parser (SchedulerLogParser)
+            config_filename: str
+            output_dir: str
+            queue_filters: str
+            project_filters: str
+        Returns:
+            None
+        '''
         self._scheduler_parser = scheduler_parser
         self._config_filename = config_filename
         self._output_dir = realpath(output_dir)
@@ -477,6 +489,9 @@ class JobAnalyzer:
 
         Sequentially processes the hourly output files to build an hourly-level cost simulation
         '''
+        if not self.instance_family_info:
+            self.get_instance_type_info()
+
         logger.info('')
         logger.info(f"Post processing hourly jobs data:\n")
 
@@ -574,6 +589,7 @@ class JobAnalyzer:
 
         hour_list = list(self.hourly_stats.keys())
         hour_list.sort()
+        logger.debug(f"{len(hour_list)} hours in hourly_stats")
         number_of_hours = 0
         with open(hourly_stats_csv, 'w+') as hourly_stats_fh:
             # convert from absolute hour to relative one (obfuscation)
@@ -582,6 +598,10 @@ class JobAnalyzer:
             field_names = ['Relative Hour','Total OnDemand Costs','Total Spot Costs'] + instance_families
             csv_writer.writerow(field_names)
             first_hour = hour_list[0]
+            last_hour = hour_list[-1]
+            logger.debug(f"first hour: {first_hour}")
+            logger.debug(f"last  hour: {last_hour}")
+            logger.debug(f"total hours: {last_hour - first_hour + 1}")
             prev_relative_hour = 0
             for hour in hour_list:
                 relative_hour = hour - first_hour
@@ -1320,8 +1340,10 @@ def main():
         slurm_mutex_group.add_argument("--sacct-output-file", required=False, help="File where the output of sacct will be written. Cannot be used with --sacct-input-file. Required if --sacct-input-file not set.")
         slurm_mutex_group.add_argument("--sacct-input-file", required=False, help="File with the output of sacct so can process sacct output offline. Cannot be used with --sacct-output-file. Required if --sacct-output-file not set.")
 
-        hourly_stats_parser = subparsers.add_parser('hourly_stats', help='Parse hourly_stats file so can create Excel workbook (xlsx).', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-        hourly_stats_parser.add_argument("--input-hourly-stats-csv", required=True, help="Existing hourly_stats.csv file to use as input.")
+        hourly_stats_parser = subparsers.add_parser('hourly_stats', help='Parse hourly_*.csv hourly files so can create Excel workbook (xlsx).', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+        hourly_stats_csv_parser = subparsers.add_parser('hourly_stats_csv', help='Parse hourly_stats.csv file so can create Excel workbook (xlsx).', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        hourly_stats_csv_parser.add_argument("--input-hourly-stats-csv", required=True, help="Existing hourly_stats.csv file to use as input.")
 
         parser.add_argument("--queues", default=None, help="Comma separated list of regular expressions of queues to include/exclude. Prefix the queue with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
 
@@ -1363,6 +1385,11 @@ def main():
         elif args.parser == 'slurm':
             scheduler_parser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
         elif args.parser == 'hourly_stats':
+            scheduler_parser = None
+            jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
+            jobAnalyzer._process_hourly_jobs()
+            jobAnalyzer._write_hourly_stats()
+        elif args.parser == 'hourly_stats_csv':
             scheduler_parser = None
             jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, queue_filters=args.queues, project_filters=args.projects)
             jobAnalyzer.parse_hourly_stats_csv(args.input_hourly_stats_csv)
