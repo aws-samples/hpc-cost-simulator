@@ -532,6 +532,7 @@ class JobAnalyzer:
                     num_cores = self.instance_type_info[instance_type]['CoreCount']
 
                     logger.debug(f"    job {job_id}: line {line_number}")
+                    logger.debug(f"        num_hosts={num_hosts}")
                     logger.debug(f"        start_time={start_time}")
                     logger.debug(f"        start_time={start_time}")
                     logger.debug(f"        end_time  ={end_time}")
@@ -541,6 +542,13 @@ class JobAnalyzer:
                     logger.debug(f"        job_runtime_minutes={job_runtime_minutes}")
                     logger.debug(f"        total_hourly_rate={total_hourly_rate}")
                     logger.debug(f"        num_cores={num_cores}")
+
+                    if spot_eligible:
+                        purchase_option = 'spot'
+                    else:
+                        purchase_option = 'on_demand'
+                    self._instance_types_used[purchase_option][instance_type] = self._instance_types_used[purchase_option].get(instance_type, 0) + num_hosts
+                    self._instance_families_used[purchase_option][instance_family] = self._instance_families_used[purchase_option].get(instance_family, 0) + num_hosts
 
                     round_hour = int(start_time//3600)
                     round_hour_seconds = round_hour * 3600
@@ -1298,13 +1306,6 @@ class JobAnalyzer:
         logger.debug(f"Lowest priced instance type: {instance_type} spot={spot} rate={rate}")
         instance_family = EC2InstanceTypeInfo.get_instance_family(instance_type)
         job_cost_data = JobCost(job, spot, instance_family, instance_type, rate)
-
-        if spot:
-            purchase_option = 'spot'
-        else:
-            purchase_option = 'on_demand'
-        self._instance_types_used[purchase_option][instance_type] = self._instance_types_used[purchase_option].get(instance_type, 0) + job.num_hosts
-        self._instance_families_used[purchase_option][instance_family] = self._instance_families_used[purchase_option].get(instance_family, 0) + job.num_hosts
         return job_cost_data
 
 def main():
