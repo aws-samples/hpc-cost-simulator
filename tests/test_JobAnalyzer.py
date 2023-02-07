@@ -1285,8 +1285,9 @@ class TestJobAnalyzer(unittest.TestCase):
     order += 1
     @pytest.mark.order(order)
     def test_issue_73_existing_hourly_files(self):
-        self._remove_credentials()
         try:
+            self._remove_credentials()
+
             self._use_static_instance_type_info()
 
             self.cleanup_output_files()
@@ -1320,7 +1321,6 @@ class TestJobAnalyzer(unittest.TestCase):
                 assert(filecmp.cmp(path.join(output_dir, csv_file), path.join(exp_csv_files_dir, csv_file), shallow=False))
         finally:
             self._restore_instance_type_info()
-
             self._restore_credentials()
 
     order += 1
