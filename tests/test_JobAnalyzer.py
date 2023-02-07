@@ -54,7 +54,7 @@ class TestJobAnalyzer(unittest.TestCase):
         if self._jobAnalyzer:
             return self._jobAnalyzer
         self._use_static_instance_type_info()
-        self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR, None, None)
+        self._jobAnalyzer = JobAnalyzer(self.csv_parser, self.CONFIG_FILENAME, self.OUTPUT_DIR, None, None, None, None)
         if not self._jobAnalyzer.instance_type_info:
             self._jobAnalyzer.get_instance_type_info()
         return self._jobAnalyzer
@@ -935,42 +935,42 @@ class TestJobAnalyzer(unittest.TestCase):
     order += 1
     @pytest.mark.order(order)
     def test_from_lsf_csv(self):
-        self._remove_credentials()
-
-        self._use_static_instance_type_info()
-
-        self.cleanup_output_files()
-        test_files_dir = 'test_files/LSFLogParser'
-        input_csv = path.join(test_files_dir, 'exp_jobs.csv')
-        output_dir = 'output/JobAnalyzer/lsf'
-        output_csv = path.join(output_dir, 'jobs.csv')
-        expected_output_csv = input_csv
         try:
-            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
-        except CalledProcessError as e:
-            print(e.output)
-            raise
-        print(f"output:\n{output}")
+            self._remove_credentials()
 
-        assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
+            self._use_static_instance_type_info()
 
-        exp_csv_files_dir = 'test_files/JobAnalyzer/lsf'
-        exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
-        act_csv_files = self._get_hourly_files(output_dir)
-        for exp_csv_file in exp_csv_files:
-            assert(exp_csv_file in act_csv_files)
-        for act_csv_file in exp_csv_files:
-            assert(act_csv_file in exp_csv_files)
-        csv_files = exp_csv_files + [
-            'hourly_stats.csv',
-            'summary.csv'
-            ]
-        for csv_file in csv_files:
-            assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+            self.cleanup_output_files()
+            test_files_dir = 'test_files/LSFLogParser'
+            input_csv = path.join(test_files_dir, 'exp_jobs.csv')
+            output_dir = 'output/JobAnalyzer/lsf'
+            output_csv = path.join(output_dir, 'jobs.csv')
+            expected_output_csv = input_csv
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
 
-        self._restore_instance_type_info()
+            assert(filecmp.cmp(expected_output_csv, output_csv, shallow=False))
 
-        self._restore_credentials()
+            exp_csv_files_dir = 'test_files/JobAnalyzer/lsf'
+            exp_csv_files = self._get_hourly_files(exp_csv_files_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv',
+                'summary.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
+            self._restore_credentials()
 
     order += 1
     @pytest.mark.order(order)
@@ -1281,6 +1281,184 @@ class TestJobAnalyzer(unittest.TestCase):
             assert(filecmp.cmp(path.join(exp_csv_files_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
 
         self._restore_instance_type_info()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_72_starttime_endtime_scenario_1(self):
+        try:
+            self._remove_credentials()
+            self._use_static_instance_type_info()
+
+            test_files_dir = 'test_files/JobAnalyzer/issues/72'
+            input_csv = path.join(test_files_dir, 'jobs.csv')
+            output_dir = 'output/JobAnalyzer/issues/72'
+            output_csv = path.join(output_dir, 'jobs.csv')
+
+            #----------------------------------------------
+            # Scenario 1
+            #
+            # starttime and endtime before the first job
+            #----------------------------------------------
+            starttime = '2022-02-13T00:00:00'
+            endtime = '2022-02-13T02:00:00'
+            exp_results_dir = path.join(test_files_dir, 'scenario_1')
+            exp_output_csv = path.join(exp_results_dir, 'exp_jobs.csv')
+            self.cleanup_output_files()
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--starttime', starttime, '--endtime', endtime, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+            assert(filecmp.cmp(exp_output_csv, output_csv, shallow=False))
+            exp_csv_files = self._get_hourly_files(exp_results_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(exp_results_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+
+        finally:
+            self._restore_instance_type_info()
+            self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_72_starttime_endtime_scenario_2(self):
+        try:
+            self._remove_credentials()
+            self._use_static_instance_type_info()
+
+            test_files_dir = 'test_files/JobAnalyzer/issues/72'
+            input_csv = path.join(test_files_dir, 'jobs.csv')
+            output_dir = 'output/JobAnalyzer/issues/72'
+            output_csv = path.join(output_dir, 'jobs.csv')
+
+            #----------------------------------------------
+            # Scenario 2
+            #
+            # starttime before 1st job to make sure initial empty hours are filled
+            #----------------------------------------------
+            starttime = '2022-02-14T07:00:00'
+            endtime = '2022-02-14T09:00:00'
+            exp_results_dir = path.join(test_files_dir, 'scenario_2')
+            exp_output_csv = path.join(exp_results_dir, 'exp_jobs.csv')
+            self.cleanup_output_files()
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--starttime', starttime, '--endtime', endtime, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+            assert(filecmp.cmp(exp_output_csv, output_csv, shallow=False))
+            exp_csv_files = self._get_hourly_files(exp_results_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv',
+                'summary.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(exp_results_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
+            self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_72_starttime_endtime_scenario_3(self):
+        try:
+            self._remove_credentials()
+            self._use_static_instance_type_info()
+
+            test_files_dir = 'test_files/JobAnalyzer/issues/72'
+            input_csv = path.join(test_files_dir, 'jobs.csv')
+            output_dir = 'output/JobAnalyzer/issues/72'
+            output_csv = path.join(output_dir, 'jobs.csv')
+
+            #----------------------------------------------
+            # Scenario 3
+            #
+            # starttime after 1st job to make sure initial jobs are excluded
+            #----------------------------------------------
+            starttime = '2022-02-14T08:00:00'
+            endtime = '2022-02-14T09:00:00'
+            exp_results_dir = path.join(test_files_dir, 'scenario_3')
+            exp_output_csv = path.join(exp_results_dir, 'exp_jobs.csv')
+            self.cleanup_output_files()
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--starttime', starttime, '--endtime', endtime, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+            assert(filecmp.cmp(exp_output_csv, output_csv, shallow=False))
+            exp_csv_files = self._get_hourly_files(exp_results_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv',
+                'summary.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(exp_results_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
+            self._restore_credentials()
+
+    order += 1
+    @pytest.mark.order(order)
+    def test_issue_72_starttime_endtime_scenario_4(self):
+        try:
+            self._remove_credentials()
+            self._use_static_instance_type_info()
+
+            test_files_dir = 'test_files/JobAnalyzer/issues/72'
+            input_csv = path.join(test_files_dir, 'jobs.csv')
+            output_dir = 'output/JobAnalyzer/issues/72'
+            output_csv = path.join(output_dir, 'jobs.csv')
+
+            #----------------------------------------------
+            # Scenario 4
+            #
+            # endtime after last job to make sure that file is padded at end
+            #----------------------------------------------
+            starttime = '2022-02-01T00:00:00'
+            endtime = '2022-02-28T23:59:59'
+            exp_results_dir = path.join(test_files_dir, 'scenario_4')
+            exp_output_csv = path.join(exp_results_dir, 'exp_jobs.csv')
+            self.cleanup_output_files()
+            try:
+                output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-csv', output_csv, '--output-dir', output_dir, '--starttime', starttime, '--endtime', endtime, 'csv', '--input-csv', input_csv], stderr=subprocess.STDOUT, encoding='utf8')
+            except CalledProcessError as e:
+                print(e.output)
+                raise
+            print(f"output:\n{output}")
+            assert(filecmp.cmp(exp_output_csv, output_csv, shallow=False))
+            exp_csv_files = self._get_hourly_files(exp_results_dir)
+            act_csv_files = self._get_hourly_files(output_dir)
+            for exp_csv_file in exp_csv_files:
+                assert(exp_csv_file in act_csv_files)
+            for act_csv_file in exp_csv_files:
+                assert(act_csv_file in exp_csv_files)
+            csv_files = exp_csv_files + [
+                'hourly_stats.csv',
+                'summary.csv'
+                ]
+            for csv_file in csv_files:
+                assert(filecmp.cmp(path.join(exp_results_dir, csv_file), path.join(output_dir, csv_file), shallow=False))
+        finally:
+            self._restore_instance_type_info()
+            self._restore_credentials()
 
     order += 1
     @pytest.mark.order(order)
