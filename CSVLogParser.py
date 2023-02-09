@@ -66,6 +66,8 @@ class CSVLogParser(SchedulerLogParser):
                 return job
             if self._job_in_time_window(job):
                 return job
+            else:
+                self.total_jobs_outside_time_window += 1
 
     def parse_jobs(self) -> None:
         '''

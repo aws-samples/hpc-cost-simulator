@@ -402,6 +402,7 @@ class SlurmLogParser(SchedulerLogParser):
         # This is for the case where we are parsing the output from a previous call to sacct.
         if not self._job_in_time_window(job):
             logger.debug("    Skipping because not in time window")
+            self.total_jobs_outside_time_window += 1
             return None
 
         return job

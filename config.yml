@@ -49,3 +49,7 @@ consumption_model_mapping:
   ec2_savings_plan_payment_option: 'All Upfront'
   compute_savings_plan_duration: 3
   compute_savings_plan_payment_option: 'All Upfront'
+
+ComputeClusterModel:
+  BootTime: '2:00'
+  IdleTime: '4:00'
