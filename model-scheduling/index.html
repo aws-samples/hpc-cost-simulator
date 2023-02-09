@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Model How Jobs Would Be Scheduled on AWS - HPC Cost Simulator</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/languages/yaml.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" href="..">HPC Cost Simulator</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">HPC Cost Simulator (HCS)</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../AcceleratorLogParser/" class="nav-link">Altair Accelerator</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../LSFLogParser/" class="nav-link">IBM Spectrum LSF</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../SlurmLogParser/" class="nav-link">Slurm</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../JobAnalyzer/" class="nav-link">Job Analyzer</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../Output/" class="nav-link">Output</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../config/" class="nav-link">Config</a>
+                            </li>
+                            <li class="navitem active">
+                                <a href="./" class="nav-link">Model How Jobs Would Be Scheduled on AWS</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../config/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/aws-samples/hpc-cost-simulator/edit/master/docs/model-scheduling.md" class="nav-link"><i class="fa fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#model-how-jobs-would-be-scheduled-on-aws" class="nav-link">Model How Jobs Would Be Scheduled on AWS</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#model-configuration" class="nav-link">Model Configuration</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="3"><a href="#configure-on-premises-servers-optional" class="nav-link">Configure On-Premises Servers (Optional)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="3"><a href="#model-ris-optional" class="nav-link">Model RIs (Optional)</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#design" class="nav-link">Design</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="3"><a href="#main" class="nav-link">Main</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="3"><a href="#computeclustermodel" class="nav-link">ComputeClusterModel</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="3"><a href="#computeinstance" class="nav-link">ComputeInstance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="model-how-jobs-would-be-scheduled-on-aws">Model How Jobs Would Be Scheduled on AWS</h1>
+<p>Once you have parsed the scheduler logs, you can model how the same jobs might run on a scalable AWS compute cluster.
+The ModelComputeCluster.py script will model how the jobs would run on an ideal AWS cluster with no scaling limitations.
+The script models the jobs starting at the point that they are eligible to start and models the instances required
+to run those jobs.
+The output of the model is the total compute costs for running the jobs and the amount of wait time saved by running
+on AWS.</p>
+<p>Initially, the model will not have any instances running.
+The jobs will be sorted by their eligible time and when that time arrives the scheduler will allocate instances for the job.
+The resource allocation strategy is to pick the least expensive instance that has the required number of cores and memory available.
+If no instance is found, then a new instance will be started in the model for the job to run on.
+The model will start the least expensive instance type that the job can run on.
+When the model adds a new instance it is not available to run jobs for a configurable bootup time (default 2 minutes).
+When an instance is idle for longer than a configurable idle time (default 5 minutes), then it will removed from the model.</p>
+<p>The model tracks the costs for bootup and idle times and the time spent running jobs.
+The model also reports hourly spot and on-demand costs.</p>
+<p>Since an instance can run multiple jobs at the same time, we have to decide whether costs need to be allocated to individual jobs.
+This is unnecessary since all we are concerned with are the overall compute costs and do not break out job costs at the end.
+If we did want to allocate job costs it is complicated because some jobs may be core limited, others memory limited, and there are boot and
+idle times that have to be allocated.
+An instance's cost is allocated to a job based on the percentage of cores and memory used by the job relative to the total percentage of allocated cores and memory.
+Since jobs start and stop at different times, the cost of a job will vary over time based on the jobs that are running concurrently with it.
+For example, if a job is the only job running for the first 10 minutes, then it is charged the full cost of the instance for those 10 minutes.
+If another job starts with the same resource requirements, then 50% of the instance costs will be allocated to each job while the jobs
+are running concurrently.
+The jobs' costs are recalculated each time a job starts or finishes on the instance.</p>
+<p>The percentage of the instance's resources that are used by multiple jobs is not straightforward because jobs can be core limited or memory limited.
+If cores are the limiting resource, then memory will be underutilized.
+If memory is the limiting resource, then cores will be underutilized.
+So, the first step in allocating instance costs is to determine the limiting resource by calculating the percentage of cores and memory allocated to all the jobs running on the instance and picking the resource with the higher allocation.
+For example, if all of the cores are allocated then the costs will be allocated to each job based on the percentage of allocated cores that it is using.
+If 90% of the memory is allocated and only 25% of the cores, then memory is considered the limiting resource and the costs will be allocated to a job based on the percentage of total allocated memory that it is using.</p>
+<p>The model can also be configured with reserved instances (RIs).
+RIs in the model will always be available to run jobs.</p>
+<p>The model can also be configured with on-premises servers.
+The configuration must include an inventory of the server types with the number of cores, amount of memory, and hourly cost.</p>
+<p>The model can also use spot pricing on the instances that it uses.
+You can configure the profile of jobs that will utilize spot based on the runtime of the job.
+For example, you can configure the model to use spot pricing instead of on-demand pricing for all jobs
+that run for less than 5 hours.
+The model will also randomly terminate spot jobs and requeue any jobs that were running on the instance when it was terminated.
+The model has a spot termination probability per minute that you can configure.
+Note that this is for modeling purposes only and that AWS provides no SLA for spot termination rates.
+The actual termination probability can vary significantly based on availability in the spot pools which can vary significantly over time.
+The default probability is chosen so that a job that runs for 5 hours has a 5% chance of being terminated which in line with real world experiences, although, again, this may differ markedly in real life.</p>
+<h2 id="model-configuration">Model Configuration</h2>
+<pre><code>ComputeClusterModel:
+  BootTime: '2:00'
+  IdleTime: '4:00'
+  SchedulingFrequency: '0:00'
+  ShareInstances: False
+  ReservedInstances:
+    - InstanceType: Count
+</code></pre>
+<h3 id="configure-on-premises-servers-optional">Configure On-Premises Servers (Optional)</h3>
+<h3 id="model-ris-optional">Model RIs (Optional)</h3>
+<h2 id="design">Design</h2>
+<h3 id="main">Main</h3>
+<ul>
+<li>Sort all jobs by eligible_time</li>
+<li>Create ComputeClusterModel</li>
+<li>while get_job()</li>
+<li>if job.eligible_time &gt; current_time:<ul>
+<li>computeClusterModel.advance_time(job.eligible_time)</li>
+</ul>
+</li>
+<li>computeClusterModel.schedule_job(job)</li>
+</ul>
+<h3 id="computeclustermodel">ComputeClusterModel</h3>
+<ul>
+<li>List of ComputeInstance sorted by cost. Group by PricingOption and InstanceType? For same cost sorted reverse by Utilization</li>
+<li>HourlyCost: Update when instance terminated or at the end of an hour. Cost at termination is only the cost since the previous hour.</li>
+<li>Save Spot and OnDemand costs separately</li>
+<li>Save number of Spot and OnDemand core hours</li>
+<li>Save OnDemand costs split out by instance family</li>
+<li>Event list sorted by datetime</li>
+<li>JobFinishEvent: Includes the instance running the job.</li>
+<li>InstanceTerminateEvent: Set when last job on instance terminates. Cancel instance termination if job has been allocated.</li>
+<li>EndOfHourEvent: Update HourlyCost with cost of instances still running at the end of the hour. Create next EndOfHourEvent.</li>
+<li>advance_time(new_time: datetime): Process all events up to new_time</li>
+<li>schedule_job: allocate to existing instance or to a new instance. Create JobFinish event for the job. If new instance JobFinish event should include boot time.</li>
+<li>finish_job: Delete job from instance. If no more jobs then create TerminateInstance event.</li>
+<li>terminate_instance: If no jobs running then update HourlyCost and remove instance from list.</li>
+</ul>
+<h3 id="computeinstance">ComputeInstance</h3>
+<ul>
+<li>EC2/OnPrem</li>
+<li>InstanceType</li>
+<li>NumberOfCores</li>
+<li>ThreadsPerCore</li>
+<li>HTEnabled</li>
+<li>Memory (GB)</li>
+<li>PricingOption: OnDemand or Spot</li>
+<li>HourlyCost</li>
+<li>State: Booting, Running, Idle</li>
+<li>List of Jobs</li>
+<li>Available cores</li>
+<li>Available memory</li>
+<li>Core Utilization</li>
+<li>Memory Utilization</li>
+<li>Instance Utilization (Max of core/memory utilization)</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
