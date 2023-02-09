@@ -15,10 +15,10 @@ import pytest
 from SchedulerJobInfo import SchedulerJobInfo
 import subprocess
 from subprocess import CalledProcessError, check_output
-from test_JobAnalyzer import order as last_order
+from test_ModelComputeCluster import order as last_order
 
 order = last_order // 100 * 100 + 100
-assert order == 700
+assert order == 800
 
 class TestScaling:
     global order

@@ -199,13 +199,13 @@ class TestJobAnalyzer(unittest.TestCase):
     order += 1
     @pytest.mark.order(order)
     def test_csv_bad_credentials(self):
-        self.cleanup_output_files()
-        self.maxDiff = None
-        self._remove_credentials()
-        self._remove_instance_type_info()
-
         try:
-            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--disable-version-check', '--output-dir', 'output/JobAnalyzer/lsf', 'csv', '--input-csv', 'test_files/LSFLogParser/exp_jobs.csv'], stderr=subprocess.STDOUT, encoding='utf8', env=environ)
+            self.cleanup_output_files()
+            self.maxDiff = None
+            self._remove_credentials()
+            self._remove_instance_type_info()
+
+            output = check_output(['./JobAnalyzer.py', '--disable-version-check', '--acknowledge-config', '--output-dir', 'output/JobAnalyzer/lsf', 'csv', '--input-csv', 'test_files/LSFLogParser/exp_jobs.csv'], stderr=subprocess.STDOUT, encoding='utf8', env=environ)
             print(output)
             assert(False)
         except CalledProcessError as e:
@@ -213,9 +213,10 @@ class TestJobAnalyzer(unittest.TestCase):
             assert('Failed to get EC2 instance types' in e.output)
             assert('Configure your AWS CLI credentials.' in e.output or 'Update your AWS CLI credentials.' in e.output)
 
-        self._restore_credentials()
-        self._remove_instance_type_info()
-        self._restore_instance_type_info()
+        finally:
+            self._restore_credentials()
+            self._remove_instance_type_info()
+            self._restore_instance_type_info()
 
     order += 1
     @pytest.mark.order(order)
@@ -1474,8 +1475,12 @@ class TestJobAnalyzer(unittest.TestCase):
             output_dir = 'output/issues/73'
 
             makedirs(output_dir)
-            system(f"cp {test_files_dir}/hourly-*.csv {output_dir}")
-            system(f"ls {output_dir}")
+            cmd = f"cp {test_files_dir}/hourly-*.csv {output_dir}"
+            print(cmd)
+            system(cmd)
+            cmd = f"ls {output_dir}"
+            print(cmd)
+            system(cmd)
 
             # Put this in a try block so that can print the output if an unexpected exception occurs.
             try:
@@ -1541,19 +1546,26 @@ class TestJobAnalyzer(unittest.TestCase):
     @pytest.mark.order(-3)
     def test_get_instances(self):
         try:
-            jobAnalyzer = self.get_jobAnalyzer()
-
             self.cleanup_output_files()
+
             self._remove_instance_type_info()
+
+            jobAnalyzer = self.get_jobAnalyzer()
 
             jobAnalyzer.get_instance_type_info()
 
             exp_instance_family_counts = {
                 'c5': 8,
+                'c6a': 10,
                 'c6i': 9,
                 'c6id': 9,
                 'm5': 8,
+                'm6a': 10,
+                'm6i': 9,
+                'm6id': 9,
                 'r5': 8,
+                'r6i': 9,
+                'r6id': 9,
                 'z1d': 6,
                 'x2idn': 3,
                 'x2iedn': 7,
@@ -1611,7 +1623,7 @@ class TestJobAnalyzer(unittest.TestCase):
             self.cleanup_output_files()
             self._remove_instance_type_info()
             try:
-                output = check_output(['./get_ec2_instance_info.py', '--region', self.region, '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
+                output = check_output(['./get_ec2_instance_info.py', '--disable-version-check', '--region', self.region, '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
             except CalledProcessError as e:
                 print(e.output)
                 raise
@@ -1631,7 +1643,7 @@ class TestJobAnalyzer(unittest.TestCase):
         try:
             self._remove_instance_type_info()
             try:
-                check_output(['./get_ec2_instance_info.py', '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
+                check_output(['./get_ec2_instance_info.py', '--disable-version-check', '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
             except CalledProcessError as e:
                 print(f"returncode: {e.returncode}")
                 print(f"output:\n{e.stdout}")

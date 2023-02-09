@@ -216,6 +216,8 @@ class LSFLogParser(SchedulerLogParser):
             if self._job_in_time_window(job):
                 self._num_input_jobs += 1
                 return job
+            else:
+                self.total_jobs_outside_time_window += 1
 
     def _get_lsb_acct_files(self, logfile_dir):
         '''

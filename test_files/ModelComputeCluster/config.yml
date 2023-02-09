@@ -15,10 +15,7 @@ instance_mapping:
     - 128
     - 256
     - 512
-    - 1024
-    - 2048
-    - 4096
-  runtime_ranges_minutes:   # Changing this default value will requiring updating test_add_job_to_collector
+  runtime_ranges_minutes:   # Changing this default value will requiring updaing test_add_job_to_collector
     - 1
     - 5
     - 20
@@ -26,30 +23,28 @@ instance_mapping:
     - 240
     - 1440
   instance_prefix_list: # to allow all instances leave the list with only 1 value of a blank string
-    - c5. # (8)
-    - c5d. # ssd instances may be cheaper on spot
+    - c5.
+    - c5d
     - c6a
-    - c6i # (9)
-    - hpc # hpc instances only come in 1 instance size
-    - m5. # (8) adding a dot to block AMD instances by default
-    - m5d. # ssd instances may be cheaper on spot
+    - c6i
+    - m5.
+    - m5d.
     - m6a
     - m6i
-    - r5. # (8)
-    - r5d. # ssd instances may be cheaper on spot
+    - r5.
+    - r5d.
     - r6a
     - r6i
     - z1d # (6)
     - x2i # (5)
 
 consumption_model_mapping:
-  minimum_cpu_speed:  3                 # For schedulers that do not report the CPU speed - allows setting a mimimum. set to 0 to include all instances
+  minimum_cpu_speed:  3                   # For schedulers that do not report the CPU speed - allows setting a mimimum. set to 0 to include all instances
   maximum_minutes_for_spot: 60
+  job_file_batch_size: 1000               # number of successful job records processed to collect before writing them to the job log file
   ec2_savings_plan_duration: 3
   ec2_savings_plan_payment_option: 'All Upfront'
   compute_savings_plan_duration: 3
   compute_savings_plan_payment_option: 'All Upfront'
 
-ComputeClusterModel:
-  BootTime: '2:00'
-  IdleTime: '4:00'
+ComputeClusterModel: {}
