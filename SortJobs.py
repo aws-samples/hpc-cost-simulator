@@ -55,7 +55,11 @@ class JobSorter:
         reorder_fh = NamedTemporaryFile(mode='w', prefix=f"{basename(self._output_csv)}-", dir=self._output_dir, delete=False)
         reorder_filename = reorder_fh.name
         reorder_fh.close()
-        system(f"{dirname(__file__)}/ReorderJobsFields.py --disable-version-check --input-csv {self._input_csv} --output-csv {reorder_filename}") #nosec
+        cmd = f"{dirname(__file__)}/ReorderJobsFields.py --disable-version-check --input-csv {self._input_csv} --output-csv {reorder_filename}"
+        rc = system(cmd) #nosec
+        if rc:
+            logger.error(f"command failed:\n{cmd}")
+            exit(1)
 
         # Read the CSV header to find out which field is the eligible_time
         reorder_fh = open(reorder_filename, 'r', newline='')
@@ -63,8 +67,16 @@ class JobSorter:
         field_names = next(csv_reader)
         key_index = field_names.index('eligible_time') + 1
 
-        system(f"head -n 1 {reorder_filename} > {self._output_csv}") #nosec
-        system(f"tail -n +2 {reorder_filename} | sort -k {key_index} -t , >> {self._output_csv}") # nosec
+        cmd = f"head -n 1 {reorder_filename} > {self._output_csv}"
+        rc = system(cmd) #nosec
+        if rc:
+            logger.error(f"command filed:\n{cmd}")
+            exit(1)
+        cmd = f"tail -n +2 {reorder_filename} | sort --temporary-directory {self._output_dir} -k {key_index} -t , >> {self._output_csv}"
+        system(cmd) # nosec
+        if rc:
+            logger.error(f"command failed:\n{cmd}")
+            exit(1)
         remove(reorder_filename)
         logger.info(f"Wrote jobs sorted by eligible_time to {self._output_csv}")
 
