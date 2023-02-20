@@ -16,11 +16,12 @@ import logging
 from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 import os
 from os import environ, getenv, listdir, makedirs, path, system
-from os.path import abspath, dirname
+from os.path import abspath, dirname, realpath
 import pytest
 from random import expovariate, gammavariate, randint, randrange
-from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
+from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, datetime_to_str
 from SchedulerLogParser import logger as SchedulerLogParser_logger
+from shutil import rmtree
 import subprocess
 from subprocess import CalledProcessError, check_output
 from test_JobAnalyzer import order as last_order
@@ -59,42 +60,48 @@ class TestModelComputeCluster(unittest.TestCase):
 
     OUTPUT_DIR = path.join(REPO_DIR, 'output/ComputeClusterModel')
 
-    _compute_cluster_model = None
-
     def get_compute_cluster_model(self):
-        if self._compute_cluster_model:
-            return self._compute_cluster_model
         self._use_static_instance_type_info()
         csv_parser = CSVLogParser(TestModelComputeCluster.INPUT_CSV, None)
-        self._compute_cluster_model = ComputeClusterModel(csv_parser, TestModelComputeCluster.CONFIG_FILENAME, TestModelComputeCluster.OUTPUT_DIR, None, None, None, None)
-        return self._compute_cluster_model
+        compute_cluster_model = ComputeClusterModel(csv_parser, TestModelComputeCluster.CONFIG_FILENAME, TestModelComputeCluster.OUTPUT_DIR, None, None, None, None)
+        return compute_cluster_model
 
     def _use_static_instance_type_info(self):
-        system(f"cp {self.REPO_DIR}/test_files/instance_type_info.json {self.REPO_DIR}/instance_type_info.json")
+        rc = system(f"cp {self.REPO_DIR}/test_files/instance_type_info.json {self.REPO_DIR}/instance_type_info.json")
+        assert rc == 0
 
     def _restore_instance_type_info(self):
-        system(f"git restore {dirname(__file__)+'/../instance_type_info.json'}")
+        rc = system(f"git restore {dirname(__file__)+'/../instance_type_info.json'}")
+        if rc:
+            rc = system(f"git checkout {dirname(__file__)+'/../instance_type_info.json'}")
+        assert rc == 0
 
     def cleanup_output_files(self):
-        system(f"rm -rf {dirname(__file__)+'/../output'}")
+        output_dir = realpath(dirname(__file__)+'/../output')
+        if not path.exists(output_dir):
+            return
+        rmtree(output_dir)
 
     def _create_jobs_csv(self, filename: str, starttime: str, endtime: str, number_of_jobs: int, min_num_cores: int=1, max_num_cores: int=64) -> None:
         '''
         _create_jobs_csv
 
         Jobs will be created that:
-            * start before starttime and finish before starttime
-            * start before starttime and finish at starttime
-            * start before starttime and end between starttime and endtime
-            * start before starttime and end at endtime
-            * start before starttime and end after endtime
-            * start at starttime and end between starttime and endtime
-            * start at starttime and end at endtime
-            * start at starttime and end after endtime
-            * start between starttime and endtime and end between starttime and endtime
-            * start between starttime and endtime and end at endtime
-            * start between starttime and endtime and end after endtime
-            * start at endtime and end after endtime
+            1. start before starttime
+                1. finish before starttime
+                2. finish at starttime
+                3. finish between starttime and endtime
+                4. finish at endtime
+                5. finish after endtime
+            2. start at starttime
+                1. finish between starttime and endtime
+                2. finish at endtime
+                3. finish after endtime
+            3. start between starttime and endtime
+                1. finish between starttime and endtime
+                2. finish at endtime
+                3. finish after endtime
+            4. start at endtime and finish after endtime
 
         Args:
             filename (str):  Jobs CSV file that will be created
@@ -118,38 +125,48 @@ class TestModelComputeCluster(unittest.TestCase):
         endtime_dt = csv_parser._endtime_dt
 
         first_hour = int(starttime_dt.timestamp()) // SECONDS_PER_HOUR
+        first_hour_ts = first_hour * SECONDS_PER_HOUR
+        first_hour_dt = datetime.fromtimestamp(first_hour * SECONDS_PER_HOUR, tz=timezone.utc)
+        assert first_hour_dt.timestamp() == first_hour_ts
         last_hour = int(endtime_dt.timestamp()) // SECONDS_PER_HOUR
+        last_hour_dt = datetime.fromtimestamp(last_hour * SECONDS_PER_HOUR, tz=timezone.utc)
 
-        early_submit_time = datetime.fromtimestamp(randrange((first_hour - 1) * SECONDS_PER_HOUR, starttime_dt.timestamp() - 2)).replace(tzinfo=timezone.utc)
-        between_submit_time = datetime.fromtimestamp(randrange(starttime_dt.timestamp() + 1, endtime_dt.timestamp() - 2)).replace(tzinfo=timezone.utc)
+        early_submit_time_dt = datetime.fromtimestamp(randrange((first_hour - 1) * SECONDS_PER_HOUR, starttime_dt.timestamp() - 2), tz=timezone.utc)
+        between_submit_time_dt = datetime.fromtimestamp(randrange(starttime_dt.timestamp() + 1, endtime_dt.timestamp() - 2), tz=timezone.utc)
         late_submit_time_timestamp = randrange((last_hour + 1) * SECONDS_PER_HOUR, (last_hour + 2) * SECONDS_PER_HOUR) - 2
-        late_submit_time = datetime.fromtimestamp(randrange((last_hour + 1) * SECONDS_PER_HOUR, (last_hour + 2) * SECONDS_PER_HOUR) - 2).replace(tzinfo=timezone.utc)
+        late_submit_time_dt = datetime.fromtimestamp(randrange((last_hour + 1) * SECONDS_PER_HOUR, (last_hour + 2) * SECONDS_PER_HOUR) - 2, tz=timezone.utc)
 
-        early_finish_time = datetime.fromtimestamp(randrange(early_submit_time.timestamp(), starttime_dt.timestamp() - 1)).replace(tzinfo=timezone.utc)
-        between_finish_time = datetime.fromtimestamp(randrange(between_submit_time.timestamp() + 1, endtime_dt.timestamp() - 1)).replace(tzinfo=timezone.utc)
-        late_finish_time = datetime.fromtimestamp(randrange(late_submit_time.timestamp(), (last_hour + 2) * SECONDS_PER_HOUR) - 1).replace(tzinfo=timezone.utc)
+        early_finish_time_dt = datetime.fromtimestamp(randrange(early_submit_time_dt.timestamp(), starttime_dt.timestamp() - 1), tz=timezone.utc)
+        between_finish_time_dt = datetime.fromtimestamp(randrange(between_submit_time_dt.timestamp() + 1, endtime_dt.timestamp() - 1), tz=timezone.utc)
+        late_finish_time_dt = datetime.fromtimestamp(randrange(late_submit_time_dt.timestamp(), (last_hour + 2) * SECONDS_PER_HOUR) - 1, tz=timezone.utc)
 
         logger.info(f"""
-            early_submit_time:   {early_submit_time}
-            early_finish_time:   {early_finish_time}
-            starttime:           {starttime_dt}
-            between_submit_time: {between_submit_time}
-            between_finish_time: {between_finish_time}
-            endtime:             {endtime_dt}
-            late_submit_time:    {late_submit_time}
-            late_finish_time:    {late_finish_time}
+            early_submit_time:   {early_submit_time_dt} = {early_submit_time_dt.timestamp()}
+            early_finish_time:   {early_finish_time_dt} = {early_finish_time_dt.timestamp()}
+            first_hour:          {first_hour_dt} = {first_hour_dt.timestamp()}
+            starttime:           {starttime_dt} = {starttime_dt.timestamp()}
+            between_submit_time: {between_submit_time_dt} = {between_submit_time_dt.timestamp()}
+            between_finish_time: {between_finish_time_dt} = {between_finish_time_dt.timestamp()}
+            endtime:             {endtime_dt} = {endtime_dt.timestamp()}
+            last_hour:           {last_hour_dt} = {last_hour_dt.timestamp()}
+            late_submit_time:    {late_submit_time_dt} = {late_submit_time_dt.timestamp()}
+            late_finish_time:    {late_finish_time_dt} = {late_finish_time_dt.timestamp()}
             """)
+        assert early_submit_time_dt.timestamp() < starttime_dt.timestamp()
+        assert starttime_dt.timestamp() < between_submit_time_dt.timestamp() < endtime_dt.timestamp()
+        assert late_submit_time_dt.timestamp() > endtime_dt.timestamp()
 
         job_id = 0
         number_of_jobs_in_time_window = 0
-        for submit_time in [early_submit_time, starttime_dt, between_submit_time]:
-            for finish_time in [early_finish_time, starttime_dt, between_finish_time]:
+        for submit_time in [early_submit_time_dt, starttime_dt, between_submit_time_dt]:
+            for finish_time in [early_finish_time_dt, starttime_dt, between_finish_time_dt]:
                 if finish_time < submit_time:
+                    print(f"Skipping finish_time={finish_time} because before {submit_time}")
                     continue
                 job_id += 1
                 number_of_cores = min(int(max(min_num_cores, expovariate(1/4))), max_num_cores)
                 max_mem_gb = round(gammavariate(2, 2) * 1.5, 0)
-                job = SchedulerJobInfo(job_id, number_of_cores, max_mem_gb, 1, SchedulerJobInfo.datetime_to_str(submit_time), SchedulerJobInfo.datetime_to_str(submit_time), SchedulerJobInfo.datetime_to_str(finish_time))
+                job = SchedulerJobInfo(job_id, number_of_cores, max_mem_gb, 1, datetime_to_str(submit_time), datetime_to_str(submit_time), datetime_to_str(finish_time))
                 csv_parser.write_job_to_csv(job)
                 if csv_parser._job_in_time_window(job):
                     number_of_jobs_in_time_window += 1
@@ -163,20 +180,20 @@ class TestModelComputeCluster(unittest.TestCase):
             finish_time = start_time + timedelta(seconds=gammavariate(2, 2) * 60)
             number_of_cores = min(int(max(min_num_cores, expovariate(1/4))), max_num_cores)
             max_mem_gb = round(gammavariate(2, 2) * 1.5, 0)
-            job = SchedulerJobInfo(job_index, number_of_cores, max_mem_gb, 1, SchedulerJobInfo.datetime_to_str(submit_time), SchedulerJobInfo.datetime_to_str(start_time), SchedulerJobInfo.datetime_to_str(finish_time))
+            job = SchedulerJobInfo(job_index, number_of_cores, max_mem_gb, 1, datetime_to_str(submit_time), datetime_to_str(start_time), datetime_to_str(finish_time))
             csv_parser.write_job_to_csv(job)
             if csv_parser._job_in_time_window(job):
                 number_of_jobs_in_time_window += 1
         logger.info(f"{job_id} jobs")
         assert job_id == (EARLY_SPECIAL_CASE_JOBS - EARLY_SPECIAL_CASE_JOBS_IN_TIME_WINDOW + number_of_jobs - LATE_SPECIAL_CASE_JOBS_IN_TIME_WINDOW)
-        for submit_time in [submit_time, endtime_dt, late_submit_time]:
-            for finish_time in [endtime_dt, late_finish_time]:
+        for submit_time in [submit_time, endtime_dt, late_submit_time_dt]:
+            for finish_time in [endtime_dt, late_finish_time_dt]:
                 if finish_time < submit_time:
                     continue
                 job_id += 1
                 number_of_cores = min(int(max(min_num_cores, expovariate(1/4))), max_num_cores)
                 max_mem_gb = round(gammavariate(2, 2) * 1.5, 0)
-                job = SchedulerJobInfo(job_id, number_of_cores, max_mem_gb, 1, SchedulerJobInfo.datetime_to_str(submit_time), SchedulerJobInfo.datetime_to_str(submit_time), SchedulerJobInfo.datetime_to_str(finish_time))
+                job = SchedulerJobInfo(job_id, number_of_cores, max_mem_gb, 1, datetime_to_str(submit_time), datetime_to_str(submit_time), datetime_to_str(finish_time))
                 csv_parser.write_job_to_csv(job)
                 if csv_parser._job_in_time_window(job):
                     number_of_jobs_in_time_window += 1
@@ -206,10 +223,10 @@ class TestModelComputeCluster(unittest.TestCase):
     order += 1
     @pytest.mark.order(order)
     def test_find_best_instance_families(self):
-        self._use_static_instance_type_info()
-        self.cleanup_output_files()
-
         try:
+            self._use_static_instance_type_info()
+            self.cleanup_output_files()
+
             #ModelComputeCluster_logger.setLevel(logging.DEBUG)
             compute_cluster_model = self.get_compute_cluster_model()
             print(json.dumps(compute_cluster_model._instance_families, indent=4))
@@ -246,7 +263,7 @@ class TestModelComputeCluster(unittest.TestCase):
             input_csv = path.join(TestModelComputeCluster.TEST_FILES_BASE_DIR, 'jobs_random_10.csv')
             csv_parser = CSVLogParser(input_csv, None)
             compute_cluster_model = ComputeClusterModel(csv_parser, TestModelComputeCluster.CONFIG_FILENAME, TestModelComputeCluster.OUTPUT_DIR, None, None, None, None)
-            compute_cluster_model.model_jobs()
+            compute_cluster_model.schedule_jobs()
         finally:
             self._restore_instance_type_info()
 
@@ -260,7 +277,7 @@ class TestModelComputeCluster(unittest.TestCase):
             input_csv = path.join(TestModelComputeCluster.TEST_FILES_BASE_DIR, 'jobs_random_100.csv')
             csv_parser = CSVLogParser(input_csv, None)
             compute_cluster_model = ComputeClusterModel(csv_parser, TestModelComputeCluster.CONFIG_FILENAME, TestModelComputeCluster.OUTPUT_DIR, None, None, None, None)
-            compute_cluster_model.model_jobs()
+            compute_cluster_model.schedule_jobs()
         finally:
             self._restore_instance_type_info()
 
@@ -288,7 +305,7 @@ class TestModelComputeCluster(unittest.TestCase):
             #SchedulerLogParser_logger.setLevel(logging.DEBUG)
             #VersionCheck_logger.setLevel(logging.DEBUG)
 
-            compute_cluster_model.model_jobs()
+            compute_cluster_model.schedule_jobs()
             assert compute_cluster_model.total_jobs == number_of_jobs
             assert csv_parser.total_jobs_outside_time_window == 2
             assert compute_cluster_model.total_failed_jobs == 0
@@ -320,7 +337,7 @@ class TestModelComputeCluster(unittest.TestCase):
             #SchedulerLogParser_logger.setLevel(logging.DEBUG)
             #VersionCheck_logger.setLevel(logging.DEBUG)
 
-            compute_cluster_model.model_jobs()
+            compute_cluster_model.schedule_jobs()
             assert compute_cluster_model.total_jobs == number_of_jobs
             assert csv_parser.total_jobs_outside_time_window == 2
             assert compute_cluster_model.total_failed_jobs == 0

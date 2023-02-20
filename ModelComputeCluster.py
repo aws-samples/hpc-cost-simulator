@@ -17,7 +17,7 @@ from ComputeClusterModel.ComputeClusterEvent import ComputeClusterEvent, EndOfHo
 from ComputeClusterModel.ComputeInstance import ComputeInstance
 from CSVLogParser import CSVLogParser, logger as CSVLogParser_logger
 from datetime import datetime, timezone
-from JobAnalyzerBase import JobAnalyzerBase
+from JobAnalyzerBase import JobAnalyzerBase, SECONDS_PER_HOUR
 from os import path
 import json
 import logging
@@ -28,8 +28,10 @@ from openpyxl.styles import Alignment as XlsAlignment, Protection as XlsProtecti
 from openpyxl.styles.numbers import FORMAT_CURRENCY_USD_SIMPLE
 from openpyxl.utils import get_column_letter as xl_get_column_letter
 from operator import attrgetter, itemgetter
-from os.path import dirname
-from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
+from os import makedirs
+from os.path import dirname, realpath
+from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, str_to_timedelta, timestamp_to_datetime
+from SchedulerLogParser import logger as SchedulerLogParser_logger
 from SortJobs import JobSorter
 from sys import exit
 from VersionCheck import logger as VersionCheck_logger, VersionCheck
@@ -42,9 +44,11 @@ logger.addHandler(logger_streamHandler)
 logger.propagate = False
 logger.setLevel(logging.INFO)
 
-SECONDS_PER_MINUTE = 60
-MINUTES_PER_HOUR = 60
-SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR
+debug_level = 0
+debug_print_event_summary = False
+debug_print_event_details = False
+debug_insert_instance = False
+debug_remove_instance = False
 
 class ComputeClusterModel(JobAnalyzerBase):
 
@@ -81,10 +85,10 @@ class ComputeClusterModel(JobAnalyzerBase):
         self._hourly_stats_filename = path.join(self._output_dir, 'hourly_stats.csv')
         self._excel_filename = path.join(self._output_dir, 'hourly_stats.xlsx')
 
-        self._boot_time_td = SchedulerJobInfo.str_to_timedelta(self.config['ComputeClusterModel']['BootTime'])
-        self._idle_time_td = SchedulerJobInfo.str_to_timedelta(self.config['ComputeClusterModel']['IdleTime'])
+        self._boot_time_td = str_to_timedelta(self.config['ComputeClusterModel']['BootTime'])
+        self._idle_time_td = str_to_timedelta(self.config['ComputeClusterModel']['IdleTime'])
 
-        self._scheduling_frequency_td = SchedulerJobInfo.str_to_timedelta(self.config['ComputeClusterModel']['SchedulingFrequency'])
+        self._scheduling_frequency_td = str_to_timedelta(self.config['ComputeClusterModel']['SchedulingFrequency'])
         self._share_instances = self.config['ComputeClusterModel']['ShareInstances']
         self._max_instance_types = False
 
@@ -112,7 +116,7 @@ class ComputeClusterModel(JobAnalyzerBase):
 
         self._instance_families_used = []
 
-        self.current_time = SchedulerJobInfo.timestamp_to_datetime(0)
+        self.current_time = timestamp_to_datetime(0)
 
         self._unscheduled_jobs = {}
         for pricing_option in ComputeInstance.PRICING_OPTIONS:
@@ -120,14 +124,6 @@ class ComputeClusterModel(JobAnalyzerBase):
         self._schedule_jobs_event = None
 
         self._events = []
-        if self._starttime_dt:
-            self._first_hour = int(self._starttime_dt.timestamp() // SECONDS_PER_HOUR)
-        else:
-            self._first_hour = None
-        if self._endtime_dt:
-            self._last_hour = int(self._endtime_dt.timestamp() // SECONDS_PER_HOUR)
-        else:
-            self._last_hour = None
 
         self.total_jobs = 0
         self.total_failed_jobs = 0
@@ -145,9 +141,9 @@ class ComputeClusterModel(JobAnalyzerBase):
         self._init_scratch_csv()
         self._init_hourly_costs()
 
-    def model_jobs(self):
+    def schedule_jobs(self):
         '''
-        Model how jobs run on ideal Compute Cluster.
+        Model how jobs get scheduled on ideal Compute Cluster.
 
         Jobs must first be sorted by eligible_time.
 
@@ -158,17 +154,18 @@ class ComputeClusterModel(JobAnalyzerBase):
         Write the hourly costs into a separate CSV file.
         Write an overall job summary.
 
-        Scalability is a key consideration because millions of jobs must be processessed so the analysis cannot be
+        Scalability is a key consideration because millions of jobs must be processed so the analysis cannot be
         done in memory.
         First breaking the jobs out into hourly chunks makes the process scalable.
         '''
+        logger.info(f"Scheduling jobs on the compute cluster.")
         self._clear_job_stats()   # allows calling multiple times in testing
 
         previous_eligible_time = None
         while True:
             job = self._scheduler_parser.parse_job()
             if not job:
-                logger.debug(f"No more jobs")
+                logger.info(f"No more jobs to schedule")
                 break
 
             # Check if ran between starttime and endtime
@@ -225,7 +222,7 @@ class ComputeClusterModel(JobAnalyzerBase):
             self._process_event()
 
     def write_stats(self) -> None:
-        logger.debug(f"Writing out final stats")
+        logger.info(f"Writing out final stats")
         self._init_csv()
         self._init_excel()
         self._process_scratch_csv()
@@ -397,7 +394,8 @@ class ComputeClusterModel(JobAnalyzerBase):
     def _insert_instance(self, instance: ComputeInstance) -> None:
         self._instances[instance.pricing_option].append(instance)
         self._instances_sorted[instance.pricing_option] = False
-        self._print_instances(instance.pricing_option)
+        if debug_insert_instance:
+            self._print_instances(instance.pricing_option)
 
     def _sort_instances(self, pricing_option: str) -> None:
         if self._instances_sorted[pricing_option]:
@@ -413,7 +411,8 @@ class ComputeClusterModel(JobAnalyzerBase):
 
     def _remove_instance(self, instance: ComputeInstance) -> None:
         self._instances[instance.pricing_option].remove(instance)
-        self._print_instances(instance.pricing_option)
+        if debug_remove_instance:
+            self._print_instances(instance.pricing_option)
 
     def _change_utilization(self, instance: ComputeInstance) -> None:
         '''
@@ -423,8 +422,6 @@ class ComputeClusterModel(JobAnalyzerBase):
         self._insert_instance(instance)
 
     def _print_instances(self, pricing_option='', summary_only=False):
-        if logger.getEffectiveLevel() > logging.DEBUG:
-            return
         if pricing_option == '':
             pricing_options = ComputeInstance.PRICING_OPTIONS
         else:
@@ -511,7 +508,7 @@ class ComputeClusterModel(JobAnalyzerBase):
                 lowest_hourly_cost = hourly_cost
         if not cheapest_instance_type:
             if pricing_option == ComputeInstance.SPOT:
-                logger.debug(f"Couldn't find {pricing_option} instance type with {job.num_cores} cores and {job.max_mem_gb} GB memory to run job {job.job_id}")
+                logger.warning(f"Couldn't find {pricing_option} instance type with {job.num_cores} cores and {job.max_mem_gb} GB memory to run job {job.job_id}")
             else:
                 logger.error(f"Couldn't find {pricing_option} instance type with {job.num_cores} cores and {job.max_mem_gb} GB memory to run job {job.job_id}")
             return None
@@ -536,24 +533,16 @@ class ComputeClusterModel(JobAnalyzerBase):
         assert event.time >= self.current_time, f"{event.time} < {self.current_time} {event}" # nosec
 
         self._events.append(event)
-        # self._events.sort(key=lambda x: x.time)
         self._events.sort(key=attrgetter('time'))
         self._print_events()
         return
 
-        insertion_point = 0
-        for existing_event in self._events:
-            if event.time < existing_event.time:
-                break
-            insertion_point += 1
-        #logger.debug(f"Insert event at {insertion_point}")
-        self._events.insert(insertion_point, event)
-        self._print_events()
-
     def _print_events(self):
-        if logger.getEffectiveLevel() > logging.DEBUG:
+        if not debug_print_event_summary:
             return
-        logger.debug(f"{self.current_time}: Events:")
+        logger.debug(f"{self.current_time}: {len(self._events)} Events:")
+        if not debug_print_event_details:
+            return
         previous_event_time = self.current_time
         for idx, event in enumerate(self._events):
             logger.debug(f"    {idx}, {event.time}: {event}")
@@ -585,6 +574,13 @@ class ComputeClusterModel(JobAnalyzerBase):
             # Record the hourly costs even if the cluster is idle. This is because if savings plans are used then there will be costs.
             if total_instances or len(self._events) > 0:
                 self._add_hourly_event()
+                # Print out heart beat message every 24 hours
+                if (self._relative_hour % 24) == 0:
+                    logger.info(f"Finished processing jobs for hour {self._current_hour} = {timestamp_to_datetime(self._current_hour * SECONDS_PER_HOUR)}")
+                    logger.info(f"    {self.total_jobs} jobs scheduled")
+            else:
+                logger.info("Finished processing events")
+                logger.info(f"    {self.total_jobs} jobs scheduled")
         elif isinstance(event, JobFinishEvent):
             logger.debug(f"{event.time}: Job {event.job.job_id} finished")
             instance = event.instance
@@ -606,23 +602,23 @@ class ComputeClusterModel(JobAnalyzerBase):
                     logger.error(f"Couldn't remove {instance}")
                     self._print_instances(instance.pricing_option)
                     raise
-                self._print_instances(instance.pricing_option, summary_only=True)
                 self._update_hourly_costs(instance)
         else:
             raise RuntimeError(f"Unsupported event: {event}")
 
     def _add_hourly_event(self):
         logger.debug(f"{self.current_time}: Adding EndOfHourEvent")
-        self._current_hour = int(self.current_time.timestamp()//3600)
-        self._current_hour_dt = datetime.fromtimestamp(self._current_hour * 3600, tz=timezone.utc)
+        self._current_hour = int(self.current_time.timestamp() // SECONDS_PER_HOUR)
+        self._current_hour_dt = timestamp_to_datetime(self._current_hour * SECONDS_PER_HOUR)
         logger.debug(f"    _current_hour={self._current_hour}={self._current_hour_dt} dst={self._current_hour_dt.dst()}")
         assert self._current_hour_dt <= self.current_time, f"{self._current_hour_dt} > {self.current_time}" # nosec
         if not self._first_hour:
             self._first_hour = self._current_hour
+            logger.info(f"First hour: {self._first_hour} = {timestamp_to_datetime(self._first_hour * SECONDS_PER_HOUR)}")
             self._init_hourly_costs()
         self._relative_hour = self._current_hour - self._first_hour
         self._next_hour = self._current_hour + 1
-        self._next_hour_dt = datetime.fromtimestamp(self._next_hour * 3600, tz=timezone.utc)
+        self._next_hour_dt = timestamp_to_datetime(self._next_hour * SECONDS_PER_HOUR)
         logger.debug(f"    _relative_hour={self._relative_hour}")
         logger.debug(f"    _next_hour={self._next_hour}={self._next_hour_dt} dst={self._next_hour_dt.dst()}")
         self._hourly_event = EndOfHourEvent(self._next_hour_dt)
@@ -659,6 +655,7 @@ class ComputeClusterModel(JobAnalyzerBase):
             field_names.append(f"{instance_family} Core Hours")
             field_names.append(f"{instance_family} OnDemand Costs")
         self._scratch_hourly_stats_csv_writer.writerow(field_names)
+        self._scratch_hourly_stats_fh.flush()
 
     def _init_csv(self):
         self._scratch_hourly_stats_fh.close()
@@ -691,7 +688,7 @@ class ComputeClusterModel(JobAnalyzerBase):
     def _update_hourly_costs(self, instance: ComputeInstance) -> None:
         assert self._current_hour_dt <= self.current_time, f"{self._current_hour_dt} > {self.current_time}" # nosec
         hours_td = self.current_time - max(instance.start_time, self._current_hour_dt)
-        hours = hours_td.total_seconds() / 3600
+        hours = hours_td.total_seconds() / SECONDS_PER_HOUR
         assert 0.0 <= hours <= 1.0, f"invalid instance hours: {hours} > 1.0 or < 0.0\n    current time: {self.current_time}\n    current hour: {self._current_hour_dt}\n    {instance}" # nosec
         core_hours = hours * instance.number_of_cores
         cost = hours * instance.hourly_cost
@@ -707,9 +704,11 @@ class ComputeClusterModel(JobAnalyzerBase):
     def _write_scratch_csv_row(self) -> None:
         if self._relative_hour < 0:
             # Discard information for hours before starttime
+            logger.debug(f"Discarding hourly stats for relative hour {self._relative_hour}")
             return
-        if self._last_hour and self._relative_hour > self._last_hour:
+        if self._last_hour and self._current_hour > self._last_hour:
             # Discard information for hours after endtime
+            logger.debug(f"Discarding hourly stats for relative hour {self._relative_hour}")
             return
         field_values = [self._relative_hour]
         for pricing_option in ComputeInstance.PRICING_OPTIONS:
@@ -719,6 +718,7 @@ class ComputeClusterModel(JobAnalyzerBase):
             field_values.append(self._hourly_costs[ComputeInstance.ON_DEMAND][instance_family]['core hours'])
             field_values.append(self._hourly_costs[ComputeInstance.ON_DEMAND][instance_family]['costs'])
         self._scratch_hourly_stats_csv_writer.writerow(field_values)
+        self._scratch_hourly_stats_fh.flush()
         self._number_of_hours += 1
 
     def _read_scratch_csv(self) -> bool:
@@ -1210,10 +1210,26 @@ def main():
         parser.add_argument("--queues", default=None, help="Comma separated list of regular expressions of queues to include/exclude. Prefix the queue with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
         parser.add_argument("--projects", default=None, help="Comma separated list of regular expressions of projects to include/exclude. Prefix the project with '-' to exclude. The regular expressions are evaluated in the order given and the first match has precedence and stops further evaluations. Regular expressions have an implicit ^ at the beginning.")
         parser.add_argument("--disable-version-check", action='store_const', const=True, default=False, help="Disable git version check")
-        parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
+        parser.add_argument("--debug", '-d', action='count', default=0, help="Enable debug mode")
         args = parser.parse_args()
 
+        # Configure logfile
+        timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_dir = realpath(args.output_dir)
+        if not path.exists(output_dir):
+            logger.info(f"Output directory ({output_dir}) doesn't exist, creating")
+            makedirs(output_dir)
+        log_file_name = path.join(output_dir, f"ModelComputeCluster-{timestamp_str}.log")
+        logger_FileHandler = logging.FileHandler(filename=log_file_name)
+        logger_FileHandler.setFormatter(logger_formatter)
+        logger.addHandler(logger_FileHandler)
+
         if args.debug:
+            debug_level = args.debug
+            debug_print_event_summary = debug_level > 1
+            debug_print_event_details = debug_level > 2
+            debug_insert_instance = debug_level > 3
+            debug_remove_instance = debug_level > 3
             logger.setLevel(logging.DEBUG)
             CSVLogParser_logger.setLevel(logging.DEBUG)
             SchedulerJobInfo_logger.setLevel(logging.DEBUG)
@@ -1234,11 +1250,11 @@ def main():
 
         logger.info('Started job modelling')
 
-        model_jobs = ComputeClusterModel(csv_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
+        compute_cluster_model = ComputeClusterModel(csv_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
 
         # Print out configuration information
         logger.info(f"""Configuration:
-        {json.dumps(model_jobs.config, indent=4)}""")
+        {json.dumps(compute_cluster_model.config, indent=4)}""")
         acknowledge_config = args.acknowledge_config
         while not acknowledge_config:
             print(f"\nIs the correct configuration? (y/n) ")
@@ -1248,7 +1264,7 @@ def main():
             elif answer == 'y':
                 acknowledge_config = True
 
-        model_jobs.model_jobs()
+        compute_cluster_model.schedule_jobs()
     except Exception as e:
         logger.exception(f"Unhandled exception")
         exit(1)

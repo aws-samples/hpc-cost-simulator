@@ -14,7 +14,7 @@ from os import path, system
 from os.path import abspath, dirname
 import pytest
 import random
-from SchedulerJobInfo import SchedulerJobInfo
+from SchedulerJobInfo import SchedulerJobInfo, datetime_to_str
 from SortJobs import JobSorter, logger as JobSorter_logger
 import subprocess
 from subprocess import CalledProcessError, check_output
@@ -86,7 +86,7 @@ class TestSortJobs(unittest.TestCase):
         start = datetime(min_year, 1, 1, 0, 0, 0)
         end = start + timedelta(days=(365 * (max_year - min_year + 1)))
         for i in range(number_of_jobs):
-            eligible_time = SchedulerJobInfo.datetime_to_str(start + (end - start) * random.random())
+            eligible_time = datetime_to_str(start + (end - start) * random.random())
             dummy_job = SchedulerJobInfo(
                 job_id = '1',
                 resource_request = 'linux64',

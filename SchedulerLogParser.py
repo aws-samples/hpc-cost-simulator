@@ -25,7 +25,7 @@ import json
 import logging
 from os import makedirs, path
 from os.path import dirname, realpath
-from SchedulerJobInfo import SchedulerJobInfo
+from SchedulerJobInfo import SchedulerJobInfo, str_to_datetime
 from typing import List
 
 logger = logging.getLogger(__file__)
@@ -92,11 +92,11 @@ class SchedulerLogParser(ABC):
         self._num_output_jobs = 0
 
         if self._starttime:
-            self._starttime_dt = SchedulerJobInfo.str_to_datetime(self._starttime)
+            self._starttime_dt = str_to_datetime(self._starttime)
         else:
             self._starttime_dt = None
         if self._endtime:
-            self._endtime_dt = SchedulerJobInfo.str_to_datetime(self._endtime)
+            self._endtime_dt = str_to_datetime(self._endtime)
         else:
             self._endtime_dt = None
 
