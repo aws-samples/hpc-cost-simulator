@@ -61,6 +61,12 @@ class TestModelComputeCluster(unittest.TestCase):
     OUTPUT_DIR = path.join(REPO_DIR, 'output/ComputeClusterModel')
 
     def get_compute_cluster_model(self):
+        '''
+        Get ComputeClusterModel object
+
+        Don't create a class object that is shared by tests because it holds an open file handle that prevents the output
+        directory from being deleted between tests.
+        '''
         self._use_static_instance_type_info()
         csv_parser = CSVLogParser(TestModelComputeCluster.INPUT_CSV, None)
         compute_cluster_model = ComputeClusterModel(csv_parser, TestModelComputeCluster.CONFIG_FILENAME, TestModelComputeCluster.OUTPUT_DIR, None, None, None, None)
