@@ -16,13 +16,13 @@ from AcceleratorLogParser import AcceleratorLogParser, logger as AcceleratorLogP
 import argparse
 from botocore.exceptions import ClientError, NoCredentialsError
 from colored import fg
-from JobAnalyzerBase import JobAnalyzerBase
 from config_schema import check_schema
 from copy import deepcopy
 import csv
 from CSVLogParser import CSVLogParser, logger as CSVLogParser_logger
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 from EC2InstanceTypeInfoPkg.EC2InstanceTypeInfo import EC2InstanceTypeInfo
+from JobAnalyzerBase import JobAnalyzerBase, SECONDS_PER_HOUR
 import json
 from LSFLogParser import LSFLogParser, logger as LSFLogParser_logger
 import logging
@@ -36,7 +36,7 @@ import operator
 from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
 import re
-from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
+from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, datetime_to_str, str_to_datetime, timestamp_to_datetime
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
 from SlurmLogParser import SlurmLogParser, logger as SlurmLogParser_logger
 from sys import exit
@@ -49,10 +49,6 @@ logger_streamHandler.setFormatter(logger_formatter)
 logger.addHandler(logger_streamHandler)
 logger.propagate = False
 logger.setLevel(logging.INFO)
-
-SECONDS_PER_MINUTE = 60
-MINUTES_PER_HOUR = 60
-SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR
 
 class JobCost:
     def __init__(self, job: SchedulerJobInfo, spot: bool, instance_family: str, instance_type: str, rate: float):
@@ -131,14 +127,14 @@ class JobAnalyzer(JobAnalyzerBase):
         round_hour = int(round_hour)
         if self._starttime:
             if round_hour * SECONDS_PER_HOUR < self._starttime_dt.timestamp():
-                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * SECONDS_PER_HOUR} {datetime.fromtimestamp(round_hour * SECONDS_PER_HOUR)}")
+                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * SECONDS_PER_HOUR} {timestamp_to_datetime(round_hour * SECONDS_PER_HOUR)}")
                 logger.debug(f"    starttime  hour={int(self._starttime_dt.timestamp() / SECONDS_PER_HOUR)} timestamp={self._starttime_dt.timestamp()} {self._starttime_dt}")
                 logger.debug(f"    endtime    hour={int(self._endtime_dt.timestamp() / SECONDS_PER_HOUR)} timestamp={self._endtime_dt.timestamp()} {self._endtime_dt}")
                 return
 
         if self._endtime:
             if round_hour * SECONDS_PER_HOUR > self._endtime_dt.timestamp():
-                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * SECONDS_PER_HOUR} {datetime.fromtimestamp(round_hour * SECONDS_PER_HOUR)}")
+                logger.debug(f"Skipping round_hour={round_hour} timestamp={round_hour * SECONDS_PER_HOUR} {timestamp_to_datetime(round_hour * SECONDS_PER_HOUR)}")
                 logger.debug(f"    starttime  hour={int(self._starttime_dt.timestamp() / SECONDS_PER_HOUR)} timestamp={self._starttime_dt.timestamp()} {self._starttime_dt}")
                 logger.debug(f"    endtime    hour={int(self._endtime_dt.timestamp() / SECONDS_PER_HOUR)} timestamp={self._endtime_dt.timestamp()} {self._endtime_dt}")
                 return
@@ -192,7 +188,7 @@ class JobAnalyzer(JobAnalyzerBase):
                     job_field_values = {}
                     for i, field_name in enumerate(field_names):
                         job_field_values[field_name] = job_field_values_array[i]
-                    start_time = SchedulerJobInfo.str_to_datetime(job_field_values['start_time']).timestamp()
+                    start_time = str_to_datetime(job_field_values['start_time']).timestamp()
                     job_id = job_field_values['Job id']
                     num_hosts = int(job_field_values['Num Hosts'])
                     job_runtime_minutes = float(job_field_values['Runtime (minutes)'])
@@ -292,7 +288,7 @@ class JobAnalyzer(JobAnalyzerBase):
                     runtime_hours = runtime_minutes / 60
                     total_on_demand_cost = round(job.num_hosts * runtime_hours * job_cost_data.rate, 6)
                     wait_time_minutes = round(job.wait_time_td.total_seconds()/60, 4)
-                    job_file.write(f"{SchedulerJobInfo.datetime_to_str(job.start_time_dt)},{job.job_id},{job.num_hosts},{runtime_minutes},{job.max_mem_gb},{wait_time_minutes},{job_cost_data.instance_type},{job_cost_data.instance_family},{job_cost_data.spot},{job_cost_data.rate},{total_on_demand_cost}\n")
+                    job_file.write(f"{datetime_to_str(job.start_time_dt)},{job.job_id},{job.num_hosts},{runtime_minutes},{job.max_mem_gb},{wait_time_minutes},{job_cost_data.instance_type},{job_cost_data.instance_family},{job_cost_data.spot},{job_cost_data.rate},{total_on_demand_cost}\n")
         self._hourly_jobs_to_be_written = 0
         self.jobs_by_hours = {}
 
@@ -325,8 +321,8 @@ class JobAnalyzer(JobAnalyzerBase):
             if hour_list:
                 first_hour = hour_list[0]
                 last_hour = hour_list[-1]
-                logger.info(f"First hour = {first_hour} = {datetime.fromtimestamp(first_hour * SECONDS_PER_HOUR)}")
-                logger.info(f"Last  hour = {last_hour} = {datetime.fromtimestamp(last_hour * SECONDS_PER_HOUR)}")
+                logger.info(f"First hour = {first_hour} = {timestamp_to_datetime(first_hour * SECONDS_PER_HOUR)}")
+                logger.info(f"Last  hour = {last_hour} = {timestamp_to_datetime(last_hour * SECONDS_PER_HOUR)}")
                 logger.info(f"{last_hour - first_hour + 1} total hours")
                 prev_relative_hour = 0
                 for hour in hour_list:
@@ -720,8 +716,8 @@ class JobAnalyzer(JobAnalyzerBase):
         if hour_list:
             first_hour = hour_list[0]
             last_hour = hour_list[-1]
-            logger.info(f"First hour = {first_hour} = {datetime.fromtimestamp(first_hour * SECONDS_PER_HOUR)}")
-            logger.info(f"Last  hour = {last_hour} = {datetime.fromtimestamp(last_hour * SECONDS_PER_HOUR)}")
+            logger.info(f"First hour = {first_hour} = {timestamp_to_datetime(first_hour * SECONDS_PER_HOUR)}")
+            logger.info(f"Last  hour = {last_hour} = {timestamp_to_datetime(last_hour * SECONDS_PER_HOUR)}")
             logger.info(f"{last_hour - first_hour + 1} total hours")
             prev_relative_hour = 0
             for hour in hour_list:
@@ -1081,6 +1077,17 @@ def main():
 
         parser.add_argument("--debug", '-d', action='store_const', const=True, default=False, help="Enable debug mode")
         args = parser.parse_args()
+
+        # Configure logfile
+        timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_dir = realpath(args.output_dir)
+        if not path.exists(output_dir):
+            logger.info(f"Output directory ({output_dir}) doesn't exist, creating")
+            makedirs(output_dir)
+        log_file_name = path.join(output_dir, f"JobAnalyzer-{timestamp_str}.log")
+        logger_FileHandler = logging.FileHandler(filename=log_file_name)
+        logger_FileHandler.setFormatter(logger_formatter)
+        logger.addHandler(logger_FileHandler)
 
         if args.debug:
             logger.setLevel(logging.DEBUG)

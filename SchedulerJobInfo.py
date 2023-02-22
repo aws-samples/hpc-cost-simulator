@@ -188,13 +188,13 @@ class SchedulerJobInfo:
         if not self.ineligible_pend_time:
             if self.eligible_time:
                 self.ineligible_pend_time_td = self.eligible_time_dt - self.submit_time_dt
-                self.ineligible_pend_time = SchedulerJobInfo.timedelta_to_string(self.ineligible_pend_time_td)
+                self.ineligible_pend_time = timedelta_to_string(self.ineligible_pend_time_td)
             else:
                 (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration("00:00")
         if not self.eligible_time:
             if self.ineligible_pend_time:
                 self.eligible_time_dt = self.submit_time_dt + self.ineligible_pend_time_td
-                self.eligible_time = SchedulerJobInfo.datetime_to_str(self.eligible_time_dt)
+                self.eligible_time = datetime_to_str(self.eligible_time_dt)
             else:
                 self.eligible_time = self.submit_time
                 self.eligible_time_dt = self.submit_time_dt
@@ -207,11 +207,11 @@ class SchedulerJobInfo:
 
         # Bug 22 incorrectly calculated the wait_time using start_time instead of submit_time so just always calculate it so it's correct.
         self.wait_time_td = self.start_time_dt - self.eligible_time_dt
-        self.wait_time = SchedulerJobInfo.timedelta_to_string(self.wait_time_td)
+        self.wait_time = timedelta_to_string(self.wait_time_td)
 
         if not self.run_time:
             self.run_time_td = self.finish_time_dt - self.start_time_dt
-            self.run_time = SchedulerJobInfo.timedelta_to_string(self.run_time_td)
+            self.run_time = timedelta_to_string(self.run_time_td)
 
     @staticmethod
     def from_dict(field_dict: dict):
@@ -343,7 +343,7 @@ class SchedulerJobInfo:
             # LSF provides a value of -1 to mean None. Otherwise seconds since the epoch.
             if value == -1:
                 return (None, None)
-            dt = SchedulerJobInfo.timestamp_to_datetime(value)
+            dt = timestamp_to_datetime(value)
         elif str(type(value)) == "<class 'str'>":
             if re.match(r'^\s*$', value) or value == '-1':
                 return (None, None)
@@ -354,10 +354,10 @@ class SchedulerJobInfo:
             except ValueError:
                 pass
             # SLURM: Make sure it's the right format
-            dt = SchedulerJobInfo.str_to_datetime(value)
+            dt = str_to_datetime(value)
         else:
-            raise ValueError(f"Invalid type for datetime: {value} has type '{type(value)}'")
-        dt_str = SchedulerJobInfo.datetime_to_str(dt)
+            raise ValueError(f"Invalid type for datetime: {value} has type '{type(value)}', expected int or str")
+        dt_str = datetime_to_str(dt)
         return (dt_str, dt)
 
     @staticmethod
@@ -412,10 +412,10 @@ class SchedulerJobInfo:
             if duration in ['', 'None']:
                 return (None, None)
             # Check format
-            td = SchedulerJobInfo.str_to_timedelta(duration)
+            td = str_to_timedelta(duration)
         else:
-            raise ValueError(f"Invalid type for duration {duration}: '{type(duration)}' not in [str, int]")
-        duration_str = SchedulerJobInfo.timedelta_to_string(td)
+            raise ValueError(f"Invalid type for duration: {duration} has type '{type(duration)}', expected int, float, or str")
+        duration_str = timedelta_to_string(td)
         return (duration_str, td)
 
     @staticmethod
@@ -436,7 +436,7 @@ class SchedulerJobInfo:
             if value in ['', 'None']:
                 return None
         elif str(type(value)) != "<class 'float'>":
-            raise ValueError(f"Invalid type ({type(value)}) for '{value}'")
+            raise ValueError(f"Invalid type for value: {value} has type '{type(value)}', expected int, float, or str")
         return int(float(value))
 
     @staticmethod
@@ -457,110 +457,108 @@ class SchedulerJobInfo:
             if value in ['', 'None']:
                 return None
         else:
-            raise ValueError(f"Invalid type ({type(value)}) for '{value}'")
+            raise ValueError(f"Invalid type for value: {value} has type '{type(value)}', expected float or str")
         return float(value)
 
-    @staticmethod
-    def timestamp_to_datetime(timestamp:int) -> datetime:
-        '''
-        Convert timestamp to a datetime object.
 
-        Args:
-            timestamp (int): Timestamp representing the number of seconds since the epoch.
+def timestamp_to_datetime(timestamp) -> datetime:
+    '''
+    Convert timestamp to a datetime object.
 
-        Raises:
-            ValueError: If timestamp is the wrong type or can't be converted to a datetime object.
+    Args:
+        timestamp (int or float): Timestamp representing the number of seconds since the epoch.
 
-        Returns:
-            datetime.datetime: The timestamp converted to a datetime object.
-        '''
-        if timestamp == None:
-            return timestamp
-        if str(type(timestamp)) != "<class 'int'>":
-            raise ValueError( 'Expected timestamp to be int. Got {type(timestamp)}')
-        return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    Raises:
+        ValueError: If timestamp is the wrong type or can't be converted to a datetime object.
 
-    @staticmethod
-    def str_to_datetime(string_value:str) -> datetime:
-        '''
-        Convert an ISO format DateTime string to a datetime.datetime object.
+    Returns:
+        datetime.datetime: The timestamp converted to a datetime object.
+    '''
+    if timestamp == None:
+        return timestamp
+    if str(type(timestamp)) not in ["<class 'int'>", "<class 'float'>"]:
+        raise ValueError(f"Invalid type for timestamp: {timestamp} has type '{type(timestamp)}', expected int or float")
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
-        Args:
-            string_value: ISO format TimeDate: `YYYY-MM-DDTHH:MM::SS`
+def str_to_datetime(string_value: str) -> datetime:
+    '''
+    Convert an ISO format DateTime string to a datetime.datetime object.
 
-        Raises:
-            ValueError: if string_value is in the wrong format or type.
+    Args:
+        string_value: ISO format TimeDate: `YYYY-MM-DDTHH:MM::SS`
 
-        Returns:
-            datetime.datetime: datetime object created from the string.
-        '''
-        if str(type(string_value)) != "<class 'str'>":
-            raise ValueError(f'Expected timestamp to be str. Got {type(string_value)}')
-        dt = datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT).replace(tzinfo=timezone.utc)
-        return dt
+    Raises:
+        ValueError: if string_value is in the wrong format or type.
 
-    @staticmethod
-    def datetime_to_str(dt: datetime) -> str:
-        '''
-        Convert a datetime.datetime object to an ISO format string.
+    Returns:
+        datetime.datetime: datetime object created from the string.
+    '''
+    if str(type(string_value)) != "<class 'str'>":
+        raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
+    return datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT).replace(tzinfo=timezone.utc)
 
-        Args:
-            dt: datetime.datetime object
+def datetime_to_str(dt: datetime) -> str:
+    '''
+    Convert a datetime.datetime object to an ISO format string.
 
-        Raises:
-            AttributeError: If `dt` is not a datetime object
-        Returns:
-        '''
-        return dt.strftime(SchedulerJobInfo.DATETIME_FORMAT)
+    Args:
+        dt: datetime.datetime object
 
-    @staticmethod
-    def str_to_timedelta(string_value: str) -> timedelta:
-        '''
-        Convert a str representing a timedelta to a datetime.timedelta object.
+    Raises:
+        AttributeError: If `dt` is not a datetime object
+    Returns:
+    '''
+    if str(type(dt)) != "<class 'datetime.datetime'>":
+        raise ValueError(f"Invalid type for dt: {dt} has type '{type(dt)}', expected datetime")
+    return dt.strftime(SchedulerJobInfo.DATETIME_FORMAT)
 
-        Args:
-            string_value: Duration should be of the following format: [DD-[HH:]]MM:SS
+def str_to_timedelta(string_value: str) -> timedelta:
+    '''
+    Convert a str representing a timedelta to a datetime.timedelta object.
 
-        Raises:
-            ValueError: If `string_value` is not a str.
+    Args:
+        string_value: Duration should be of the following format: [DD-[HH:]]MM:SS
 
-        Returns:
-            datetime.timedelta: A timedelta object
-        '''
-        if str(type(string_value)) != "<class 'str'>":
-            raise ValueError(f"string_value {string_value} is of type {type(string_value)}")
-        values = string_value.split(':')
-        seconds = float(values.pop())
-        minutes = int(values.pop())
-        hours = 0
-        days = 0
-        if values:
-            values = values.pop().split('-')
-            hours = int(values.pop())
-        if values:
-            days = int(values.pop())
-        td = timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
-        return td
+    Raises:
+        ValueError: If `string_value` is not a str.
 
-    @staticmethod
-    def timedelta_to_string(td:timedelta) -> str:
-        '''
-        Convert a datetime.timedelta object to a duration string.
+    Returns:
+        datetime.timedelta: A timedelta object
+    '''
+    if str(type(string_value)) != "<class 'str'>":
+        raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
+    values = string_value.split(':')
+    seconds = float(values.pop())
+    minutes = int(values.pop())
+    hours = 0
+    days = 0
+    if values:
+        values = values.pop().split('-')
+        hours = int(values.pop())
+    if values:
+        days = int(values.pop())
+    return timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
 
-        Args:
-            td: datetime.timedelta object
+def timedelta_to_string(td: timedelta) -> str:
+    '''
+    Convert a datetime.timedelta object to a duration string.
 
-        Raises:
-            AttributeError: If `td` is not a datetime.timedelta object
-        Returns:
-            str: Duration in the following format: [DD-[HH:]]MM:SS
-        '''
-        s = ''
-        seconds = td.total_seconds()
-        days = int(seconds / SchedulerJobInfo.DAY_SECONDS)
-        seconds = seconds - (days * SchedulerJobInfo.DAY_SECONDS)
-        td = td - timedelta(days=days)
-        if days:
-            s += f"{days:02}-"
-        s += f"{str(td)}"
-        return s
+    Args:
+        td: datetime.timedelta object
+
+    Raises:
+        AttributeError: If `td` is not a datetime.timedelta object
+    Returns:
+        str: Duration in the following format: [DD-[HH:]]MM:SS
+    '''
+    if str(type(td)) != "<class 'datetime.timedelta'>":
+        raise ValueError(f"Invalid type for td: {td} has type '{type(td)}', expected datetime")
+    s = ''
+    seconds = td.total_seconds()
+    days = int(seconds / SchedulerJobInfo.DAY_SECONDS)
+    seconds = seconds - (days * SchedulerJobInfo.DAY_SECONDS)
+    td = td - timedelta(days=days)
+    if days:
+        s += f"{days:02}-"
+    s += f"{str(td)}"
+    return s

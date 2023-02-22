@@ -27,7 +27,7 @@ import operator
 from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
 import re
-from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
+from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, str_to_datetime, timestamp_to_datetime
 from SchedulerLogParser import SchedulerLogParser
 from sys import exit
 import yaml
@@ -39,6 +39,10 @@ logger_streamHandler.setFormatter(logger_formatter)
 logger.addHandler(logger_streamHandler)
 logger.propagate = False
 logger.setLevel(logging.INFO)
+
+SECONDS_PER_MINUTE = 60
+MINUTES_PER_HOUR = 60
+SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR
 
 class JobAnalyzerBase:
 
@@ -68,24 +72,25 @@ class JobAnalyzerBase:
             logger.info(f"Output directory ({self._output_dir}) doesn't exist, creating")
             makedirs(self._output_dir)
 
-        # Configure logfile
-        self.timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        log_file_name = path.join(self._output_dir, f"JobAnalyzer-{self.timestamp_str}.log")
-        logger_FileHandler = logging.FileHandler(filename=log_file_name)
-        logger_FileHandler.setFormatter(logger_formatter)
-        logger.addHandler(logger_FileHandler)
-
         logger.info(f"Loading configuration from {config_filename}.")
         self.config = JobAnalyzerBase.read_configuration(config_filename)
 
         if self._starttime:
-            self._starttime_dt = SchedulerJobInfo.str_to_datetime(self._starttime)
+            self._starttime_dt = str_to_datetime(self._starttime)
+            self._first_hour = int(self._starttime_dt.timestamp() // SECONDS_PER_HOUR)
+            logger.info(f"Start time: {self._starttime_dt}")
+            logger.info(f"First hour: {self._first_hour} = {timestamp_to_datetime(self._first_hour * SECONDS_PER_HOUR)}")
         else:
             self._starttime_dt = None
+            self._first_hour = None
         if self._endtime:
-            self._endtime_dt = SchedulerJobInfo.str_to_datetime(self._endtime)
+            self._endtime_dt = str_to_datetime(self._endtime)
+            self._last_hour = int(self._endtime_dt.timestamp() // SECONDS_PER_HOUR)
+            logger.info(f"End   time: {self._endtime_dt}")
+            logger.info(f"Last  hour: {self._last_hour} = {timestamp_to_datetime(self._last_hour * SECONDS_PER_HOUR)}")
         else:
             self._endtime_dt = None
+            self._last_hour = None
 
         if queue_filters != None:
             self.config['Jobs']['QueueRegExps'] = queue_filters.split(',')

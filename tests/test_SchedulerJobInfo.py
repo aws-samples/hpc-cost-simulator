@@ -98,29 +98,29 @@ class TestSchedulerJobInfo:
     @pytest.mark.order(order)
     def test_str_to_datetime(self):
         # str_to_datetime used by constructor to compare different times to get durations
-        assert(SchedulerJobInfo.SchedulerJobInfo.datetime_to_str(SchedulerJobInfo.SchedulerJobInfo.str_to_datetime('1970-01-01T00:00:00')) == '1970-01-01T00:00:00')
+        assert(SchedulerJobInfo.datetime_to_str(SchedulerJobInfo.str_to_datetime('1970-01-01T00:00:00')) == '1970-01-01T00:00:00')
 
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_datetime(None)
+            SchedulerJobInfo.str_to_datetime(None)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_datetime(-1)
+            SchedulerJobInfo.str_to_datetime(-1)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_datetime(0)
+            SchedulerJobInfo.str_to_datetime(0)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_datetime('1970-01')
+            SchedulerJobInfo.str_to_datetime('1970-01')
 
     order += 1
     @pytest.mark.order(order)
     def test_datetime_to_str(self):
         # Valid cases tested by test_str_to_datetime
-        with pytest.raises(AttributeError):
-            SchedulerJobInfo.SchedulerJobInfo.datetime_to_str(None)
-        with pytest.raises(AttributeError):
-            SchedulerJobInfo.SchedulerJobInfo.datetime_to_str(-1)
-        with pytest.raises(AttributeError):
-            SchedulerJobInfo.SchedulerJobInfo.datetime_to_str(0)
-        with pytest.raises(AttributeError):
-            SchedulerJobInfo.SchedulerJobInfo.datetime_to_str('')
+        with pytest.raises(ValueError):
+            SchedulerJobInfo.datetime_to_str(None)
+        with pytest.raises(ValueError):
+            SchedulerJobInfo.datetime_to_str(-1)
+        with pytest.raises(ValueError):
+            SchedulerJobInfo.datetime_to_str(0)
+        with pytest.raises(ValueError):
+            SchedulerJobInfo.datetime_to_str('')
 
     order += 1
     @pytest.mark.order(order)
@@ -128,17 +128,17 @@ class TestSchedulerJobInfo:
         # This function is already tested by test_fix_duration which converts string to timedelta and back again to fix formatting.
         # Test invalid types and values
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta([])
+            SchedulerJobInfo.str_to_timedelta([])
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta(-1)
+            SchedulerJobInfo.str_to_timedelta(-1)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta(0)
+            SchedulerJobInfo.str_to_timedelta(0)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta(1)
+            SchedulerJobInfo.str_to_timedelta(1)
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta('abc')
+            SchedulerJobInfo.str_to_timedelta('abc')
         with pytest.raises(ValueError):
-            SchedulerJobInfo.SchedulerJobInfo.str_to_timedelta('0-0')
+            SchedulerJobInfo.str_to_timedelta('0-0')
 
     order += 1
     @pytest.mark.order(order)
