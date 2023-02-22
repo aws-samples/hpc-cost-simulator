@@ -10,7 +10,7 @@ from MemoryUtils import mem_string_to_float, mem_string_to_int, MEM_GB
 from os import environ, makedirs, path, remove
 from os.path import dirname, realpath
 import re
-from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo
+from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, str_to_datetime, str_to_timedelta
 from SchedulerLogParser import logger as SchedulerLogParser_logger, SchedulerLogParser
 import subprocess # nosec
 from subprocess import CalledProcessError, check_output # nosec
@@ -270,10 +270,10 @@ class SlurmLogParser(SchedulerLogParser):
                             field_value = mem_string_to_float(field_value)
                         elif field_format == 'dt':
                             # Check value by trying to convert to datetime
-                            SchedulerJobInfo.str_to_datetime(field_value)
+                            str_to_datetime(field_value)
                         elif field_format == 'td':
                             # Check value by trying to convert to timedelta
-                            SchedulerJobInfo.str_to_timedelta(field_value)
+                            str_to_timedelta(field_value)
                         elif field_format == 's':
                             pass
                         else:
