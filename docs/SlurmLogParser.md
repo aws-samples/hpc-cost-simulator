@@ -2,6 +2,12 @@
 
 [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) parses the Slurm Accounting Database records, and its output is then used by [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) for cost simulation.
 
+
+## Video walkthrough
+The fastest way to learn about using HPC Cost Simulator SchedMD Slurm is to watch this short walkthrough.
+
+[![Video walkthrough - SchedMD Slurm](https://img.youtube.com/vi/7rv6vUD_B_ctM3mdyviDQM/0.jpg)](http://www.youtube.com/watch?v=tM3mdyviDQM "HPC Cost Simulator - SchedMD Slurm")
+
 ## Modes of running the tool
 [SlurmLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py) has 2 modes of operation, online and offline.
 
