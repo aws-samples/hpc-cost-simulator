@@ -15,11 +15,8 @@ The fastest way to learn about using JobAnalyzer.py to simulate your HPC Costsis
 
 [![Video walkthrough - Running the Cost Simulation](https://img.youtube.com/vi/mzE382N0v9A/0.jpg)](http://www.youtube.com/watch?v=mzE382N0v9A "HPC Cost Simulator - Running the cost simulation")
 
-
-Once you've run the tools, you'll see the `hourly_stats.xlsx` file under your output subdirectory. To learn how to use this file and apply cost optimizaitons watch this video walkthrough.
-
-[![Video walkthrough - Analyzing the results ](https://img.youtube.com/vi/CMp7pjxxkDA/0.jpg)](http://www.youtube.com/watch?v=CMp7pjxxkDA "HPC Cost Simulator - Analyzing the results ")
-
+Once you've run the tools, you'll see the `hourly_stats.xlsx` file under your output subdirectory.
+To learn how to use this file and apply cost optimizaitons, go to the [Outputs](https://github.com/aws-samples/hpc-cost-simulator/blob/main/docs/Output.md) documenration page and watch the video walkthrough there.
 
 ## Prerequisites
 
