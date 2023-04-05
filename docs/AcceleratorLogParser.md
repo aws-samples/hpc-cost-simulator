@@ -3,10 +3,9 @@
 The [AcceleratorLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/AcceleratorLogParser.py) script queries the Accelerator results database, parses the job completion data, and saves it into a CSV file.
 
 ## Video walkthrough
-The fasterest way to learn about using HPC Cost Simulator with Altair's Accelerator (NC) is to watch this short walkthrough.
+The fastest way to learn about using HPC Cost Simulator with Altair's Accelerator (NC) is to watch this short walkthrough.
 
-{% include youtube.html id="pEsDqFWrabs" %}
-
+[![Video walkthrough - Altair Accelerator](https://img.youtube.com/vi/pEsDqFWrabs/0.jpg)](http://www.youtube.com/watch?v=pEsDqFWrabs "HPC Cost Simulator - Altair Accelerator")
 
 ## Collecting the data
 To see data collection command syntax, run:
