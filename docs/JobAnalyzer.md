@@ -9,6 +9,15 @@ It produces an hour-by-hour cost simulation, placing the output in the `output/`
 
 For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend performing the analysis in separate stages (see "How data is analyzed") in [index.md](index.md).
 
+
+## Video walkthrough
+The fastest way to learn about using JobAnalyzer.py to simulate your HPC Costsis to watch this short walkthrough.
+
+[![Video walkthrough - Running the Cost Simulation](https://img.youtube.com/vi/mzE382N0v9A/0.jpg)](http://www.youtube.com/watch?v=mzE382N0v9A "HPC Cost Simulator - Running the cost simulation")
+
+Once you've run the tools, you'll see the `hourly_stats.xlsx` file under your output subdirectory.
+To learn how to use this file and apply cost optimizaitons, go to the [Outputs](https://github.com/aws-samples/hpc-cost-simulator/blob/main/docs/Output.md) documenration page and watch the video walkthrough there.
+
 ## Prerequisites
 
 [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py) relies on:

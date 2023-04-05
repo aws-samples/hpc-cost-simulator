@@ -1,5 +1,11 @@
 # Output
 
+## Video walkthrough
+To learn how to use the `hourly_stats.xlsx` file and apply cost optimizaitons,  watch the video walkthrough there.
+
+[![Video walkthrough - Analyzing the results ](https://img.youtube.com/vi/CMp7pjxxkDA/0.jpg)](http://www.youtube.com/watch?v=CMp7pjxxkDA "HPC Cost Simulator - Analyzing the results ")
+
+## output files
 HCS generates multiple output files:
 
 |File Name                          | Quantity   |Description                                                                                                                     |
