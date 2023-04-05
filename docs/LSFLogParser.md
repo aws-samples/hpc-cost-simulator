@@ -2,6 +2,12 @@
 
 The [LSFLogParser.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py) script parses the `lsb.acct*` files in the LSF `logfile` directory and writes the parsed data into a CSV file that can be read by [JobAnalyzer.py](https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py).
 
+
+## Video walkthrough
+The fastest way to learn about using HPC Cost Simulator with IMB LSF is to watch this short walkthrough.
+
+[![Video walkthrough - IBM LSF](https://img.youtube.com/vi/7rv6vUD_B_c/0.jpg)](http://www.youtube.com/watch?v=7rv6vUD_B_c "HPC Cost Simulator - IBM LSF")
+
 ## Parsing the accounting log files
 
 First you must source the setup script to make sure that all required packages are installed.
