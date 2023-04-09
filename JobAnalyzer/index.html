@@ -100,6 +100,10 @@
             
             <li class="nav-item" data-level="1"><a href="#job-analyzer" class="nav-link">Job Analyzer</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#video-walkthrough" class="nav-link">Video walkthrough</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#prerequisites" class="nav-link">Prerequisites</a>
               <ul class="nav flex-column">
               </ul>
@@ -154,7 +158,12 @@
 <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a> or
 <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/SlurmLogParser.py">SlurmLogParser.py</a></p>
 <p>It produces an hour-by-hour cost simulation, placing the output in the <code>output/</code> subfolder (by default).</p>
-<p>For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend performing the analysis in separate stages (see "How data is analyzed") in <a href="../">index.md</a>.</p>
+<p>For convenience, the analyzer can call the parser and analyze the output in 1 step, however we recommend performing the analysis in separate stages (see "How data is analyzed") in <a href="..">index.md</a>.</p>
+<h2 id="video-walkthrough">Video walkthrough</h2>
+<p>The fastest way to learn about using JobAnalyzer.py to simulate your HPC Costsis to watch this short walkthrough.</p>
+<p><a href="http://www.youtube.com/watch?v=mzE382N0v9A" title="HPC Cost Simulator - Running the cost simulation"><img alt="Video walkthrough - Running the Cost Simulation" src="https://img.youtube.com/vi/mzE382N0v9A/0.jpg" /></a></p>
+<p>Once you've run the tools, you'll see the <code>hourly_stats.xlsx</code> file under your output subdirectory.
+To learn how to use this file and apply cost optimizaitons, go to the <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/docs/Output.md">Outputs</a> documenration page and watch the video walkthrough there.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p><a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a> relies on:</p>
 <ol>

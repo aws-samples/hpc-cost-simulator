@@ -100,6 +100,10 @@
             
             <li class="nav-item" data-level="1"><a href="#ibm-spectrum-lsf" class="nav-link">IBM Spectrum LSF</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#video-walkthrough" class="nav-link">Video walkthrough</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-level="2"><a href="#parsing-the-accounting-log-files" class="nav-link">Parsing the accounting log files</a>
               <ul class="nav flex-column">
               </ul>
@@ -121,6 +125,9 @@
 
 <h1 id="ibm-spectrum-lsf">IBM Spectrum LSF</h1>
 <p>The <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/LSFLogParser.py">LSFLogParser.py</a> script parses the <code>lsb.acct*</code> files in the LSF <code>logfile</code> directory and writes the parsed data into a CSV file that can be read by <a href="https://github.com/aws-samples/hpc-cost-simulator/blob/main/JobAnalyzer.py">JobAnalyzer.py</a>.</p>
+<h2 id="video-walkthrough">Video walkthrough</h2>
+<p>The fastest way to learn about using HPC Cost Simulator with IMB LSF is to watch this short walkthrough.</p>
+<p><a href="http://www.youtube.com/watch?v=7rv6vUD_B_c" title="HPC Cost Simulator - IBM LSF"><img alt="Video walkthrough - IBM LSF" src="https://img.youtube.com/vi/7rv6vUD_B_c/0.jpg" /></a></p>
 <h2 id="parsing-the-accounting-log-files">Parsing the accounting log files</h2>
 <p>First you must source the setup script to make sure that all required packages are installed.</p>
 <pre><code>source setup.sh
