@@ -239,21 +239,21 @@ class TestModelComputeCluster(unittest.TestCase):
             print(json.dumps(compute_cluster_model._best_instance_family, indent=4))
             exp_best_instance_families = {
                 'OnDemand': {
-                    4: 'c6a',
+                    4: "c6a",
                     8: "m6a",
-                    16: "r5",
+                    16: "r6a",
                     32: "x2idn",
                     64: "x2iezn"
                 },
                 "spot": {
-                    4: "c5d",
-                    8: "m6id",
+                    4: "c5",
+                    8: "m5",
                     16: "r5",
                     32: "x2idn",
                     64: "x2iezn"
                 }
             }
-            self.assertDictEqual(compute_cluster_model._best_instance_family, exp_best_instance_families)
+            self.assertDictEqual(compute_cluster_model._best_instance_family, exp_best_instance_families, compute_cluster_model._best_instance_family)
         except:
             raise
         finally:

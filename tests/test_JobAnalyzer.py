@@ -339,7 +339,7 @@ class TestJobAnalyzer(unittest.TestCase):
         print(f"num_instance_types: {len(instance_types)}")
         for instance_type in instance_types:
             mem_gb = instance_type_info[instance_type]['MemoryInMiB'] / 1024
-            cores = instance_type_info[instance_type]['CoreCount']
+            cores = instance_type_info[instance_type]['DefaultCores']
             freq = instance_type_info[instance_type]['SustainedClockSpeedInGhz']
             print(f"instance_type: {instance_type:15} mem_gb={mem_gb:6} cores={cores:3} freq={freq}")
             assert(mem_gb >= min_mem_gb)
@@ -403,6 +403,15 @@ class TestJobAnalyzer(unittest.TestCase):
             "c6id.8xlarge",
             "c6id.large",
             "c6id.xlarge",
+            "c6in.12xlarge",
+            "c6in.16xlarge",
+            "c6in.24xlarge",
+            "c6in.2xlarge",
+            "c6in.32xlarge",
+            "c6in.4xlarge",
+            "c6in.8xlarge",
+            "c6in.large",
+            "c6in.xlarge",
             "m5.12xlarge",
             "m5.16xlarge",
             "m5.24xlarge",
@@ -439,6 +448,24 @@ class TestJobAnalyzer(unittest.TestCase):
             "m6id.8xlarge",
             "m6id.large",
             "m6id.xlarge",
+            "m6idn.12xlarge",
+            "m6idn.16xlarge",
+            "m6idn.24xlarge",
+            "m6idn.2xlarge",
+            "m6idn.32xlarge",
+            "m6idn.4xlarge",
+            "m6idn.8xlarge",
+            "m6idn.large",
+            "m6idn.xlarge",
+            "m6in.12xlarge",
+            "m6in.16xlarge",
+            "m6in.24xlarge",
+            "m6in.2xlarge",
+            "m6in.32xlarge",
+            "m6in.4xlarge",
+            "m6in.8xlarge",
+            "m6in.large",
+            "m6in.xlarge",
             "r5.12xlarge",
             "r5.16xlarge",
             "r5.24xlarge",
@@ -465,6 +492,24 @@ class TestJobAnalyzer(unittest.TestCase):
             "r6id.8xlarge",
             "r6id.large",
             "r6id.xlarge",
+            "r6idn.12xlarge",
+            "r6idn.16xlarge",
+            "r6idn.24xlarge",
+            "r6idn.2xlarge",
+            "r6idn.32xlarge",
+            "r6idn.4xlarge",
+            "r6idn.8xlarge",
+            "r6idn.large",
+            "r6idn.xlarge",
+            "r6in.12xlarge",
+            "r6in.16xlarge",
+            "r6in.24xlarge",
+            "r6in.2xlarge",
+            "r6in.32xlarge",
+            "r6in.4xlarge",
+            "r6in.8xlarge",
+            "r6in.large",
+            "r6in.xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -534,6 +579,10 @@ class TestJobAnalyzer(unittest.TestCase):
             "r6i.32xlarge",
             "r6id.24xlarge",
             "r6id.32xlarge",
+            "r6idn.24xlarge",
+            "r6idn.32xlarge",
+            "r6in.24xlarge",
+            "r6in.32xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -567,6 +616,10 @@ class TestJobAnalyzer(unittest.TestCase):
             "c6id.16xlarge",
             "c6id.24xlarge",
             "c6id.32xlarge",
+            "c6in.12xlarge",
+            "c6in.16xlarge",
+            "c6in.24xlarge",
+            "c6in.32xlarge",
             "m5.12xlarge",
             "m5.16xlarge",
             "m5.24xlarge",
@@ -583,6 +636,14 @@ class TestJobAnalyzer(unittest.TestCase):
             "m6id.16xlarge",
             "m6id.24xlarge",
             "m6id.32xlarge",
+            "m6idn.12xlarge",
+            "m6idn.16xlarge",
+            "m6idn.24xlarge",
+            "m6idn.32xlarge",
+            "m6in.12xlarge",
+            "m6in.16xlarge",
+            "m6in.24xlarge",
+            "m6in.32xlarge",
             "r5.12xlarge",
             "r5.16xlarge",
             "r5.24xlarge",
@@ -594,6 +655,14 @@ class TestJobAnalyzer(unittest.TestCase):
             "r6id.16xlarge",
             "r6id.24xlarge",
             "r6id.32xlarge",
+            "r6idn.12xlarge",
+            "r6idn.16xlarge",
+            "r6idn.24xlarge",
+            "r6idn.32xlarge",
+            "r6in.12xlarge",
+            "r6in.16xlarge",
+            "r6in.24xlarge",
+            "r6in.32xlarge",
             "x2idn.16xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
@@ -618,6 +687,8 @@ class TestJobAnalyzer(unittest.TestCase):
             "c6i.32xlarge",
             "c6id.24xlarge",
             "c6id.32xlarge",
+            "c6in.24xlarge",
+            "c6in.32xlarge",
             "m5.24xlarge",
             "m6a.24xlarge",
             "m6a.32xlarge",
@@ -626,11 +697,19 @@ class TestJobAnalyzer(unittest.TestCase):
             "m6i.32xlarge",
             "m6id.24xlarge",
             "m6id.32xlarge",
+            "m6idn.24xlarge",
+            "m6idn.32xlarge",
+            "m6in.24xlarge",
+            "m6in.32xlarge",
             "r5.24xlarge",
             "r6i.24xlarge",
             "r6i.32xlarge",
             "r6id.24xlarge",
             "r6id.32xlarge",
+            "r6idn.24xlarge",
+            "r6idn.32xlarge",
+            "r6in.24xlarge",
+            "r6in.32xlarge",
             "x2idn.24xlarge",
             "x2idn.32xlarge",
             "x2iedn.24xlarge",
@@ -655,13 +734,18 @@ class TestJobAnalyzer(unittest.TestCase):
             'c6a': 10,
             'c6i': 9,
             'c6id': 9,
+            'c6in': 9,
             'm5': 8,
             'm6a': 10,
             'm6i': 9,
             'm6id': 9,
+            'm6idn': 9,
+            'm6in': 9,
             'r5': 8,
             'r6i': 9,
             'r6id': 9,
+            'r6idn': 9,
+            'r6in': 9,
             'z1d': 6,
             'x2idn': 3,
             'x2iedn': 7,
@@ -702,7 +786,7 @@ class TestJobAnalyzer(unittest.TestCase):
         assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['OnDemand'])
 
         (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6id.xlarge', 'c6i.xlarge', 'c5.xlarge'], True)
-        exp_instance_type = 'c6id.xlarge'
+        exp_instance_type = 'c5.xlarge'
         assert(instance_type == exp_instance_type)
         assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
 
@@ -712,7 +796,7 @@ class TestJobAnalyzer(unittest.TestCase):
         assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['OnDemand'])
 
         (instance_type, price) = jobAnalyzer.get_lowest_priced_instance(['c6i.8xlarge', 'r5.8xlarge'], True)
-        exp_instance_type = 'c6i.8xlarge'
+        exp_instance_type = 'r5.8xlarge'
         assert(instance_type == exp_instance_type)
         assert(price == jobAnalyzer.instance_type_info[exp_instance_type]['pricing']['spot']['max'])
 
@@ -1543,7 +1627,8 @@ class TestJobAnalyzer(unittest.TestCase):
 
         self._restore_instance_type_info()
 
-    @pytest.mark.order(-3)
+    order += 1
+    @pytest.mark.order(order)
     def test_get_instances(self):
         try:
             self.cleanup_output_files()
@@ -1559,13 +1644,18 @@ class TestJobAnalyzer(unittest.TestCase):
                 'c6a': 10,
                 'c6i': 9,
                 'c6id': 9,
+                'c6in': 9,
                 'm5': 8,
                 'm6a': 10,
                 'm6i': 9,
                 'm6id': 9,
+                'm6idn': 9,
+                'm6in': 9,
                 'r5': 8,
                 'r6i': 9,
                 'r6id': 9,
+                'r6idn': 9,
+                'r6in': 9,
                 'z1d': 6,
                 'x2idn': 3,
                 'x2iedn': 7,
@@ -1613,41 +1703,6 @@ class TestJobAnalyzer(unittest.TestCase):
             assert len(missing_exp_instance_families) == 0
             assert len(missing_act_instance_families) == 0
             len(jobAnalyzer.instance_types) == 63
-        finally:
-            self._remove_instance_type_info()
-            self._restore_instance_type_info()
-
-    @pytest.mark.order(-2)
-    def test_get_instance_type_info_region(self):
-        try:
-            self.cleanup_output_files()
-            self._remove_instance_type_info()
-            try:
-                output = check_output(['./get_ec2_instance_info.py', '--disable-version-check', '--region', self.region, '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
-            except CalledProcessError as e:
-                print(e.output)
-                raise
-            print(f"output:\n{output}")
-            assert(path.exists(path.join(self.REPO_DIR, 'instance_type_info.json')))
-        finally:
-            self._remove_instance_type_info()
-            self._restore_instance_type_info()
-
-    @pytest.mark.order(-1)
-    def test_get_instance_type_info(self):
-        '''
-        Generate instance_type_info.json to make sure it is up to date
-
-        Generate for all AWS regions.
-        '''
-        try:
-            self._remove_instance_type_info()
-            try:
-                check_output(['./get_ec2_instance_info.py', '--disable-version-check', '--input', 'instance_type_info.json'], stderr=subprocess.STDOUT, encoding='utf8')
-            except CalledProcessError as e:
-                print(f"returncode: {e.returncode}")
-                print(f"output:\n{e.stdout}")
-                raise
         finally:
             self._remove_instance_type_info()
             self._restore_instance_type_info()

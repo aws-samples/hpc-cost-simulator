@@ -200,7 +200,7 @@ class JobAnalyzer(JobAnalyzerBase):
 
                     end_time = start_time + job_runtime_minutes * 60
                     total_hourly_rate = on_demand_rate * num_hosts
-                    num_cores = self.instance_type_info[instance_type]['CoreCount']
+                    num_cores = self.instance_type_info[instance_type]['DefaultCores']
 
                     logger.debug(f"    job {job_id}: line {line_number}")
                     logger.debug(f"        num_hosts={num_hosts}")
@@ -423,7 +423,7 @@ class JobAnalyzer(JobAnalyzerBase):
                 self._init_hourly_stats_hour(relative_hour)
                 for instance_family, instance_family_on_demand_cost in instance_family_on_demand_costs.items():
                     instance_type = self.instance_family_info[instance_family]['MaxInstanceType']
-                    coreCount = self.instance_type_info[instance_type]['CoreCount']
+                    coreCount = self.instance_type_info[instance_type]['DefaultCores']
                     od_rate = self.instance_type_info[instance_type]['pricing']['OnDemand']/coreCount
                     core_hours = instance_family_on_demand_cost / od_rate
                     self.hourly_stats[relative_hour]['on_demand'][instance_family] = instance_family_on_demand_costs[instance_family]
@@ -650,7 +650,7 @@ class JobAnalyzer(JobAnalyzerBase):
             instance_family_rows[instance_family] = instance_family_row
             excel_instance_info_ws.cell(row=instance_family_row, column=1, value=instance_family)
             instance_type = self.instance_family_info[instance_family]['MaxInstanceType']
-            coreCount = self.instance_type_info[instance_type]['CoreCount']
+            coreCount = self.instance_type_info[instance_type]['DefaultCores']
             od_rate = self.instance_type_info[instance_type]['pricing']['OnDemand']/coreCount
             excel_instance_info_ws.cell(row=instance_family_row, column=instance_family_cols['OD Rate'], value=od_rate)
             excel_instance_info_ws.cell(row=instance_family_row, column=instance_family_cols['ESP Rate'], value=self.instance_type_info[instance_type]['pricing']['EC2SavingsPlan'][esp_term]/coreCount)

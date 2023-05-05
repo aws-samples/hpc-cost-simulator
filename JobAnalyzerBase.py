@@ -202,8 +202,8 @@ class JobAnalyzerBase:
         except Exception as e:
             logger.exception(f'Failed to get EC2 instance types: {e}')
             exit(1)
-        self.instance_type_info = self.eC2InstanceTypeInfo.instance_type_info[self.region]['instance_types']
-        self.instance_family_info = self.eC2InstanceTypeInfo.instance_type_info[self.region]['instance_families']
+        self.instance_type_info = self.eC2InstanceTypeInfo.instance_type_and_family_info[self.region]['instance_types']
+        self.instance_family_info = self.eC2InstanceTypeInfo.instance_type_and_family_info[self.region]['instance_families']
         self.instance_types = {}
         for instance_type in self.instance_type_info:
             if self.instance_type_info[instance_type]['Hypervisor'] != 'nitro':
@@ -238,7 +238,7 @@ class JobAnalyzerBase:
             info = self.instance_type_info[instance_type]
             if (info['MemoryInMiB'] / 1024) >= required_ram_GiB:
                 if info['SustainedClockSpeedInGhz'] >= required_speed:
-                    if info['CoreCount'] >= required_cores:
+                    if info['DefaultCores'] >= required_cores:
                         relevant_instances.append(instance_type)
 
         logger.debug (f'instances with {required_cores} cores, {required_ram_GiB} GiB RAM and {required_speed} GhZ: {relevant_instances}')
