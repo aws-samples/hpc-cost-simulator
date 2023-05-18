@@ -110,7 +110,7 @@ class ComputeClusterModel(JobAnalyzerBase):
 
         # Sort the instance types in instance_family_info by CoreCount
         for instance_family in self.instance_family_info:
-            self.instance_family_info[instance_family]['instance_types'].sort(key=lambda instance_family: self.instance_type_info[instance_family]['CoreCount'])
+            self.instance_family_info[instance_family]['instance_types'].sort(key=lambda instance_family: self.instance_type_info[instance_family]['DefaultCores'])
 
         self._find_best_instance_families()
 
@@ -245,7 +245,7 @@ class ComputeClusterModel(JobAnalyzerBase):
             self._best_instance_family[pricing_option] = {}
             for instance_family in self._instance_families:
                 instance_type = self.instance_family_info[instance_family]['MaxInstanceType']
-                number_of_cores = self.instance_type_info[instance_type]['CoreCount']
+                number_of_cores = self.instance_type_info[instance_type]['DefaultCores']
                 memory_in_gb = self.instance_type_info[instance_type]['MemoryInMiB'] / 1024
                 memory_per_core = int(round(memory_in_gb / number_of_cores, 0))
                 cost = self._get_instance_type_pricing(instance_type, pricing_option)
@@ -496,7 +496,7 @@ class ComputeClusterModel(JobAnalyzerBase):
         for instance_type in self.instance_types:
             if (self.instance_type_info[instance_type]['MemoryInMiB']/1024) < job.max_mem_gb:
                 continue
-            if (self.instance_type_info[instance_type]['CoreCount']) < job.num_cores:
+            if (self.instance_type_info[instance_type]['DefaultCores']) < job.num_cores:
                 continue
             if pricing_option not in self.instance_type_info[instance_type]['pricing']:
                 continue
@@ -524,7 +524,7 @@ class ComputeClusterModel(JobAnalyzerBase):
         assert instance_type in self.instance_types, f"{instance_type} not in {self.instance_types}" # nosec
         assert pricing_option in ComputeInstance.PRICING_OPTIONS, f"{pricing_option} not in {ComputeInstance.PRICING_OPTIONS}" # nosec
         instance_type_info = self.instance_type_info[instance_type]
-        compute_instance = ComputeInstance('EC2', instance_type, instance_type_info['CoreCount'], instance_type_info['ThreadsPerCore'], ht_enabled=False, mem_gb=instance_type_info['MemoryInMiB']/1024, pricing_option=pricing_option, hourly_cost=self._get_instance_type_pricing(instance_type, pricing_option), start_time=self.current_time, running_time=self.current_time + self._boot_time_td)
+        compute_instance = ComputeInstance('EC2', instance_type, instance_type_info['DefaultCores'], instance_type_info['DefaultThreadsPerCore'], ht_enabled=False, mem_gb=instance_type_info['MemoryInMiB']/1024, pricing_option=pricing_option, hourly_cost=self._get_instance_type_pricing(instance_type, pricing_option), start_time=self.current_time, running_time=self.current_time + self._boot_time_td)
         logger.debug(f"{self.current_time}: Started {compute_instance}")
         self._add_instance(compute_instance)
         return compute_instance
@@ -963,7 +963,7 @@ class ComputeClusterModel(JobAnalyzerBase):
             self._instance_family_rows[instance_family] = instance_family_row
             excel_instance_info_ws.cell(row=instance_family_row, column=1, value=instance_family)
             instance_type = self.instance_family_info[instance_family]['MaxInstanceType']
-            coreCount = self.instance_type_info[instance_type]['CoreCount']
+            coreCount = self.instance_type_info[instance_type]['DefaultCores']
             od_rate = self.instance_type_info[instance_type]['pricing']['OnDemand']/coreCount
             excel_instance_info_ws.cell(row=instance_family_row, column=instance_family_cols['OD Rate'], value=od_rate)
             excel_instance_info_ws.cell(row=instance_family_row, column=instance_family_cols['ESP Rate'], value=self.instance_type_info[instance_type]['pricing']['EC2SavingsPlan'][esp_term]/coreCount)
