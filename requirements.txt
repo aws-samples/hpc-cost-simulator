@@ -11,7 +11,7 @@ psutil
 pytest
 pytest-order
 PyYAML==5.4.1
-requests==2.25.1
+requests==2.31.0
 schema
 sphinx
 types-PyYAML
