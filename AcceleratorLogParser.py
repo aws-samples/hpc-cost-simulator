@@ -186,7 +186,7 @@ class AcceleratorLogParser(SchedulerLogParser):
 
     _VOVSQL_COLUMNS = [field_tuple[0] for field_tuple in _VOVSQL_JOBS_COLUMN_TUPLES]
 
-    _VOVSQL_QUERY = f"select {', '.join(_VOVSQL_COLUMNS)} from jobs inner join resources on jobs.resourcesid=resources.id"
+    _VOVSQL_QUERY = f"select {', '.join(_VOVSQL_COLUMNS)} from jobs inner join resources on jobs.resourcesid=resources.id" # nosec
 
     _VOVSQL_QUERY_COMMAND_LIST = [
         "nc", "cmd", "vovsql_query", "-e", _VOVSQL_QUERY
