@@ -7,6 +7,20 @@ Format described at: https://www.ibm.com/docs/en/spectrum-lsf/10.1.0?topic=files
 bacct command documentation:
 https://www.ibm.com/docs/en/spectrum-lsf/10.1.0?topic=reference-bacct
 
+Example jobs and corresponding JOB_FINISH record fields.
+
+bsub sleep 1
+1 core, 0.0 mem, 1 host
+
+bsub -n 1 -R 'rusage[mem=1GB]'
+1 core, 1.0 mem, 1 host
+
+bsub -n 2 -R 'rusage[mem=1GB]'
+2 core, 1.0 mem, 1 host
+
+bsub -n 2 -R 'rusage[mem=1GB] span[hosts=2]'
+2 core, 1.0 mem, 1 host
+
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 '''
@@ -17,6 +31,7 @@ import csv
 import json
 import logging
 from LSB_ACCT_FIELDS import LSB_ACCT_RECORD_FORMATS, MINIMAL_LSB_ACCT_FIELDS
+from math import ceil
 from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 from os import listdir, path
 from os.path import basename, dirname, realpath
@@ -140,43 +155,75 @@ class LSFLogParser(SchedulerLogParser):
                 logger.debug(f"{self._lsb_acct_filename}, line {self._lsb_acct_line_number}: Ignoring job {record['jobId']} because startTime and runTime are zero.")
                 continue
 
+            num_cores = record['maxNumProcessors']
+            logger.debug(f"num_cores: {num_cores}")
+
             # Get num_hosts
             # This must be set before calculating max_mem_gb because need to know number of hosts first.
             # Get span from effectiveResReq. Example: span[hosts=1]
-            span_hosts = None
+            num_hosts = 0
             logger.debug(f"Effective resource request: {record['effectiveResReq']}")
             match = re.search(r'span\[([^]]*)\]', record['effectiveResReq'])
             if match:
                 span = match.groups(0)[0]
                 logger.debug(f"span: {span}")
-                match = re.search(r'hosts=(\d+)', span)
+                match = re.match(r'(hosts|block|ptile)=(\d+)', span)
                 if match:
-                    num_hosts = match.groups(0)[0]
-                    logger.debug(f"span_hosts: {span_hosts}")
-            # If span not set then slots can be spread across different hosts, but for the number of cores doesn't change.
-            # So for cost calculation just leave num_hosts == 1.
-            num_hosts = 1
+                    logger.debug(f"match.group(0): {match.group(0)}")
+                    logger.debug(f"match.group(1): {match.group(1)}")
+                    logger.debug(f"match.group(2): {match.group(2)}")
+                    span_type = match.group(1)
+                    span_value = int(match.group(2))
+                    logger.debug(f"span_type={span_type} span_value={span_value}")
+                    if span_type == 'hosts':
+                        assert span_value in [1, -1], f"span_value=={span_value}"
+                        if span_value == 1:
+                            # All the processors allocated to this job must be on the same host.
+                            num_hosts = span_value
+                            logger.debug(f"num_hosts: {num_hosts}")
+                        elif span_value == -1:
+                            num_hosts = 0
+                            logger.debug(f"num_hosts: {num_hosts}")
+                    elif span_type == 'block':
+                        # Block size must be a multiple of the number of tasks.
+                        num_hosts = num_cores / span_value
+                        logger.debug(f"num_hosts: {num_hosts}")
+                    elif span_type == 'ptile':
+                        # Number of cores on each host that should be allocated to the job regardless of how many the host has
+                        num_hosts = int(ceil(num_cores / span_value))
+                        logger.debug(f"num_hosts: {num_hosts}")
+                    elif span_type == 'stripe':
+                        num_hosts = 0
+                        logger.debug(f"num_hosts: {num_hosts}")
+                else:
+                    match = re.match(r'stripe$', span)
+                    num_hosts = 0
+                    logger.debug(f"num_hosts: {num_hosts}")
             logger.debug(f"num_hosts: {num_hosts}")
 
-            # Calculate max_mem_gb.
-            # If found in resource request use that. Otherwise, use the max of the actual usage or default max mem gb
+            # Calculate max_mem_gb based on rusage[mem=*].
+            # If found in resource request use that. Otherwise, use the default max mem gb
             max_mem_gb = None
             match = re.search(r'rusage\[([^\]]*)\]', record['effectiveResReq'])
             if match:
-                rusage = match.groups(0)[0]
+                rusage = match.group(1)
                 logger.debug(f"rusage: {rusage}")
-                match = re.search(r'mem=([0-9\.]+)', rusage)
+                match = re.search(r'mem=([0-9\.]+)(\/(task|job|host))?', rusage)
                 if match:
-                    max_mem = float(match.groups(0)[0])
-                    max_mem_gb = (max_mem * MEM_KB) / MEM_GB
+                    logger.debug(f"group(0): {match.group(0)}")
+                    logger.debug(f"group(1): {match.group(1)}")
+                    logger.debug(f"group(2): {match.group(2)}")
+                    logger.debug(f"group(2): {match.group(3)}")
+                    max_mem_mb = float(match.groups(0)[0])
+                    max_mem_gb = (max_mem_mb * MEM_MB) / MEM_GB
                     logger.debug(f"max_mem_gb: {max_mem_gb}")
                 else:
                     logger.debug(f"No memory request found in rusage")
             else:
                 logger.debug(f"No rusage found in resource request")
             if not max_mem_gb:
-                logger.debug(f"max_mem_gb defaults to max of default_max_mem_gb({self._default_max_mem_gb}) and maxRMem({record['maxRMem']})")
-                max_mem_gb = max((record['maxRMem'] * MEM_KB) / MEM_GB, self._default_max_mem_gb * num_hosts)
+                logger.debug(f"max_mem_gb defaults to default_max_mem_gb({self._default_max_mem_gb})")
+                max_mem_gb = self._default_max_mem_gb * num_hosts
             logger.debug(f"max_mem_gb: {max_mem_gb}")
 
             # todo Get licenses from effectiveResReq
@@ -185,7 +232,7 @@ class LSFLogParser(SchedulerLogParser):
 
             job = SchedulerJobInfo(
                 job_id = record['jobId'],
-                num_cores = record['maxNumProcessors'],
+                num_cores = num_cores,
                 max_mem_gb = max_mem_gb,
                 num_hosts = num_hosts,
 

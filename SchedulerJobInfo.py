@@ -94,7 +94,8 @@ class SchedulerJobInfo:
             job_id (int): Unique Job Id
             num_cores (int): Number of cores requested for the job. This is the total number across all hosts/nodes.
             max_mem_gb (float): Amount of memory requested by the job. This is the total number across all hosts/nodes.
-            num_hosts (int): Number of compute nodes requested by the job
+            num_hosts (int): Number of compute nodes requested by the job. A value of 0 means that the cores can be allocated across any number of hosts.
+                A non-zero value means that the cores must be allocated on the exact number of hosts and the number of cores must be evenly divisible by the number of hosts.
             submit_time (str): Date and time that the job was submitted.
             start_time (str): Date and time that the job started on the compute node
             finish_time (str): Date and time that the job finished.
