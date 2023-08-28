@@ -21,7 +21,9 @@ gh-docs:
 	mkdocs gh-deploy
 
 .requirements_installed: requirements.txt
-	pip install -r requirements.txt
+	if [ "${distribution}_${distribution_major_version}" == "RedHat_8" ]; then pip install -r requirements_rhel8.txt; \
+	elif [ "${distribution}_${distribution_major_version}" == "RedHat_9" ]; then pip install -r requirements_rhel8.txt; \
+	else pip install -r requirements.txt; fi
 	touch $@
 
 clean_repo:
