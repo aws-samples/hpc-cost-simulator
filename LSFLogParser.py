@@ -20,6 +20,7 @@ from LSB_ACCT_FIELDS import LSB_ACCT_RECORD_FORMATS, MINIMAL_LSB_ACCT_FIELDS
 from MemoryUtils import MEM_GB, MEM_KB, MEM_MB
 from os import listdir, path
 from os.path import basename, dirname, realpath
+from packaging.version import parse as parse_version
 import re
 from SchedulerJobInfo import SchedulerJobInfo, logger as SchedulerJobInfo_logger
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
@@ -356,8 +357,8 @@ class LSFLogParser(SchedulerLogParser):
                 record[field_name] = field
                 if record_type == 'JOB_FINISH':
                     if field_name == 'Version Number':
-                        version_fields = field.split('.')
-                        major_version = int(version_fields[0])
+                        lsf_version = parse_version(field)
+                        major_version = lsf_version.major
                         if major_version != 10:
                             raise ValueError(f"Unsupported logfile format version {field}. Only support version 10.*. Ignoring record.")
                     elif field_name == 'numAskedHosts':
@@ -485,7 +486,11 @@ class LSFLogParser(SchedulerLogParser):
                 raise ValueError(f"Not enough fields to get value for {field_name}.")
         if fields:
             extra_fields = "'" + ','.join(fields) + "'"
-            raise ValueError(f"{len(fields)} extra fields left over: {extra_fields}")
+            msg = f"{len(fields)} extra fields left over: {extra_fields}"
+            if lsf_version >= parse_version('10.11') and len(fields) == 3:
+                logger.debug(msg)
+            else:
+                raise ValueError(msg)
         return record
 
     def _save_invalid_record(self, filename: str, line_number: int, error_message, record) -> None:

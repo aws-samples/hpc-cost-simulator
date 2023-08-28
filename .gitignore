@@ -11,3 +11,8 @@ venv
 instance_type_info.csv
 instance_type_info.*.csv
 instance_type_info.*.json
+tests
+tests/
+test_files
+test_files/*
+foo*
