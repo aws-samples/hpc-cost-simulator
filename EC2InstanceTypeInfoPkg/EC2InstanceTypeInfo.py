@@ -48,37 +48,73 @@ class EC2InstanceTypeInfo:
         if debug:
             logger.setLevel(logging.DEBUG)
 
-        if not regions:
-            # Get a list of all AWS regions
-            self.ec2_client = boto3.client('ec2', region_name='us-east-1')
-            try:
-                regions = sorted([region["RegionName"] for region in self.describe_regions()["Regions"]])
-            except ClientError as err:
-                logger.error(f"Unable to list all AWS regions. Make sure you have set your IAM credentials. {err}")
-                sys.exit(1)
-        self.regions = regions
+        logger.info(f"Getting EC2 pricing info for following regions:\n{pp.pformat(regions)}")
 
-        self.get_savings_plans = get_savings_plans
 
-        logger.info(f"Getting EC2 pricing info for following regions:\n{pp.pformat(self.regions)}")
+        # Get the list of valid regions to test for valid credentials
+        # and to validate regions arg.
+        # Valid credentials shouldn't be required.
+        # If they don't exist, then require json_filename with cached results.
+        self.valid_credentials = False
+        self.valid_regions = []
+        self.ec2_client = boto3.client('ec2', region_name='us-east-1')
+        try:
+            self.valid_regions = sorted([region["RegionName"] for region in self.describe_regions()["Regions"]])
+            self.valid_credentials = True
+        except ClientError as e:
+            logger.debug(f"{e.response['Error']['Message']}({e.response['Error']['Code']})")
+            logger.info(f"Valid AWS CLI credentials not found. Must specify json_filename. Configure or update your AWS CLI credentials.")
 
+        # Valid credentials shouldn't be required.
+        # If they don't exist, then require json_filename with cached results.
+        if not self.valid_credentials:
+            if not json_filename:
+                raise ValueError(f"Valid AWS CLI credentials must be provided or json_filename must be set.")
+            if not path.exists(json_filename):
+                raise ValueError(f"{json_filename} doesn't exist and no valid AWS CLI credentials exist to create it. Configure or update your AWS CLI credentials.")
+
+        self.instance_type_and_family_info = {}
         if json_filename:
             if path.exists(json_filename):
                 logger.info(f"Reading cached info from {json_filename}")
                 try:
                     self.instance_type_and_family_info = json.loads(open(json_filename, 'r').read())
                 except:
-                    logger.exception(f"Error reading {json_filename}. Creating new version with latest format and data.")
+                    if not self.valid_credentials:
+                        logger.exception(f"Error reading {json_filename} and no valid AWS CLI credentials to create a new version. Configure or update your AWS CLI credentials.")
+                        raise
+                    logger.exception(f"Error reading {json_filename}: {e}. Creating new version with latest format and data.")
                     os.rename(json_filename, json_filename + '.back')
+                    self.instance_type_and_family_info = {}
                 try:
                     self.check_instance_type_and_family_info()
                 except:
+                    if not self.valid_credentials:
+                        logger.exception(f"Incorrect data in {json_filename} and no valid AWS CLI credentials to create a new version. Configure or update your AWS CLI credentials.")
+                        raise
                     logger.exception(f"Incorrect data in {json_filename}. Creating new version with latest format and data.")
                     os.rename(json_filename, json_filename + '.back')
+                    self.instance_type_and_family_info = {}
+                if not self.valid_regions and self.instance_type_and_family_info:
+                    self.valid_regions = sorted(self.instance_type_and_family_info.keys())
             else:
                 logger.info(f"{json_filename} doesn't exist so cannot be read and will be created.")
-        if not json_filename or not path.exists(json_filename):
-            self.instance_type_and_family_info = {}
+
+        if regions:
+            # Check that specified regions are valid
+            invalid_regions = []
+            for region in regions:
+                if region not in self.valid_regions:
+                    logger.error(f"Invalid region: {region}")
+                    invalid_regions.append(region)
+            if invalid_regions:
+                raise ValueError(f"Invalid regions specified. Valid regions: {json.dumps(self.valid_regions)}")
+            self.regions = regions
+        else:
+            self.regions = self.valid_regions
+
+        self.get_savings_plans = get_savings_plans
+
 
         # Endpoints only supported in 2 regions: https://docs.aws.amazon.com/cli/latest/reference/pricing/index.html
         self.pricing_client = boto3.client('pricing', region_name='us-east-1')
@@ -89,8 +125,10 @@ class EC2InstanceTypeInfo:
                 continue
             region_name = self.get_region_name(region)
             logger.info(f'Getting EC2 instance info for {region} ({region_name})')
+            assert(self.valid_credentials)
             self.ec2_client = boto3.client('ec2', region_name=region)
-            self.get_instance_type_and_family_info(region)
+            if not self.get_instance_type_and_family_info(region):
+                continue
 
             # Save json after each successful region to speed up reruns
             if json_filename:
@@ -105,6 +143,13 @@ class EC2InstanceTypeInfo:
         region_name = self.get_region_name(region)
         logger.debug(f"region_name={region_name}")
         azs = []
+        try:
+            # If opt-in region isn't available then this can fail.
+            # Should have already checked that we have valid AWS CLI credentials in constructor.
+            self.describe_availability_zones(region)
+        except ClientError as e:
+            logger.error(f"Can't list availability zones for {region}. If {region} is a special region, make sure it is enabled for your account. {e}")
+            return None
         for az_info in self.describe_availability_zones(region)['AvailabilityZones']:
             if az_info['ZoneType'] != 'availability-zone':
                 continue
@@ -302,42 +347,43 @@ class EC2InstanceTypeInfo:
                 instance_type_info[instanceType]['pricing']['ComputeSavingsPlan_min_discount'] = min_compute_sp_discount
                 instance_type_info[instanceType]['pricing']['ComputeSavingsPlan_max_discount'] = max_compute_sp_discount
             logger.debug(f"    instance_type_info:\n{json.dumps(instance_type_info[instanceType], indent=4, sort_keys=True)}")
+        return self.instance_type_and_family_info[region]
 
     def check_instance_type_and_family_info(self):
         '''
         Raises KeyError
         '''
         for region, region_dict in self.instance_type_and_family_info.items():
-                for instance_type, instance_type_dict in region_dict['instance_types'].items():
-                    try:
-                        assert 'architecture' in instance_type_dict
-                        assert 'SustainedClockSpeedInGhz' in instance_type_dict
-                        assert 'SustainedClockSpeedInGhz' in instance_type_dict
-                        assert 'DefaultVCpus' in instance_type_dict
-                        assert 'DefaultCores' in instance_type_dict
-                        assert 'DefaultThreadsPerCore' in instance_type_dict
-                        assert 'ValidThreadsPerCore' in instance_type_dict
-                        assert 'DefaultThreadsPerCore' in instance_type_dict
-                        assert 'MemoryInMiB' in instance_type_dict
-                        assert 'SSDCount' in instance_type_dict
-                        assert 'SSDTotalSizeGB' in instance_type_dict
-                        assert 'Hypervisor' in instance_type_dict
-                        assert 'NetworkPerformance' in instance_type_dict
-                        if 'pricing' in instance_type_dict:
-                            assert 'ComputeSavingsPlan' in instance_type_dict['pricing']
-                    except:
-                        logger.error(f"{instance_type} instance type missing data:\n{json.dumps(instance_type_dict, indent=4)}")
-                        raise
-                for instance_family, instance_family_dict in region_dict['instance_families'].items():
-                    try:
-                        assert 'instance_types' in instance_family_dict
-                        assert 'architecture' in instance_family_dict
-                        assert 'MaxCoreCount' in instance_family_dict
-                        assert 'MaxInstanceType' in instance_family_dict
-                        assert 'MaxInstanceSize' in instance_family_dict
-                    except:
-                        logger.error(f"{instance_family} family missing data:\n{json.dumps(instance_family_dict, indent=4)}")
-                        raise
+            for instance_type, instance_type_dict in region_dict['instance_types'].items():
+                try:
+                    assert 'architecture' in instance_type_dict
+                    assert 'SustainedClockSpeedInGhz' in instance_type_dict
+                    assert 'SustainedClockSpeedInGhz' in instance_type_dict
+                    assert 'DefaultVCpus' in instance_type_dict
+                    assert 'DefaultCores' in instance_type_dict
+                    assert 'DefaultThreadsPerCore' in instance_type_dict
+                    assert 'ValidThreadsPerCore' in instance_type_dict
+                    assert 'DefaultThreadsPerCore' in instance_type_dict
+                    assert 'MemoryInMiB' in instance_type_dict
+                    assert 'SSDCount' in instance_type_dict
+                    assert 'SSDTotalSizeGB' in instance_type_dict
+                    assert 'Hypervisor' in instance_type_dict
+                    assert 'NetworkPerformance' in instance_type_dict
+                    if 'pricing' in instance_type_dict:
+                        assert 'ComputeSavingsPlan' in instance_type_dict['pricing']
+                except:
+                    logger.error(f"{instance_type} instance type missing data:\n{json.dumps(instance_type_dict, indent=4)}")
+                    raise
+            for instance_family, instance_family_dict in region_dict['instance_families'].items():
+                try:
+                    assert 'instance_types' in instance_family_dict
+                    assert 'architecture' in instance_family_dict
+                    assert 'MaxCoreCount' in instance_family_dict
+                    assert 'MaxInstanceType' in instance_family_dict
+                    assert 'MaxInstanceSize' in instance_family_dict
+                except:
+                    logger.error(f"{instance_family} family missing data:\n{json.dumps(instance_family_dict, indent=4)}")
+                    raise
 
     def print_csv(self, filename=""):
         if filename:
