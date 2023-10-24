@@ -45,11 +45,10 @@ pp = pprint.PrettyPrinter(indent=4)
 class EC2InstanceTypeInfo:
 
     def __init__(self, regions, get_savings_plans=True, json_filename=None, debug=False):
+        self.missing_regions = []
+
         if debug:
             logger.setLevel(logging.DEBUG)
-
-        logger.info(f"Getting EC2 pricing info for following regions:\n{pp.pformat(regions)}")
-
 
         # Get the list of valid regions to test for valid credentials
         # and to validate regions arg.
@@ -63,7 +62,7 @@ class EC2InstanceTypeInfo:
             self.valid_credentials = True
         except ClientError as e:
             logger.debug(f"{e.response['Error']['Message']}({e.response['Error']['Code']})")
-            logger.info(f"Valid AWS CLI credentials not found. Must specify json_filename. Configure or update your AWS CLI credentials.")
+            logger.info(f"Valid AWS CLI credentials not found. Must specify json_filename or configure or update your AWS CLI credentials.")
 
         # Valid credentials shouldn't be required.
         # If they don't exist, then require json_filename with cached results.
@@ -115,15 +114,19 @@ class EC2InstanceTypeInfo:
 
         self.get_savings_plans = get_savings_plans
 
+        logger.info(f"Getting EC2 pricing info for following regions:\n{pp.pformat(self.regions)}")
 
         # Endpoints only supported in 2 regions: https://docs.aws.amazon.com/cli/latest/reference/pricing/index.html
         self.pricing_client = boto3.client('pricing', region_name='us-east-1')
 
-        for region in self.regions:
+        for region in sorted(self.regions):
             if region in self.instance_type_and_family_info and json_filename:
                 logger.info(f'Using EC2 instance info from {json_filename} for {region}')
                 continue
             region_name = self.get_region_name(region)
+            if not region_name:
+                logger.error(f"Could not find region name for {region}. Is this a new region or does it need to be enabled for your account?")
+                continue
             logger.info(f'Getting EC2 instance info for {region} ({region_name})')
             assert(self.valid_credentials)
             self.ec2_client = boto3.client('ec2', region_name=region)
@@ -137,6 +140,8 @@ class EC2InstanceTypeInfo:
                 print(json.dumps(self.instance_type_and_family_info, indent=4, sort_keys=True), file=fh)
                 fh.close()
 
+        if self.missing_regions:
+            logger.error(f"{len(self.missing_regions)} regions without names. May be new or not enabled in the account.\n{json.dumps(self.missing_regions, indent=4)}")
         return
 
     def get_instance_type_and_family_info(self, region):
@@ -214,30 +219,36 @@ class EC2InstanceTypeInfo:
         instance_types = sorted(instance_type_info.keys())
 
         logger.debug(f"Getting pricing info for {len(instance_types)} instance types:\n{json.dumps(instance_types, indent=4, sort_keys=True)}")
-        logger.debug("{} instance types in {}".format(len(instance_types), region))
+        logger.debug(f"{len(instance_types)} instance types in {region}")
 
         if self.get_savings_plans:
             savingsPlanInfo = SavingsPlanInfo(region)
 
         count = 1
         for instanceType in sorted(instance_types):
-            logger.debug("instanceType: {}".format(instanceType))
+            logger.debug(f"instanceType: {instanceType}")
             os = 'Linux'
             pricing_filter = [
-                {'Field': 'ServiceCode', 'Value': 'AmazonEC2', 'Type': 'TERM_MATCH'},
-                {'Field': 'instanceType', 'Value': instanceType, 'Type': 'TERM_MATCH'},
-                {'Field': 'tenancy', 'Value': 'shared', 'Type': 'TERM_MATCH'},
-                {'Field': 'preInstalledSw', 'Value': 'NA', 'Type': 'TERM_MATCH'},
-                {'Field': 'location', 'Value': region_name, 'Type': 'TERM_MATCH'},
-                {'Field': 'operatingSystem', 'Value': os, 'Type': 'TERM_MATCH'},
-                {'Field': 'capacitystatus', 'Value': 'Used', 'Type': 'TERM_MATCH'},
+                {'Field': 'location',             'Value': region_name,    'Type': 'TERM_MATCH'},
+                {'Field': 'instanceType',         'Value': instanceType,   'Type': 'TERM_MATCH'},
+                {'Field': 'operatingSystem',      'Value': os,             'Type': 'TERM_MATCH'},
+                {'Field': 'ServiceCode',          'Value': 'AmazonEC2',    'Type': 'TERM_MATCH'},
+                {'Field': 'tenancy',              'Value': 'shared',       'Type': 'TERM_MATCH'},
+                {'Field': 'preInstalledSw',       'Value': 'NA',           'Type': 'TERM_MATCH'},
+                {'Field': 'capacitystatus',       'Value': 'Used',         'Type': 'TERM_MATCH'},
+                {'Field': 'vpcnetworkingsupport', 'Value': 'true',         'Type': 'TERM_MATCH'},
+                {'Field': 'operation',            'Value': 'RunInstances', 'Type': 'TERM_MATCH'},
             ]
             priceLists = self.get_products(pricing_filter)
             if len(priceLists) == 0:
                 logger.warning(f"No pricelist for {instanceType} {region} ({region_name}). Instance type may not be available in this region.")
                 continue
             if len(priceLists) > 1:
-                raise RuntimeError("Number of PriceLists > 1 for {}".format(instanceType))
+                logger.error(f"Number of PriceLists > 1 for {instanceType}")
+                for index, priceListJson in enumerate(priceLists):
+                    priceList = json.loads(priceListJson)
+                    logger.info(f"priceList[{index}]:\n{json.dumps(priceList, indent=4)}")
+                raise RuntimeError(f"Number of PriceLists > 1 for {instanceType}")
 
             instance_type_info[instanceType]['pricing'] = {}
             instance_type_info[instanceType]['pricing']['Reserved'] = {}
@@ -254,7 +265,7 @@ class EC2InstanceTypeInfo:
             # instance_type_info[instanceType]['priceLists'] = []
             for priceListJson in priceLists:
                 priceList = json.loads(priceListJson)
-                #logger.debug("pricelist:\n{}".format(pp.pformat(priceList)))
+                #logger.debug(f"pricelist:\n{pp.pformat(priceList)}")
                 #instance_type_info[instanceType]['priceLists'].append(priceList)
                 if 'physicalProcessor' in priceList['product']['attributes']:
                     physicalProcessor = priceList['product']['attributes']['physicalProcessor']
@@ -264,10 +275,10 @@ class EC2InstanceTypeInfo:
                             for dimensionKey, priceDimension in rateCode['priceDimensions'].items():
                                 unit = priceDimension['unit']
                                 if unit != 'Hrs':
-                                    raise RuntimeError("Unknown pricing unit: {}".format(unit))
+                                    raise RuntimeError(f"Unknown pricing unit: {unit}")
                                 currency = list(priceDimension['pricePerUnit'])[0]
                                 if currency != 'USD':
-                                    raise RuntimeError("Unknown currency: {}".format(currency))
+                                    raise RuntimeError(f"Unknown currency: {currency}")
                                 on_demand_price = float(priceDimension['pricePerUnit']['USD'])
                     elif term == 'Reserved':
                         for ri_info_key, ri_info in termInfo.items():
@@ -275,7 +286,7 @@ class EC2InstanceTypeInfo:
                             ri_length = attributes['LeaseContractLength']
                             ri_class = attributes['OfferingClass']
                             ri_PurchaseOption = attributes['PurchaseOption']
-                            ri_terms = "RI {} {} {}".format(ri_length, ri_class, ri_PurchaseOption)
+                            ri_terms = f"RI {ri_length} {ri_class} {ri_PurchaseOption}"
                             ri_length_hours = float(ri_length.split('yr')[0]) * 365 * 24
                             ri_price = float(0)
                             for priceDimensionKey, priceDimension in ri_info['priceDimensions'].items():
@@ -286,7 +297,7 @@ class EC2InstanceTypeInfo:
                                 elif unit == 'Hrs':
                                     ri_price += pricePerUnit
                                 else:
-                                    raise RuntimeError("Invalid reserved instance unit {}".format(unit))
+                                    raise RuntimeError(f"Invalid reserved instance unit {unit}")
                             instance_type_info[instanceType]['pricing']['Reserved'][ri_terms] = ri_price
                             if ri_price > ri_max_price:
                                 ri_max_price = max(ri_max_price, ri_price)
@@ -295,7 +306,7 @@ class EC2InstanceTypeInfo:
                                 ri_min_price = ri_price
                                 ri_min_price_terms = ri_terms
                     else:
-                        raise RuntimeError("Invalid term {}".format(term))
+                        raise RuntimeError(f"Invalid term {term}")
             instance_type_info[instanceType]['pricing']['Reserved_min'] = ri_min_price
             instance_type_info[instanceType]['pricing']['Reserved_min_terms'] = ri_min_price_terms
             instance_type_info[instanceType]['pricing']['Reserved_max'] = ri_max_price
@@ -513,19 +524,21 @@ class EC2InstanceTypeInfo:
 
     # Translate region code to region name
     def get_region_name(self, region_code):
-        missing_regions = {
-            'ap-northeast-3': 'Asia Pacific (Osaka)'
-        }
         endpoint_file = resource_filename('botocore', 'data/endpoints.json')
         with open(endpoint_file, 'r') as f:
             data = json.load(f)
+        missing_region_names = {
+            'ca-west-1': {'description': 'Canada (Calgary)'}
+        }
+        for missing_region in missing_region_names:
+            if missing_region not in data:
+                data['partitions'][0]['regions'][missing_region] = missing_region_names[missing_region]
         try:
             region_name = data['partitions'][0]['regions'][region_code]['description']
         except KeyError:
-            if region_code in missing_regions:
-                return missing_regions[region_code]
-            logger.exception(f"Couldn't get region name for {region_code}\nendpoint_file: {endpoint_file}\ndata:\n{pp.pformat(data['partitions'][0]['regions'])}")
-            raise
+            self.missing_regions.append(region_code)
+            logger.error(f"Couldn't get region name for {region_code}\nendpoint_file: {endpoint_file}\ndata:\n{pp.pformat(data['partitions'][0]['regions'])}")
+            return None
         region_name = region_name.replace('Europe', 'EU')
         return region_name
 

@@ -27,7 +27,7 @@ fi
 echo -e "Setting up for $distribution $distribution_major_version\n"
 
 # Deactivate any active virtual envs
-deactivate &> /dev/null || true
+timeout 1s deactivate &> /dev/null || true
 
 pushd $repodir &> /dev/null
 
