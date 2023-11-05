@@ -105,6 +105,7 @@ class LSFLogParser(SchedulerLogParser):
                 logger.info(f"Parsing lsb.acct file: {self._lsb_acct_filename}")
                 self._lsb_acct_line_number = 0
                 self._lsb_acct_fh = open(self._lsb_acct_filename, 'r', errors='replace')
+                csv.field_size_limit(200000)
                 self._lsb_acct_csv_reader = csv.reader(self._lsb_acct_fh, delimiter=' ')
             try:
                 record_fields = next(self._lsb_acct_csv_reader)
@@ -387,6 +388,8 @@ class LSFLogParser(SchedulerLogParser):
                             swap = fields.pop(0)
                             utime = fields.pop(0)
                             stime = fields.pop(0)
+                            if fields[0].isnumeric():
+                                excess_field = fields.pop(0)	# Handle extra numeric field in some LSF version
                             logger.debug(f"        hostRusage[{idx}][{hostname}]: mem{mem} swap={swap} utime={utime} stime={stime}")
                     elif field_name == 'num_network':
                         for idx in range(0, field):
