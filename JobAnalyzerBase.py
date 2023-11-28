@@ -125,7 +125,9 @@ class JobAnalyzerBase:
         for purchase_option in ['spot', 'on_demand']:
             self._instance_types_used[purchase_option] = {}
             self._instance_families_used[purchase_option] = {}
-
+        
+        self._hyperthreading = self.config['instance_mapping']['hyperthreading']
+        
     @staticmethod
     def read_configuration(config_filename):
         try:
@@ -238,7 +240,7 @@ class JobAnalyzerBase:
             info = self.instance_type_info[instance_type]
             if (info['MemoryInMiB'] / 1024) >= required_ram_GiB:
                 if info['SustainedClockSpeedInGhz'] >= required_speed:
-                    if info['DefaultCores'] >= required_cores:
+                    if (not self._hyperthreading and info['DefaultCores'] >= required_cores) or (self._hyperthreading and info['DefaultVCpus'] >= required_cores):
                         relevant_instances.append(instance_type)
 
         logger.debug (f'instances with {required_cores} cores, {required_ram_GiB} GiB RAM and {required_speed} GhZ: {relevant_instances}')
