@@ -437,7 +437,10 @@ class SchedulerJobInfo:
             td = str_to_timedelta(duration)
         else:
             raise ValueError(f"Invalid type for duration: {duration} has type '{type(duration)}', expected int, float, or str")
-        duration_str = timedelta_to_string(td)
+        if td is None:
+            duration_str = ''
+        else:
+            duration_str = timedelta_to_string(td)
         return (duration_str, td)
 
     @staticmethod
@@ -551,7 +554,7 @@ def str_to_timedelta(string_value: str) -> timedelta:
         raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
 
     if string_value == 'UNLIMITED':
-        return timedelta(days=365*100)
+        return None
 
     values = string_value.split(':')
     seconds = float(values.pop())
