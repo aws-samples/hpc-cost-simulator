@@ -79,14 +79,10 @@ class SchedulerLogParser(ABC):
             if not path.exists(output_dir):
                 makedirs(output_dir)
             self._output_csv_fh = open(output_csv, 'w', newline='')
-            self._output_field_names = self._get_job_field_names()
-            # Profiling showed that the dict writer is slightly slower
-            self._use_csv_dict_writer = False
-            if not self._use_csv_dict_writer:
-                self._csv_writer = csv.writer(self._output_csv_fh, dialect='excel', lineterminator='\n')
-            else:
-                self._csv_dict_writer = csv.DictWriter(self._output_csv_fh, self._output_field_names, dialect='excel', lineterminator='\n', extrasaction='ignore')
-            self._write_csv_header()
+            self._use_csv_dict_writer = False  # Profiling showed DictWriter slightly slower
+            self._csv_output_initialised = False
+            self._csv_writer = None
+            self._csv_dict_writer = None
         else:
             self._output_csv_fh = None
         self._num_output_jobs = 0
@@ -137,20 +133,22 @@ class SchedulerLogParser(ABC):
         return self._num_output_jobs
 
     @staticmethod
-    def _get_job_field_names():
-        dummy_job = SchedulerJobInfo(
-            job_id = '1',
-            resource_request = 'rusage[mem=6291456,xcelium_sc=1:duration=1m]',
-            num_cores = 1,
-            max_mem_gb = 1.1,
-            num_hosts = 1,
+    def _get_job_field_names(job = None):
+        if job is None:
+            job = SchedulerJobInfo(
+                job_id = '1',
+                state = 'COMPLETED',
+                resource_request = 'rusage[mem=6291456,xcelium_sc=1:duration=1m]',
+                num_cores = 1,
+                max_mem_gb = 1.1,
+                num_hosts = 1,
 
-            submit_time = '1970-01-01T00:00:00',
-            start_time = '1970-01-01T00:00:01',
-            finish_time = '1970-01-01T00:00:05',
-        )
+                submit_time = '1970-01-01T00:00:00',
+                start_time = '1970-01-01T00:00:01',
+                finish_time = '1970-01-01T00:00:05',
+            )
         field_names = []
-        job_dict = dummy_job.__dict__
+        job_dict = job.__dict__
         for field_name in job_dict.keys():
             if field_name[-3:] in ['_dt', '_td']:
                 continue
@@ -158,25 +156,30 @@ class SchedulerLogParser(ABC):
         logger.debug(f"field_names={field_names}")
         return field_names
 
-    def _write_csv_header(self) -> None:
+    def _init_csv_output(self, job = None) -> None:
         '''
-        Writes the CSV header line to the output csv file.
-
-        Called by the constructor if an output csv filename provided.
+        Initialise CSV writer, and write header line.
+        If job provided, use it to determine field names.
 
         Raises:
             RuntimeError: If no output csv file handle exists.
         '''
+        if self._csv_output_initialised:
+            return
+
         if not self._output_csv_fh:
-            raise RuntimeError(f"_write_csv_header called without self._output_csv_fh being set.")
+            raise RuntimeError(f"_init_csv_output called without self._output_csv_fh being set.")
+        self._output_field_names = self._get_job_field_names(job)
         if not self._use_csv_dict_writer:
             if not self._csv_writer:
-                raise RuntimeError(f"_write_csv_header called without self._csv_writer being set.")
+                self._csv_writer = csv.writer(self._output_csv_fh, dialect='excel', lineterminator='\n')
             self._csv_writer.writerow(self._output_field_names)
         else:
             if not self._csv_dict_writer:
-                raise RuntimeError(f"_write_csv_header called without self._csv_dict_writer being set.")
+                self._csv_dict_writer = csv.DictWriter(self._output_csv_fh, self._output_field_names, dialect='excel', lineterminator='\n', extrasaction='ignore')
             self._csv_dict_writer.writeheader()
+
+        self._csv_output_initialised = True
 
     def write_job_to_csv(self, job) -> None:
         '''
@@ -187,23 +190,16 @@ class SchedulerLogParser(ABC):
         '''
         if not self._output_csv_fh:
             raise RuntimeError(f"write_job_to_csv called without self._output_csv_fh being set.")
-        if not self._use_csv_dict_writer:
-            if not self._csv_writer:
-                raise RuntimeError(f"write_job_to_csv called without self._csv_writer being set.")
-        else:
-            if not self._csv_dict_writer:
-                raise RuntimeError(f"_write_csv_header called without self._csv_dict_writer being set.")
+
+        self._init_csv_output()
 
         if not self._use_csv_dict_writer:
-            field_values = []
-            for field_name in self._output_field_names:
-                field_value = job.__dict__[field_name]
-                if field_value == None:
-                    field_value = ''
-                else:
-                    field_value = str(field_value)
-                field_values.append(field_value)
-            self._csv_writer.writerow(field_values)
+            values = []
+            for k in self._output_field_names:
+                v = job.__dict__[k]
+                v = '' if v is None else str(v)
+                values.append(v)
+            self._csv_writer.writerow(values)
         else:
             self._csv_dict_writer.writerow(job.__dict__)
         self._num_output_jobs += 1

@@ -26,6 +26,11 @@ logger.addHandler(logger_streamHandler)
 logger.setLevel(logging.INFO)
 logger.propagate = False
 
+def camel2snake(x):
+    # Convert Slurm camel-case field names to our snake-case
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', x)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
 class SlurmLogParser(SchedulerLogParser):
     '''
     Parse Slurm sacct output to get job completion information.
@@ -60,32 +65,54 @@ class SlurmLogParser(SchedulerLogParser):
             if not path.exists(sacct_output_dir):
                 makedirs(sacct_output_dir)
 
+        self._sacct_input_file_has_header = False
+        try:
+            # Analyse first line of input file. If it looks like
+            # a header line, then use to overwrite SLURM_ACCT_FIELDS
+            with open(self._sacct_input_file, 'r') as F:
+                l = F.readline()
+                elems = l.split('|')
+                known_fields = set([x[0] for x in SlurmLogParser.SLURM_ACCT_FIELDS])
+                if len(set(elems) & known_fields) >= 3:
+                    # Looks like a header line - has at least 3 delimited field names.
+                    self._sacct_input_file_has_header = True
+                    NEW_SLURM_ACCT_FIELDS = []
+                    for e in elems:
+                        for x in SlurmLogParser.SLURM_ACCT_FIELDS:
+                            if x[0] == e:
+                                NEW_SLURM_ACCT_FIELDS.append(x)
+                                break
+                    SlurmLogParser.SLURM_ACCT_FIELDS = NEW_SLURM_ACCT_FIELDS
+        except Exception:
+            pass
+
         self._sacct_fh = None
         self._line_number = 0
         self._eof = False
         self._parsed_lines = []
 
     SLURM_ACCT_FIELDS = [
-        ('State', 's'),           # Displays the job status, or state. Put this first so can skip ignored states.
-        ('JobID', 's'),           # The identification number of the job or job step
+        ('State', 's'),            # Displays the job status, or state. Put this first so can skip ignored states.
+        ('JobID', 's'),            # The identification number of the job or job step
         # Job properties
-        ('ReqCPUS', 'd'),         # Number of requested CPUs
-        ('ReqMem', 'sd', True),   # Minimum required memory for the job in bytes
-        ('ReqNodes', 'd'),        # Requested minimum Node count for the job/step
-        ('Constraints', 's'),     #
+        ('ReqCPUS', 'd'),          # Number of requested CPUs
+        ('ReqMem', 'sd', True),    # Minimum required memory for the job in bytes
+        ('ReqNodes', 'd'),         # Requested minimum Node count for the job/step
+        ('Constraints', 's'),      #
         # Times
-        ('Submit', 'dt'),         # The time the job was submitted. NOTE: If a job is requeued, the submit time is reset. This is handled by not overwriting fields with the batch step.
-        ('Eligible', 'dt'),       # When the job became eligible to run
-        ('Start', 'dt'),          # Initiation time of the job
-        ('Elapsed', 'td'),        # The job's elapsed time: [DD-[HH:]]MM:SS
-        ('Suspended', 'td'),      # The amount of time a job or job step was suspended
-        ('End', 'dt'),            # Termination time of the job
+        ('Submit', 'dt'),          # The time the job was submitted. NOTE: If a job is requeued, the submit time is reset. This is handled by not overwriting fields with the batch step.
+        ('Eligible', 'dt'),        # When the job became eligible to run
+        ('Start', 'dt'),           # Initiation time of the job
+        ('Elapsed', 'td'),         # The job's elapsed time: [DD-[HH:]]MM:SS
+        ('Suspended', 'td'),       # The amount of time a job or job step was suspended
+        ('End', 'dt'),             # Termination time of the job
+        ('Timelimit', 'td', True), # Time limit of job
 
-        ('ExitCode', 's'),        # The exit code returned by the job script or salloc
-        ('DerivedExitCode', 's'), # The highest exit code returned by the job's job steps
+        ('ExitCode', 's'),         # The exit code returned by the job script or salloc
+        ('DerivedExitCode', 's'),  # The highest exit code returned by the job's job steps
 
-        ('AllocNodes', 'd'),      # Number of nodes allocated to the job/step
-        ('NCPUS', 'd'),           # Total number of CPUs allocated to the job. Equivalent to AllocCPUS
+        ('AllocNodes', 'd'),       # Number of nodes allocated to the job/step
+        ('NCPUS', 'd'),            # Total number of CPUs allocated to the job. Equivalent to AllocCPUS
 
         ('MaxDiskRead', 'sd', True),  # Maximum number of bytes read by all tasks in job')
         ('MaxDiskWrite', 'sd', True), # Maximum number of bytes written by all tasks in job
@@ -99,6 +126,8 @@ class SlurmLogParser(SchedulerLogParser):
 
         # This field was added, so it should be optional
         ('Partition', 's'),       # The exit code returned by the job script or salloc
+
+        ('User', 's'),            # User that submitted job
     ]
 
     SLURM_STATE_CODES = [
@@ -137,6 +166,14 @@ class SlurmLogParser(SchedulerLogParser):
         '''
         self._parsed_lines = []
         self.errors = []
+
+        if self._sacct_input_file_has_header:
+            # Discard first line of input file.
+            if not self._sacct_fh:
+                self._sacct_fh = open(self._sacct_input_file, 'r')
+                self._eof = False
+            line = self._sacct_fh.readline()
+
         job = True
         while job:
             job = self.parse_job()
@@ -148,6 +185,39 @@ class SlurmLogParser(SchedulerLogParser):
             logger.error(f"{len(self.errors)} errors while parsing jobs")
             return False
         return True
+
+    def parse_jobs_to_dict(self) -> dict:
+        '''
+        Parse all the jobs from the Slurm sacct command.
+
+        Returns:
+            bool: Return True if no errors
+        '''
+        self._parsed_lines = []
+        self.errors = []
+
+        if self._sacct_input_file_has_header:
+            # Discard first line of input file.
+            if not self._sacct_fh:
+                self._sacct_fh = open(self._sacct_input_file, 'r')
+                self._eof = False
+            line = self._sacct_fh.readline()
+
+        # Use JobID as index
+        jobs_dict = {}
+
+        job = True
+        while job:
+            job = self.parse_job()
+            if job:
+                jd = job.to_dict()
+                idx = jd['job_id'] ; del jd['job_id']
+                jobs_dict[idx] = jd
+        logger.info(f"Parsed {len(jobs_dict)} jobs")
+        if self.errors:
+            logger.error(f"{len(self.errors)} errors while parsing jobs")
+            return None
+        return jobs_dict
 
     def parse_job(self):
         '''
@@ -367,8 +437,10 @@ class SlurmLogParser(SchedulerLogParser):
             logger.debug(f"    Updating job_fields")
             for field_tuple in self.SLURM_ACCT_FIELDS:
                 field_name = field_tuple[0]
-                if next_job_fields.get(field_name, None) and not job_fields.get(field_name, None):
-                    job_fields[field_name] = next_job_fields[field_name]
+                if next_job_fields.get(field_name, None):   
+                    if not job_fields.get(field_name, None) or \
+                        field_name in ['State']:
+                        job_fields[field_name] = next_job_fields[field_name]
         logger.debug(f"    Merged job fields:\n{json.dumps(job_fields, indent=4)}")
 
         if field_errors:
@@ -413,42 +485,46 @@ class SlurmLogParser(SchedulerLogParser):
             SchedulerJobInfo: Parsed job info
         '''
         logger.debug(f"_create_job_from_job_fields({job_fields})")
-        if job_fields['AllocNodes'] == 0:
+
+        job_fields = dict(job_fields)  # copy
+
+        if job_fields.get('AllocNodes') == 0:
             job_fields['AllocNodes'] = 1
-        if job_fields['ReqMem'] != None:
-            max_mem_gb = job_fields['ReqMem'] / MEM_GB
+        if job_fields.get('ReqMem') is not None:
+            job_fields['ReqMemGB'] = job_fields['ReqMem'] / MEM_GB
+            del job_fields['ReqMem']
+
+        if job_fields.get('ExitCode') is not None:
+            job_fields['ExitStatus'] = exit_status
+            del job_fields['ExitCode']
         else:
-            max_mem_gb = None
-        job = SchedulerJobInfo(
-            job_id = job_fields['JobID'],
-            num_cores = job_fields['NCPUS'],
-            max_mem_gb = max_mem_gb,
-            num_hosts = job_fields['AllocNodes'],
+            exit_status = None
 
-            submit_time = job_fields['Submit'],
-            eligible_time = job_fields['Eligible'],
-            start_time = job_fields['Start'],
-            run_time = job_fields['Elapsed'],
-            finish_time = job_fields['End'],
+        job_fields = {camel2snake(k):job_fields[k] for k in job_fields}
+        sacct_renames={ 'ncpus': 'num_cores',
+                        'alloc_nodes': 'num_hosts',
+                        'submit': 'submit_time',
+                        'eligible': 'eligible_time',
+                        'start': 'start_time',
+                        'elapsed': 'run_time',
+                        'end': 'finish_time',
+                        'partition': 'queue',
+                        'req_mem_gb': 'max_mem_gb',
+                        'max_disk_read': 'ru_inblock',
+                        'max_disk_write': 'ru_oublock',
+                        'max_pages': 'ru_majflt',
+                        'max_rss': 'ru_minflt',
+                        'system_cpu': 'ru_stime',
+                        'user_cpu': 'ru_utime',
+                        'total_cpu': 'ru_ttime',
+                        'constraints': 'resource_requests'
+        }
+        for k,v in list(job_fields.items()):
+            if k in sacct_renames:
+                job_fields[sacct_renames[k]] = v
+                del job_fields[k]
+        job = SchedulerJobInfo(**job_fields)
 
-            queue = job_fields['Partition'],
-
-            # ExitCode is {returncode}:{signal}
-            exit_status = job_fields['ExitCode'].split(':')[0],
-
-            ru_inblock = job_fields['MaxDiskRead'],
-            ru_majflt = job_fields['MaxPages'],
-            ru_maxrss = job_fields['MaxRSS'],
-            # ru_minflt = job_fields['ru_minflt'],
-            # ru_msgrcv = job_fields['ru_msgrcv'],
-            # ru_msgsnd = job_fields['ru_msgsnd'],
-            # ru_nswap = job_fields['ru_nswap'],
-            ru_oublock = job_fields['MaxDiskWrite'],
-            ru_stime = job_fields['SystemCPU'],
-            ru_utime = job_fields['UserCPU'],
-
-            resource_request = job_fields['Constraints'],
-        )
         return job
 
     def _clean_up(self):

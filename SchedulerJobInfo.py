@@ -58,7 +58,10 @@ class SchedulerJobInfo:
         requeue_time:str=None,
         wait_time:str=None,
         run_time:str=None,
+        timelimit:str=None,
 
+        state:str=None,
+        user:str=None,
         queue:str=None,
         project:str=None,
         licenses:str=None,
@@ -75,6 +78,7 @@ class SchedulerJobInfo:
         ru_oublock:int=None,
         ru_stime:float=None,
         ru_utime:float=None,
+        ru_ttime:float=None,
 
         # Put resource_request at end because can contain ',' which is also the CSV separator
         resource_request:str='',
@@ -98,6 +102,7 @@ class SchedulerJobInfo:
             submit_time (str): Date and time that the job was submitted.
             start_time (str): Date and time that the job started on the compute node
             finish_time (str): Date and time that the job finished.
+            timelimit (str): Time limit of job.
 
             ineligible_pend_time (str): LSF: The time that the job was pending because it was ineligible to run because of unmet dependencies
             eligible_time (str): Slurm: Date and time when the job became eligible to run. Can be used to calculate ineligible_pend_time.
@@ -105,6 +110,8 @@ class SchedulerJobInfo:
             wait_time (str): The time that the job waited to start after it was eligible.
             run_time (str): The time that the job ran. It should be the difference between finish_time and start_time.
 
+            state (str): Job state
+            user (str): user that submitted job.
             queue (str): queue that the job was submitted to.
             project (str): project that the job belongs to
             licenses (str): comma separated list of licenses used by the job. Format: license1[:int][license2[:int]]
@@ -121,6 +128,7 @@ class SchedulerJobInfo:
             ru_oublock (int):
             ru_stime (int):
             ru_utime (int):
+            ru_ttime (int):
 
             resource_request (str): Additional resources requested by the job, for example, licenses
 
@@ -138,6 +146,7 @@ class SchedulerJobInfo:
         (self.submit_time, self.submit_time_dt) = SchedulerJobInfo.fix_datetime(submit_time)
         (self.start_time, self.start_time_dt) = SchedulerJobInfo.fix_datetime(start_time)
         (self.finish_time, self.finish_time_dt) = SchedulerJobInfo.fix_datetime(finish_time)
+        (self.timelimit, self.timelimit_td) = SchedulerJobInfo.fix_duration(timelimit)
 
         # Optional fields
         try:
@@ -166,6 +175,8 @@ class SchedulerJobInfo:
             logger.warning(f"Invalid run_time: {run_time}")
             self.run_time = self.run_time_td = None
 
+        self.state = state
+        self.user = user
         self.queue = queue
         self.project = project
         self.licenses = licenses
@@ -180,8 +191,9 @@ class SchedulerJobInfo:
         self.ru_msgsnd = SchedulerJobInfo.fix_int(ru_msgsnd)
         self.ru_nswap = SchedulerJobInfo.fix_int(ru_nswap)
         self.ru_oublock = SchedulerJobInfo.fix_int(ru_oublock)
-        self.ru_stime = SchedulerJobInfo.fix_duration(ru_stime)[0]
-        self.ru_utime = SchedulerJobInfo.fix_duration(ru_utime)[0]
+        (self.ru_stime, self.ru_stime_td) = SchedulerJobInfo.fix_duration(ru_stime)
+        (self.ru_utime, self.ru_utime_td) = SchedulerJobInfo.fix_duration(ru_utime)
+        (self.ru_ttime, self.ru_ttime_td) = SchedulerJobInfo.fix_duration(ru_ttime)
 
         self.resource_request = resource_request
 
@@ -222,6 +234,7 @@ class SchedulerJobInfo:
         submit_time = str(field_dict['submit_time'])
         start_time = str(field_dict['start_time'])
         finish_time = str(field_dict['finish_time'])
+        timelimit = str(field_dict['timelimit'])
 
         ineligible_pend_time = str(field_dict['ineligible_pend_time'])
         eligible_time = str(field_dict['eligible_time'])
@@ -229,6 +242,8 @@ class SchedulerJobInfo:
         wait_time = str(field_dict['wait_time'])
         run_time = str(field_dict['run_time'])
 
+        state = int(field_dict['state'])
+        user = field_dict.get('user', None)
         queue = field_dict.get('queue', None)
         project = field_dict.get('project', None)
         licenses = field_dict.get('licensese', None)
@@ -245,6 +260,7 @@ class SchedulerJobInfo:
         ru_oublock = SchedulerJobInfo.fix_int(field_dict['ru_oublock'])
         ru_stime = str(field_dict['ru_stime'])
         ru_utime = str(field_dict['ru_utime'])
+        ru_ttime = str(field_dict['ru_ttime'])
 
         resource_request = str(field_dict['resource_request'])
 
@@ -256,6 +272,7 @@ class SchedulerJobInfo:
             submit_time = submit_time,
             start_time = start_time,
             finish_time = finish_time,
+            timelimit = timelimit,
             # Optional fields
             ineligible_pend_time = ineligible_pend_time,
             eligible_time = eligible_time,
@@ -263,6 +280,8 @@ class SchedulerJobInfo:
             wait_time = wait_time,
             run_time = run_time,
 
+            state = state,
+            user = user,
             queue = queue,
             project = project,
             licenses = licenses,
@@ -279,6 +298,7 @@ class SchedulerJobInfo:
             ru_oublock = ru_oublock,
             ru_stime = ru_stime,
             ru_utime = ru_utime,
+            ru_ttime = ru_ttime,
 
             resource_request = resource_request,
         )
@@ -291,6 +311,10 @@ class SchedulerJobInfo:
 
     def to_dict(self) -> dict:
         d = self.__dict__.copy()
+        return d
+
+    def fields(self):
+        d = self.to_dict()
         del d['submit_time_dt']
         del d['start_time_dt']
         del d['finish_time_dt']
@@ -299,10 +323,8 @@ class SchedulerJobInfo:
         del d['run_time_td']
         del d['ineligible_pend_time_td']
         del d['requeue_time_td']
-        return d
-
-    def fields(self):
-        return self.to_dict().keys()
+        del d['timelimit_dt']
+        return d.keys()
 
     @staticmethod
     def fix_datetime(value):
@@ -527,6 +549,10 @@ def str_to_timedelta(string_value: str) -> timedelta:
     '''
     if str(type(string_value)) != "<class 'str'>":
         raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
+
+    if string_value == 'UNLIMITED':
+        return timedelta(days=365*100)
+
     values = string_value.split(':')
     seconds = float(values.pop())
     minutes = int(values.pop())
