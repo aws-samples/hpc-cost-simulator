@@ -492,7 +492,9 @@ class SlurmLogParser(SchedulerLogParser):
             job_fields['AllocNodes'] = 1
         if job_fields.get('ReqMem') is not None:
             job_fields['ReqMemGB'] = job_fields['ReqMem'] / MEM_GB
-            del job_fields['ReqMem']
+        else:
+            job_fields['ReqMemGB'] = job_fields.get('ReqMem')
+        del job_fields['ReqMem']
 
         if job_fields.get('ExitCode') is not None:
             job_fields['ExitStatus'] = exit_status
