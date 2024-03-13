@@ -1,6 +1,7 @@
 version: 1
 
 instance_mapping:
+  hyperthreading: False
   region_name: eu-west-1
   range_minimum: 0
   range_maximum: 1000000

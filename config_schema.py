@@ -25,6 +25,7 @@ config_schema = Schema(
     {
         Optional('version', default=1): int,
         'instance_mapping': {
+            Optional('hyperthreading', default=False): bool,
             'region_name': str,
             'range_minimum': int,
             'range_maximum': int,
