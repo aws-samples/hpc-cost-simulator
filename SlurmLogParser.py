@@ -98,6 +98,7 @@ class SlurmLogParser(SchedulerLogParser):
         ('ReqCPUS', 'd'),          # Number of requested CPUs
         ('ReqMem', 'sd', True),    # Minimum required memory for the job in bytes
         ('ReqNodes', 'd'),         # Requested minimum Node count for the job/step
+        ('Reason', 's'),           #
         ('Constraints', 's'),      #
         # Times
         ('Submit', 'dt'),          # The time the job was submitted. NOTE: If a job is requeued, the submit time is reset. This is handled by not overwriting fields with the batch step.

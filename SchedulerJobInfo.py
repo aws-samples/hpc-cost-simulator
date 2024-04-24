@@ -61,6 +61,7 @@ class SchedulerJobInfo:
         timelimit:str=None,
 
         state:str=None,
+        reason:str=None,
         user:str=None,
         queue:str=None,
         project:str=None,
@@ -111,6 +112,7 @@ class SchedulerJobInfo:
             run_time (str): The time that the job ran. It should be the difference between finish_time and start_time.
 
             state (str): Job state
+            reason (str): reason for block
             user (str): user that submitted job.
             queue (str): queue that the job was submitted to.
             project (str): project that the job belongs to
@@ -176,6 +178,7 @@ class SchedulerJobInfo:
             self.run_time = self.run_time_td = None
 
         self.state = state
+        self.reason = reason
         self.user = user
         self.queue = queue
         self.project = project
@@ -243,6 +246,7 @@ class SchedulerJobInfo:
         run_time = str(field_dict['run_time'])
 
         state = int(field_dict['state'])
+        reason = field_dict['reason']
         user = field_dict.get('user', None)
         queue = field_dict.get('queue', None)
         project = field_dict.get('project', None)
@@ -281,6 +285,7 @@ class SchedulerJobInfo:
             run_time = run_time,
 
             state = state,
+            reason = reason,
             user = user,
             queue = queue,
             project = project,
