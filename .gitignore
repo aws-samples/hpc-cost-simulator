@@ -8,6 +8,7 @@ venv
 /*.pickle
 .requirements_installed
 /docs-sphinx/output/
+input/
 instance_type_info.csv
 instance_type_info.*.csv
 instance_type_info.*.json
