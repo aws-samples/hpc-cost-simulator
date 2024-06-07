@@ -6,6 +6,7 @@ nav:
   - 'AcceleratorLogParser.md'
   - 'LSFLogParser.md'
   - 'SlurmLogParser.md'
+  - 'JsonLogParser.md'
   - 'JobAnalyzer.md'
   - 'Output.md'
   - 'config.md'
