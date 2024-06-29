@@ -208,7 +208,7 @@ class SchedulerLogParser(ABC):
             self._csv_dict_writer.writerow(job.__dict__)
         self._num_output_jobs += 1
 
-    def _read_job_from_csv(self):
+    def _read_job_from_csv(self) -> SchedulerJobInfo:
         '''
         Read a job from the input csv file.
 
