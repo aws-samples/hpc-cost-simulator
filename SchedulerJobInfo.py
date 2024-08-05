@@ -64,6 +64,7 @@ class SchedulerJobInfo:
         reason:str=None,
         user:str=None,
         queue:str=None,
+        node_list:str=None,
         project:str=None,
         licenses:str=None,
 
@@ -181,6 +182,7 @@ class SchedulerJobInfo:
         self.reason = reason
         self.user = user
         self.queue = queue
+        self.node_list = node_list
         self.project = project
         self.licenses = licenses
 
@@ -224,7 +226,7 @@ class SchedulerJobInfo:
         self.wait_time_td = self.start_time_dt - self.eligible_time_dt
         self.wait_time = timedelta_to_string(self.wait_time_td)
 
-        if not self.run_time:
+        if (not self.run_time) and self.finish_time_dt:
             self.run_time_td = self.finish_time_dt - self.start_time_dt
             self.run_time = timedelta_to_string(self.run_time_td)
 
@@ -249,6 +251,7 @@ class SchedulerJobInfo:
         reason = field_dict['reason']
         user = field_dict.get('user', None)
         queue = field_dict.get('queue', None)
+        node_list = field_dict.get('node_list', None)
         project = field_dict.get('project', None)
         licenses = field_dict.get('licensese', None)
 
@@ -288,6 +291,7 @@ class SchedulerJobInfo:
             reason = reason,
             user = user,
             queue = queue,
+            node_list = node_list,
             project = project,
             licenses = licenses,
 
@@ -362,7 +366,7 @@ class SchedulerJobInfo:
         Returns:
             tuple(str, datetime): typle with ISO format DateTime string: `YYYY-MM-DDTHH:MM::SS` and datetime object
         '''
-        if value == None:
+        if value is None or value == 'Unknown':
             return (None, None)
         dt_str = None
         dt = None
@@ -525,6 +529,8 @@ def str_to_datetime(string_value: str) -> datetime:
     '''
     if str(type(string_value)) != "<class 'str'>":
         raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
+    if string_value in ['Unknown', 'None']:
+        return None
     return datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT).replace(tzinfo=timezone.utc)
 
 def datetime_to_str(dt: datetime) -> str:
@@ -560,6 +566,8 @@ def str_to_timedelta(string_value: str) -> timedelta:
 
     if string_value == 'UNLIMITED':
         return None
+    elif string_value == '0':
+        return timedelta(0)
 
     values = string_value.split(':')
     seconds = float(values.pop())

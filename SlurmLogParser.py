@@ -114,6 +114,7 @@ class SlurmLogParser(SchedulerLogParser):
 
         ('AllocNodes', 'd'),       # Number of nodes allocated to the job/step
         ('NCPUS', 'd'),            # Total number of CPUs allocated to the job. Equivalent to AllocCPUS
+        ('NodeList', 's'),         # Node names allocated to job/step
 
         ('MaxDiskRead', 'sd', True),  # Maximum number of bytes read by all tasks in job')
         ('MaxDiskWrite', 'sd', True), # Maximum number of bytes written by all tasks in job
@@ -331,7 +332,7 @@ class SlurmLogParser(SchedulerLogParser):
                     else:
                         raise
                 req_mem_suffix = None
-                if field_value != None:
+                if field_value is not None:
                     try:
                         if field_format == 'd':
                             field_value = mem_string_to_int(field_value)
@@ -350,10 +351,6 @@ class SlurmLogParser(SchedulerLogParser):
                         else:
                             raise ValueError(f"Invalid format of {field_format} for field {field_name}")
                     except ValueError as e:
-                        if field_name == 'Start' and job_fields['State'] == 'CANCELLED':
-                            # Ignore cancelled jobs that didn't start
-                            logger.debug(f"Ignoring job because it was CANCELLED and did not start.")
-                            return None
                         if empty_field_allowed and field_value == '':
                             field_value = None
                         else:
@@ -370,10 +367,6 @@ class SlurmLogParser(SchedulerLogParser):
                             job_fields['State'] = 'CANCELLED'
                         else:
                             raise ValueError(f"Invalid state: {job_fields['State']}")
-                    # Need to stop processing lines with invalid states since following fields may be invalid and cause errors.
-                    if job_fields['State'] in self.SLURM_STATE_CODES_TO_IGNORE:
-                        logger.debug(f"    Ignored state: {field_value}")
-                        return None
         except Exception as e:
             field_errors += 1
             msg = f"Exception while processing fields, {field_name} ({field_format}): {e}\n{line}"
@@ -430,7 +423,7 @@ class SlurmLogParser(SchedulerLogParser):
 
         (job_id, job_fields, first_line_number, field_errors) = self._parsed_lines.pop(0)
         last_line_number = first_line_number
-        logger.debug(f"Assembling job {job_id}")
+        logger.debug(f"Assembling job {job_id})")
         while self._parsed_lines and self._parsed_lines[0][0] == job_id:
             # Update fields. Don't overwrite with .update or else blank fields will overwrite non-blank fields.
             (job_id, next_job_fields, last_line_number, next_field_errors) = self._parsed_lines.pop(0)
@@ -459,8 +452,12 @@ class SlurmLogParser(SchedulerLogParser):
             self.errors.append((self._sacct_input_file, first_line_number, msg))
             return None
 
+        if job_fields['State']=='CANCELLED' and job_fields['Start'] == 'None' and job_fields['Elapsed'] == '00:00:00':
+            logger.debug(f"Ignoring job {job_id} because it was cancelled and did not run.")
+            return None
+
         if job_fields['State'] in self.SLURM_STATE_CODES_TO_IGNORE:
-            logger.debug(f"    Ignored state: {field_value}")
+            logger.debug(f"    Ignored state: {job_fields['State']}")
             return None
 
         try:
