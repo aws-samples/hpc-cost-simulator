@@ -1,6 +1,6 @@
 bandit # For security scan
 black
-boto3==1.20.38
+boto3
 botocore
 colored
 GitPython
@@ -15,6 +15,7 @@ pytest-order
 PyYAML
 requests
 schema
+setuptools
 sphinx
 types-PyYAML
-urllib3==1.26.19
+urllib3
