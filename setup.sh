@@ -26,8 +26,8 @@ else
 fi
 echo -e "Setting up for $distribution $distribution_major_version\n"
 
-# Deactivate any active virtual envs
-timeout 1s deactivate &> /dev/null || true
+# Do not deactivate any active virtual envs so that can override system default python version
+#timeout 1s deactivate &> /dev/null || true
 
 pushd $repodir &> /dev/null
 

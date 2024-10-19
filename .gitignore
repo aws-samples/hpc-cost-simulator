@@ -4,6 +4,7 @@ output/*
 site/
 venv
 .venv/
+.venv*/
 .vscode/
 /*.pickle
 .requirements_installed
