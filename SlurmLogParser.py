@@ -218,7 +218,6 @@ class SlurmLogParser(SchedulerLogParser):
         logger.info(f"Parsed {len(jobs_dict)} jobs")
         if self.errors:
             logger.error(f"{len(self.errors)} errors while parsing jobs")
-            return None
         return jobs_dict
 
     def parse_job(self):
