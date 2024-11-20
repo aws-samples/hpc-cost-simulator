@@ -230,6 +230,13 @@ class SchedulerJobInfo:
             self.run_time_td = self.finish_time_dt - self.start_time_dt
             self.run_time = timedelta_to_string(self.run_time_td)
 
+        if self.ru_maxrss is None:
+            # Can make an educated guess
+            if self.state == 'OUT_OF_MEMORY':
+                self.ru_maxrss = self.max_mem_gb / self.num_hosts
+            elif self.run_time_td < timedelta(seconds=60):
+                self.ru_maxrss = 0
+
     @staticmethod
     def from_dict(field_dict: dict):
         job_id = int(field_dict['job_id'])
@@ -531,6 +538,12 @@ def str_to_datetime(string_value: str) -> datetime:
         raise ValueError(f"Invalid type for string_value: {string_value} has type '{type(string_value)}', expected str")
     if string_value in ['Unknown', 'None']:
         return None
+
+    date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+    match = re.search(date_pattern, string_value)
+    if match:
+        string_value += "T00:00:00"
+
     return datetime.strptime(string_value, SchedulerJobInfo.DATETIME_FORMAT).replace(tzinfo=timezone.utc)
 
 def datetime_to_str(dt: datetime) -> str:
