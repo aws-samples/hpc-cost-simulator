@@ -538,7 +538,8 @@ class EC2InstanceTypeInfo:
         with open(endpoint_file, 'r') as f:
             data = json.load(f)
         missing_region_names = {
-            #'ca-west-1': {'description': 'Canada (Calgary)'}
+            'ap-southeast-5': {'description': 'Asia Pacific (Malaysia)'},
+            'ca-west-1': {'description': 'Canada (Calgary)'}
         }
         for missing_region in missing_region_names:
             if missing_region not in data:
