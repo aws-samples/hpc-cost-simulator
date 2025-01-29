@@ -145,8 +145,8 @@ class SchedulerLogParser(ABC):
             max_mem_gb = 1.1,
             num_hosts = 1,
 
-            submit_time = '1970-01-01T00:00:00',
-            start_time = '1970-01-01T00:00:01',
+            submit_time = '1970-01-01T00:00:01',
+            start_time = '1970-01-01T00:00:02',
             finish_time = '1970-01-01T00:00:05',
         )
         field_names = []

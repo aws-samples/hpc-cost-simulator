@@ -35,6 +35,7 @@ from openpyxl.utils import get_column_letter as xl_get_column_letter
 import operator
 from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
+import psutil
 import re
 from SchedulerJobInfo import logger as SchedulerJobInfo_logger, SchedulerJobInfo, datetime_to_str, str_to_datetime, timestamp_to_datetime
 from SchedulerLogParser import SchedulerLogParser, logger as SchedulerLogParser_logger
@@ -249,9 +250,13 @@ class JobAnalyzer(JobAnalyzerBase):
                         round_hour += 1
                         round_hour_seconds = round_hour * SECONDS_PER_HOUR
             logger.debug(f"    Finished processing ({num_jobs} jobs)")
-	    # Print a progress message for every 24 hours of data
+	        # Print a progress message for every 24 hours of data
             if hourly_file_index and (hourly_file_index % 24 == 0):
-                logger.info(f"Processed {hourly_file_index + 1} / {len(hourly_files)} ({round((hourly_file_index + 1) / len(hourly_files) * 100)} %) of hourly job files.")
+                memory = psutil.virtual_memory()
+                try:
+                    logger.info(f"Processed {hourly_file_index + 1} / {len(hourly_files)} ({round((hourly_file_index + 1) / len(hourly_files) * 100)} %) of hourly job files. mem used: {memory.used}/{memory.total}={int(memory.used/memory.total*100)}%")
+                except:
+                    logger.exception()
 
     def _add_job_to_hourly_bucket(self, job_cost_data: JobCost) -> None:
         '''
@@ -914,7 +919,7 @@ class JobAnalyzer(JobAnalyzerBase):
         Write the hourly costs into a separate CSV file.
         Write an overall job summary.
 
-        Scalability is a key consideration because millions of jobs must be processessed so the analysis cannot be
+        Scalability is a key consideration because millions of jobs must be processed so the analysis cannot be
         done in memory.
         First breaking the jobs out into hourly chunks makes the process scalable.
         '''
@@ -924,6 +929,7 @@ class JobAnalyzer(JobAnalyzerBase):
         self._clear_job_stats()   # allows calling multiple times in testing
         self._cleanup_hourly_files()
 
+        logger.info(f"Parsing jobs into hourly jobs files.")
         total_jobs = 0
         total_failed_jobs = 0
         while True:
@@ -948,6 +954,9 @@ class JobAnalyzer(JobAnalyzerBase):
                 continue
             self._add_job_to_collector(job)
             self._add_job_to_hourly_bucket(job_cost_data)
+            if (total_jobs % 10000) == 0:
+                memory = psutil.virtual_memory()
+                logger.info(f"    Parsed {total_jobs} jobs. mem used: {memory.used}/{memory.total}={int(memory.used/memory.total*100)}%")
         logger.info(f"Finished processing {total_jobs-total_failed_jobs}/{total_jobs} jobs")
 
         # Dump pending jobs and summary to output files

@@ -4,6 +4,7 @@ boto3==1.20.38
 botocore
 colored==1.4.2
 GitPython
+ijson
 mkdocs
 mypy
 openpyxl

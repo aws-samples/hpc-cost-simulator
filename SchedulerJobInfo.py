@@ -42,6 +42,13 @@ class SchedulerJobInfo:
     required fields.
     Scripts that use this should validate the existence of optional fields.
     '''
+
+    invalid_submit_time_warning = False
+    invalid_start_time_warning = False
+    invalid_ineligible_pend_time_warning = False
+    invalid_finish_time_warning = False
+    finish_time_lt_start_time_warning = False
+
     def __init__(self,
         # Required fields
         job_id:int,
@@ -139,31 +146,58 @@ class SchedulerJobInfo:
         (self.start_time, self.start_time_dt) = SchedulerJobInfo.fix_datetime(start_time)
         (self.finish_time, self.finish_time_dt) = SchedulerJobInfo.fix_datetime(finish_time)
 
+        if not self.submit_time:
+            if not SchedulerJobInfo.invalid_submit_time_warning:
+                logger.warning(f"Invalid submit time for job {self.job_id}. Submit time={submit_time}. Discarding job and suppressing additional warnings.")
+                SchedulerJobInfo.invalid_submit_time_warning = True
+            raise ValueError(f"Invalid submit time for job {self.job_id}. Submit time={submit_time}.")
+
+        if not self.start_time or self.start_time_dt < self.submit_time_dt:
+            if not SchedulerJobInfo.invalid_start_time_warning:
+                logger.warning(f"Invalid start time for job {self.job_id}. Start time {self.start_time} < submit time {self.submit_time}. Setting to submit time and suppressing additional warnings. finish_time={finish_time} run_time={run_time}")
+                SchedulerJobInfo.invalid_start_time_warning = True
+            self.start_time = self.submit_time
+            self.start_time_dt = self.submit_time_dt
+
+        if not self.finish_time:
+            if not SchedulerJobInfo.invalid_finish_time_warning:
+                logger.warning(f"Invalid finish time for job {self.job_id}. Finish time={finish_time}. Discarding job and suppressing additional warnings.")
+                SchedulerJobInfo.invalid_finish_time_warning = True
+            raise ValueError(f"Invalid finish time for job {self.job_id}. Finish time={finish_time}.")
+
+        if self.finish_time_dt < self.start_time_dt:
+            if not SchedulerJobInfo.finish_time_lt_start_time_warning:
+                logger.warning(f"Invalid finish time for job {self.job_id}. Finish time={self.finish_time} < Start time={self.start_time}. Discarding job and suppressing additional warnings.")
+                SchedulerJobInfo.finish_time_lt_start_time_warning = True
+            raise ValueError(f"Invalid finish time for job {self.job_id}. Finish time={self.finish_time} < Start time={self.start_time}.")
+
         # Optional fields
         try:
             (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
         except:
-            logger.warning(f"Invalid ineligible_pend_time: {ineligible_pend_time}")
+            if not SchedulerJobInfo.invalid_ineligible_pend_time_warning:
+                logger.warning(f"Invalid ineligible_pend_time for job {self.job_id}: {ineligible_pend_time}. Setting to None and suppressing additional warnings.")
+                SchedulerJobInfo.invalid_ineligible_pend_time_warning = True
             self.ineligible_pend_time = self.ineligible_pend_time_td = None
         try:
             (self.eligible_time, self.eligible_time_dt) = SchedulerJobInfo.fix_datetime(eligible_time)
         except:
-            logger.warning(f"Invalid eligible_time: {eligible_time}")
+            logger.warning(f"Invalid eligible_time for job {self.job_id}: {eligible_time}")
             self.eligible_time = self.eligible_time_dt = None
         try:
             (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
         except:
-            logger.warning(f"Invalid requeue_time: {requeue_time}")
+            logger.warning(f"Invalid requeue_time for job {self.job_id}: {requeue_time}")
             self.requeue_time = self.requeue_time_td = None
         try:
             (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
         except:
-            logger.warning(f"Invalid wait_time: {wait_time}")
+            logger.warning(f"Invalid wait_time for job {self.job_id}: {wait_time}")
             self.wait_time = self.wait_time_td = None
         try:
             (self.run_time, self.run_time_td) = SchedulerJobInfo.fix_duration(run_time)
         except:
-            logger.warning(f"Invalid run_time: {run_time}")
+            logger.warning(f"Invalid run_time for job {self.job_id}: {run_time}")
             self.run_time = self.run_time_td = None
 
         self.queue = queue
@@ -313,7 +347,7 @@ class SchedulerJobInfo:
 
         This is used by the constructor.
 
-        LSF passes times in as an integer integer timestamp.
+        LSF passes times as an integer timestamp.
         If the value is -1 then return None.
         If the integer value is passed as a string then it will be converted to an integer.
         It is checked by converting it to a datetime.datetime object.
@@ -357,6 +391,8 @@ class SchedulerJobInfo:
             dt = str_to_datetime(value)
         else:
             raise ValueError(f"Invalid type for datetime: {value} has type '{type(value)}', expected int or str")
+        if dt.timestamp() == 0:
+            return (None, None)
         dt_str = datetime_to_str(dt)
         return (dt_str, dt)
 
