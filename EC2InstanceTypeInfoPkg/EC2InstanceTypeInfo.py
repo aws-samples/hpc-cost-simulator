@@ -540,7 +540,9 @@ class EC2InstanceTypeInfo:
             data = json.load(f)
         missing_region_names = {
             'ap-southeast-5': {'description': 'Asia Pacific (Malaysia)'},
-            'ca-west-1': {'description': 'Canada (Calgary)'}
+            'ap-southeast-7': {'description': 'Asia Pacific (Thailand)'},
+            'ca-west-1': {'description': 'Canada (Calgary)'},
+            'mx-central-1': {'description': 'Mexico (Central)'}
         }
         for missing_region in missing_region_names:
             if missing_region not in data:
