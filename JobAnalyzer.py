@@ -87,12 +87,12 @@ class JobAnalyzer(JobAnalyzerBase):
         Output:
             Sorted list of output filenames
         '''
-        all_files = listdir(self._output_dir)
+        all_files = listdir(self._hourly_files_dir)
         output_files = []
         prefix = path.basename("hourly-")
         for file in all_files:
             if file.startswith(prefix) and file[-4:] == ".csv":
-                output_file = f"{self._output_dir}/" + file
+                output_file = path.join(self._hourly_files_dir, file)
                 output_files.append(output_file)
         output_files.sort()
         return output_files
@@ -110,7 +110,7 @@ class JobAnalyzer(JobAnalyzerBase):
         for hourly_file in hourly_files:
             remove(hourly_file)
 
-    def _update_hourly_stats(self, round_hour: int, minutes_within_hour: float, core_hours: float, total_cost_per_hour: float, spot: bool, instance_family: str) -> None:
+    def _update_hourly_stats(self, round_hour: int, instance_minutes_within_hour: float, minutes_within_hour: float, core_hours: float, total_cost_per_hour: float, spot: bool, instance_family: str) -> None:
         '''
         Update the hourly stats dict with a portion of the cost of a job that fits within a round hour.
 
@@ -144,15 +144,16 @@ class JobAnalyzer(JobAnalyzerBase):
             self._init_hourly_stats_hour(round_hour)
         purchase_option = 'spot' if spot == True else 'on_demand'
         cost = minutes_within_hour / 60 * total_cost_per_hour
-        if spot:
-            self.hourly_stats[round_hour][purchase_option] += cost
-            self.total_stats[purchase_option] += cost
-        else:
-            self.hourly_stats[round_hour][purchase_option]['total'] += cost
-            self.hourly_stats[round_hour][purchase_option][instance_family] = cost + self.hourly_stats[round_hour][purchase_option].get(instance_family, 0)
-            self.hourly_stats[round_hour][purchase_option]['core_hours'][instance_family] = self.hourly_stats[round_hour][purchase_option]['core_hours'].get(instance_family, 0) + core_hours
-            self.total_stats[purchase_option]['total'] += cost
-            self.total_stats[purchase_option]['instance_families'][instance_family] = cost + self.total_stats[purchase_option]['instance_families'].get(instance_family, 0)
+        self.hourly_stats[round_hour][purchase_option]['total'] += cost
+        self.hourly_stats[round_hour][purchase_option][instance_family] = cost + self.hourly_stats[round_hour][purchase_option].get(instance_family, 0)
+        self.hourly_stats[round_hour][purchase_option]['core_hours'][instance_family] = self.hourly_stats[round_hour][purchase_option]['core_hours'].get(instance_family, 0) + core_hours
+        self.hourly_stats[round_hour][purchase_option]['instance_hours'] += instance_minutes_within_hour / 60
+        logger.debug(f"        self.hourly_stats[{round_hour}][{purchase_option}]['instance_hours']={self.hourly_stats[round_hour][purchase_option]['instance_hours']}")
+        self.total_stats[purchase_option]['instance_families'][instance_family] = cost + self.total_stats[purchase_option]['instance_families'].get(instance_family, 0)
+        self.total_stats[purchase_option]['instance_hours'] += instance_minutes_within_hour / 60
+        logger.debug(f"        self.total_stats[{purchase_option}]['instance_hours']={self.total_stats[purchase_option]['instance_hours']}")
+        self.total_stats['instance_hours'] += instance_minutes_within_hour / 60
+        logger.debug(f"        self.total_stats['instance_hours']={self.total_stats['instance_hours']}")
 
     def _process_hourly_jobs(self) -> None:
         '''
@@ -245,8 +246,10 @@ class JobAnalyzer(JobAnalyzerBase):
                             runtime_minutes = (end_time - round_hour_seconds)/60
                         else:
                             logger.error(f"{file}, line {line_number}: Record failed to process correctly: {','.join(job_field_values_array)}")
+                        instance_minutes = runtime_minutes * num_hosts
                         core_hours = runtime_minutes * num_hosts * num_cores / 60
-                        self._update_hourly_stats(round_hour, runtime_minutes, core_hours, total_hourly_rate, spot_eligible, instance_family)
+                        logger.debug(f"        instance_minutes={instance_minutes} runtime_minutes={runtime_minutes} core_hours={core_hours}")
+                        self._update_hourly_stats(round_hour, instance_minutes, runtime_minutes, core_hours, total_hourly_rate, spot_eligible, instance_family)
                         round_hour += 1
                         round_hour_seconds = round_hour * SECONDS_PER_HOUR
             logger.debug(f"    Finished processing ({num_jobs} jobs)")
@@ -283,7 +286,7 @@ class JobAnalyzer(JobAnalyzerBase):
         This is done in batches to reduce the number of file opens and closes.
         '''
         for round_hour, jobs in self.jobs_by_hours.items():
-            hourly_file_name = path.join(self._output_dir, f"hourly-{round_hour}.csv")
+            hourly_file_name = path.join(self._output_dir, 'hourly-files', f"hourly-{round_hour}.csv")
             with open(hourly_file_name, 'a+') as job_file:
                 if job_file.tell() == 0:    # Empty file - add headers
                     job_file.write('start_time,Job id,Num Hosts,Runtime (minutes),memory (GB),Wait time (minutes),Instance type,Instance Family,Spot,Hourly Rate,Total Cost\n')
@@ -321,7 +324,7 @@ class JobAnalyzer(JobAnalyzerBase):
             # convert from absolute hour to relative one (obfuscation)
             csv_writer = csv.writer(hourly_stats_fh, dialect='excel')
             instance_families = sorted(self._instance_families_used['on_demand'].keys())
-            field_names = ['Relative Hour','Total OnDemand Costs','Total Spot Costs'] + instance_families
+            field_names = ['Relative Hour','Total OnDemand Costs','Total Spot Costs', 'Instance Hours'] + instance_families
             csv_writer.writerow(field_names)
             if hour_list:
                 first_hour = hour_list[0]
@@ -333,14 +336,14 @@ class JobAnalyzer(JobAnalyzerBase):
                 for hour in hour_list:
                     relative_hour = hour - first_hour
                     while prev_relative_hour < relative_hour - 1:   # add zero values for all missing hours
-                        field_values = [prev_relative_hour + 1, 0, 0]
+                        field_values = [prev_relative_hour + 1, 0, 0, 0]
                         for instance_family in instance_families:
                             field_values.append(0)
                         csv_writer.writerow(field_values)
                         logger.debug(f"    empty hour: {field_values}")
                         number_of_hours += 1
                         prev_relative_hour += 1
-                    field_values = [relative_hour, round(self.hourly_stats[hour]['on_demand']['total'], 6), round(self.hourly_stats[hour]['spot'], 6)]
+                    field_values = [relative_hour, round(self.hourly_stats[hour]['on_demand']['total'], 6), round(self.hourly_stats[hour]['spot']['total'], 6), self.hourly_stats[hour]['on_demand']['instance_hours'] + self.hourly_stats[hour]['spot']['instance_hours']]
                     for instance_family in instance_families:
                         field_values.append(round(self.hourly_stats[hour]['on_demand'].get(instance_family, 0), 6))
                     csv_writer.writerow(field_values)
@@ -355,27 +358,27 @@ class JobAnalyzer(JobAnalyzerBase):
         with open (summary_stats_csv, 'w+') as summary_stats_fh:
             csv_writer = csv.writer(summary_stats_fh, dialect='excel')
             instance_families = sorted(self._instance_families_used['on_demand'].keys())
-            field_names = ['', 'OnDemand Costs','Spot Costs']
+            field_names = ['', 'Instance Hours', 'OnDemand Instance Hours', 'OnDemand Costs', 'Spot Instance Hours', 'Spot Costs']
             for instance_family in instance_families:
                 field_names.append(f"{instance_family} OD Costs")
             csv_writer.writerow(field_names)
 
-            field_values = ['Total', round(self.total_stats['on_demand']['total'], 6), round(self.total_stats['spot'], 6)]
+            field_values = ['Total', round(self.total_stats['instance_hours'], 6), round(self.total_stats['on_demand']['instance_hours'], 6), round(self.total_stats['on_demand']['total'], 6), round(self.total_stats['spot']['instance_hours'], 6), round(self.total_stats['spot']['total'], 6)]
             for instance_family in instance_families:
                 field_values.append(round(self.total_stats['on_demand']['instance_families'].get(instance_family, 0), 6))
             csv_writer.writerow(field_values)
 
-            field_values = ['Hourly average', round(self.total_stats['on_demand']['total']/number_of_hours, 6), round(self.total_stats['spot']/number_of_hours, 6)]
+            field_values = ['Hourly average', round(self.total_stats['instance_hours']/number_of_hours, 6), round(self.total_stats['on_demand']['instance_hours']/number_of_hours, 6), round(self.total_stats['on_demand']['total']/number_of_hours, 6), round(self.total_stats['spot']['instance_hours']/number_of_hours, 6), round(self.total_stats['spot']['total']/number_of_hours, 6)]
             for instance_family in instance_families:
                 field_values.append(round(self.total_stats['on_demand']['instance_families'].get(instance_family, 0)/number_of_hours, 6))
             csv_writer.writerow(field_values)
 
-            field_values = ['Annual average', round(self.total_stats['on_demand']['total']/number_of_hours, 6), round(self.total_stats['spot']/number_of_hours, 6)]
-            for instance_family in instance_families:
-                field_values.append(round(self.total_stats['on_demand']['instance_families'].get(instance_family, 0)/number_of_hours, 6))
-            csv_writer.writerow(field_values)
+            # field_values = ['Annual average', round(self.total_stats['on_demand']['total']/number_of_hours, 6), round(self.total_stats['spot']['total']/number_of_hours, 6)]
+            # for instance_family in instance_families:
+            #     field_values.append(round(self.total_stats['on_demand']['instance_families'].get(instance_family, 0)/number_of_hours, 6))
+            # csv_writer.writerow(field_values)
 
-            field_values = ['Monthly average']
+            # field_values = ['Monthly average']
 
     def parse_hourly_stats_csv(self, hourly_stats_csv: str) -> None:
         logger.info(f"Parsing {hourly_stats_csv}")
@@ -415,6 +418,12 @@ class JobAnalyzer(JobAnalyzerBase):
                         else:
                             field_value = float(field_value)
                         total_spot_costs = field_value
+                    elif field_name == 'Instance Hours':
+                        if field_value == '0':
+                            field_value = int(field_value)
+                        else:
+                            field_value = float(field_value)
+                        instance_hours = field_value
                     elif field_name in self.instance_family_info:
                         instance_family = field_name
                         if field_value == '0':
@@ -436,7 +445,8 @@ class JobAnalyzer(JobAnalyzerBase):
                     self._instance_families_used['on_demand'][instance_family] = 1
                     self.total_stats['on_demand']['instance_families'][instance_family] = instance_family_on_demand_cost
                 self.total_stats['on_demand']['total'] += total_ondemand_costs
-                self.total_stats['spot'] += total_spot_costs
+                self.total_stats['spot']['total'] += total_spot_costs
+                self.total_stats['instance_hours'] += instance_hours
 
     def _write_hourly_stats_xlsx(self):
         '''
@@ -540,6 +550,24 @@ class JobAnalyzer(JobAnalyzerBase):
         total_cell = excel_summary_ws[f'B{row}']
         total_cell.number_format = FORMAT_CURRENCY_USD_SIMPLE
         total_cell_ref = f'CostSummary!${total_cell.column_letter}${total_cell.row}'
+        row += 2
+        excel_summary_ws[f'A{row}'] = 'Total OnDemand Instance Hours'
+        total_on_demand_instance_hours_cell = excel_summary_ws[f'B{row}']
+        total_on_demand_instance_hours_cell.value = self.total_stats['on_demand']['instance_hours']
+        logger.debug(f"self.total_stats['on_demand']['instance_hours']={self.total_stats['on_demand']['instance_hours']}")
+        total_on_demand_instance_hours_cell_ref = f'CostSummary!${total_on_demand_instance_hours_cell.column_letter}${total_on_demand_instance_hours_cell.row}'
+        row += 1
+        excel_summary_ws[f'A{row}'] = 'Total Spot Instance Hours'
+        total_spot_instance_hours_cell = excel_summary_ws[f'B{row}']
+        total_spot_instance_hours_cell.value = self.total_stats['spot']['instance_hours']
+        logger.debug(f"self.total_stats['spot']['instance_hours']={self.total_stats['spot']['instance_hours']}")
+        total_spot_instance_hours_cell_ref = f'CostSummary!${total_spot_instance_hours_cell.column_letter}${total_spot_instance_hours_cell.row}'
+        row += 1
+        excel_summary_ws[f'A{row}'] = 'Total Instance Hours'
+        total_instance_hours_cell = excel_summary_ws[f'B{row}']
+        total_instance_hours_cell.value = self.total_stats['instance_hours']
+        logger.debug(f"self.total_stats['instance_hours']={self.total_stats['instance_hours']}")
+        total_instance_hours_cell_ref = f'CostSummary!${total_instance_hours_cell.column_letter}${total_instance_hours_cell.row}'
         row += 2
         excel_summary_ws.cell(row=row, column=1).value = 'Use Excel Solver to optimize savings plans'
         row += 1
@@ -746,7 +774,7 @@ class JobAnalyzer(JobAnalyzerBase):
                 row = number_of_hours + 2
                 logger.debug(f"row: {row}")
                 excel_hourly_ws.cell(row=row, column=1, value=relative_hour)
-                excel_hourly_ws.cell(row=row, column=2, value=self.hourly_stats[hour]['spot'])
+                excel_hourly_ws.cell(row=row, column=2, value=self.hourly_stats[hour]['spot']['total'])
                 od_cost_formula = '=0'
                 csp_cost_total_formula = '0'
                 total_core_hour_formula = '=0'
@@ -1140,7 +1168,7 @@ def main():
                 logger.info(f"    Querying job information from Slurm results database")
             scheduler_parser = SlurmLogParser(args.sacct_input_file, args.sacct_output_file, args.output_csv, args.starttime, args.endtime)
         elif args.parser == 'hourly_stats':
-            logger.info(f"Parsing hourly jobs from {args.output_dir}/hourly-*.csv")
+            logger.info(f"Parsing hourly jobs from {args.output_dir}/hourly-files/hourly-*.csv")
             scheduler_parser = None
             jobAnalyzer = JobAnalyzer(scheduler_parser, args.config, args.output_dir, args.starttime, args.endtime, queue_filters=args.queues, project_filters=args.projects)
             jobAnalyzer._process_hourly_jobs()
