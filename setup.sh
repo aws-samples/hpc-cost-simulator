@@ -42,7 +42,7 @@ fi
 
 if ! yum list installed make &> /dev/null; then
     echo -e "\nInstalling make"
-    if ! sudo yum -y install make; then
+    if ! sudo --non-interactive yum -y install make; then
         echo -e "\nerror: Could not install make which is required to install packages in the python virtual environment."
         return
     else
@@ -52,7 +52,7 @@ fi
 
 if ! yum list installed mkdocs &> /dev/null; then
     echo -e "\nInstalling mkdocs\n"
-    if ! sudo yum -y install mkdocs; then
+    if ! sudo --non-interactive yum -y install mkdocs; then
         echo -e "\nwarning: Could not install mkdocs. Will not be able to display docs in your browsers.\n"
     else
         echo -e "\nInstalled mkdocs\n"
@@ -61,7 +61,7 @@ fi
 
 if ! python3 --version &> /dev/null; then
     echo -e "\nInstalling python3\n"
-    if ! sudo yum -y install python3; then
+    if ! sudo --non-interactive yum -y install python3; then
         echo -e "\nerror: Could not install python3. All of the scripts require python 3.6 or later."
         return
     else

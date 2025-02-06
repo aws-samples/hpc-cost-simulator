@@ -64,6 +64,10 @@ class JobAnalyzerBase:
         self._scheduler_parser = scheduler_parser
         self._config_filename = config_filename
         self._output_dir = realpath(output_dir)
+        self._hourly_files_dir = path.join(self._output_dir, 'hourly-files')
+
+        logger.info(f"Writing output to {self._output_dir}")
+        logger.info(f"Writing hourly files to {self._hourly_files_dir}")
 
         self._starttime = starttime
         self._endtime = endtime
@@ -71,6 +75,10 @@ class JobAnalyzerBase:
         if not path.exists(self._output_dir):
             logger.info(f"Output directory ({self._output_dir}) doesn't exist, creating")
             makedirs(self._output_dir)
+
+        if not path.exists(self._hourly_files_dir):
+            logger.info(f"Hourly files directory ({self._hourly_files_dir}) doesn't exist, creating")
+            makedirs(self._hourly_files_dir)
 
         logger.info(f"Loading configuration from {config_filename}.")
         self.config = JobAnalyzerBase.read_configuration(config_filename)
@@ -125,9 +133,9 @@ class JobAnalyzerBase:
         for purchase_option in ['spot', 'on_demand']:
             self._instance_types_used[purchase_option] = {}
             self._instance_families_used[purchase_option] = {}
-        
+
         self._hyperthreading = self.config['instance_mapping']['hyperthreading']
-        
+
     @staticmethod
     def read_configuration(config_filename):
         try:
@@ -190,7 +198,7 @@ class JobAnalyzerBase:
 
     def get_instance_type_info(self):
         logger.info('Getting EC2 instance type info')
-        json_filename = 'instance_type_info.json'
+        json_filename = path.join(dirname(__file__), 'instance_type_info.json')
         try:
             self.eC2InstanceTypeInfo = EC2InstanceTypeInfo([self.region], json_filename=json_filename)
         except NoCredentialsError as e:
@@ -379,11 +387,17 @@ class JobAnalyzerBase:
             self._init_hourly_stats_hour(round_hour)
 
         self.total_stats = {
-            'spot': 0.0,
+            'spot': {
+                'total': 0.0,
+                'instance_families': {},
+                'instance_hours': 0.0
+            },
             'on_demand': {
                 'total': 0.0,
-                'instance_families': {}
-            }
+                'instance_families': {},
+                'instance_hours': 0.0
+            },
+            'instance_hours': 0.0
         }
 
     def _init_hourly_stats_hour(self, round_hour: int) -> None:
@@ -393,9 +407,14 @@ class JobAnalyzerBase:
             self.hourly_stats[round_hour] = {
                 'on_demand': {
                     'total': 0,
-                    'core_hours': {}
+                    'core_hours': {},
+                    'instance_hours': 0
                 },
-                'spot': 0
+                'spot': {
+                    'total': 0,
+                    'core_hours': {},
+                    'instance_hours': 0
+                }
             }
 
     def _filter_job_queue(self, job: SchedulerJobInfo) -> bool:
