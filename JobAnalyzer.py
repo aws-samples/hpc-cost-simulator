@@ -30,8 +30,9 @@ from math import ceil
 from openpyxl import Workbook as XlsWorkbook
 from openpyxl.chart import BarChart3D, LineChart as XlLineChart, Reference as XlReference
 from openpyxl.styles import Alignment as XlsAlignment, Protection as XlsProtection
-from openpyxl.styles.numbers import FORMAT_CURRENCY_USD_SIMPLE
+from openpyxl.styles.numbers import FORMAT_CURRENCY_USD_SIMPLE, FORMAT_NUMBER_COMMA_SEPARATED1
 from openpyxl.utils import get_column_letter as xl_get_column_letter
+from openpyxl.utils.units import pixels_to_EMU, points_to_pixels
 import operator
 from os import listdir, makedirs, path, remove
 from os.path import dirname, realpath
@@ -472,6 +473,15 @@ class JobAnalyzer(JobAnalyzerBase):
         excel_job_stats_ws = excel_wb.create_sheet(title='JobStats')
         excel_job_stats_ws.protection.sheet = xls_locked
 
+        excel_job_counts_ws = excel_wb.create_sheet(title='JobCounts')
+        excel_job_counts_ws.protection.sheet = xls_locked
+
+        excel_job_durations_ws = excel_wb.create_sheet(title='JobDurations')
+        excel_job_durations_ws.protection.sheet = xls_locked
+
+        excel_job_wait_times_ws = excel_wb.create_sheet(title='JobWaitTimes')
+        excel_job_wait_times_ws.protection.sheet = xls_locked
+
         excel_instance_family_summary_ws = excel_wb.create_sheet(title='InstanceFamilySummary')
         excel_instance_family_summary_ws.protection.sheet = xls_locked
 
@@ -554,18 +564,19 @@ class JobAnalyzer(JobAnalyzerBase):
         excel_summary_ws[f'A{row}'] = 'Total OnDemand Instance Hours'
         total_on_demand_instance_hours_cell = excel_summary_ws[f'B{row}']
         total_on_demand_instance_hours_cell.value = self.total_stats['on_demand']['instance_hours']
-        logger.debug(f"self.total_stats['on_demand']['instance_hours']={self.total_stats['on_demand']['instance_hours']}")
+        total_on_demand_instance_hours_cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
         total_on_demand_instance_hours_cell_ref = f'CostSummary!${total_on_demand_instance_hours_cell.column_letter}${total_on_demand_instance_hours_cell.row}'
         row += 1
         excel_summary_ws[f'A{row}'] = 'Total Spot Instance Hours'
         total_spot_instance_hours_cell = excel_summary_ws[f'B{row}']
         total_spot_instance_hours_cell.value = self.total_stats['spot']['instance_hours']
-        logger.debug(f"self.total_stats['spot']['instance_hours']={self.total_stats['spot']['instance_hours']}")
+        total_spot_instance_hours_cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
         total_spot_instance_hours_cell_ref = f'CostSummary!${total_spot_instance_hours_cell.column_letter}${total_spot_instance_hours_cell.row}'
         row += 1
         excel_summary_ws[f'A{row}'] = 'Total Instance Hours'
         total_instance_hours_cell = excel_summary_ws[f'B{row}']
         total_instance_hours_cell.value = self.total_stats['instance_hours']
+        total_instance_hours_cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
         logger.debug(f"self.total_stats['instance_hours']={self.total_stats['instance_hours']}")
         total_instance_hours_cell_ref = f'CostSummary!${total_instance_hours_cell.column_letter}${total_instance_hours_cell.row}'
         row += 2
@@ -619,32 +630,277 @@ class JobAnalyzer(JobAnalyzerBase):
             excel_job_stats_ws.cell(row=row, column=column).value = 'Total wait time'
             max_column_widths[column] = len(excel_job_stats_ws.cell(row=row, column=column).value)
             column += 1
-        row += 1
         for ram in self.get_ranges(self.ram_ranges_GB):
+            row += 1
             column = 1
             excel_job_stats_ws.cell(row=row, column=column).value = f"{ram} GB"
             max_column_widths[column] = max(max_column_widths[column], len(excel_job_stats_ws.cell(row=row, column=column).value))
-            column += 1
             for runtime in self.get_ranges(self.runtime_ranges_minutes):
                 summary = self.job_data_collector[ram][runtime]
-                excel_job_stats_ws.cell(row=row, column=column).value = summary['number_of_jobs']
-                excel_job_stats_ws.cell(row=row, column=column+1).value = summary['total_duration_minutes']
-                excel_job_stats_ws.cell(row=row, column=column+2).value = summary['total_wait_minutes']
-                column += 3
-            row += 1
+                column += 1
+                cell = excel_job_stats_ws.cell(row=row, column=column)
+                cell.value = summary['number_of_jobs']
+                cell.number_format = '#,##0'
+                column += 1
+                cell = excel_job_stats_ws.cell(row=row, column=column)
+                cell.value = summary['total_duration_minutes']
+                cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+                column += 1
+                cell = excel_job_stats_ws.cell(row=row, column=column)
+                cell.value = summary['total_wait_minutes']
+                cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+        chart_data_max_row = row
+        chart_data_max_col = column
         for column, max_column_width in max_column_widths.items():
             excel_job_stats_ws.column_dimensions[xl_get_column_letter(column)].width = max_column_width + 1
+        # Total each column
         row += 1
         column = 1
-        # Add a chart to show the distribution by job characteristics
+        excel_job_stats_ws.cell(row=row, column=column).value = f"Total"
+        first_row = 3
+        last_row = row - 1
+        total_job_count_cells = []
+        total_duration_cells = []
+        total_wait_time_cells = []
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            # number_of_jobs
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_stats_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = '#,##0'
+            total_job_count_cells.append(cell.coordinate)
+            # total_duration_minutes
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_stats_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+            total_duration_cells.append(cell.coordinate)
+            # total_wait_minutes
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_stats_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+            total_wait_time_cells.append(cell.coordinate)
+        # Grand totals
+        row += 2
+        excel_job_stats_ws.cell(row=row, column=1).value = 'Total job count'
+        cell = excel_job_stats_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_job_count_cells)}"
+        row += 1
+        excel_job_stats_ws.cell(row=row, column=1).value = 'Total duration'
+        cell = excel_job_stats_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_duration_cells)}"
+        cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+        row += 1
+        excel_job_stats_ws.cell(row=row, column=1).value = 'Total wait time'
+        cell = excel_job_stats_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_wait_time_cells)}"
+        cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+        # # Add a chart to show the distribution by job characteristics
+        # row += 2
         # job_count_chart = BarChart3D()
         # job_count_chart.title = 'Job Count by Duration and Memory Size'
-        # job_count_chart.style = 13
-        # job_count_chart.y_axis.title = 'Core Hours'
-        # job_count_chart.x_axis.title = 'Relative Hour'
+        # # job_count_chart.style = 13
+        # job_count_chart.y_axis.title = ''
+        # job_count_chart.x_axis.title = 'Memory Ranges'
         # job_count_chart.width = 30
         # job_count_chart.height = 15
-        # excel_core_hours_chart_ws.add_chart(job_count_chart, excel_job_stats_ws.cell(row=row, column=column).coordinate)
+        # job_count_chart.add_data(XlReference(excel_job_stats_ws, min_col=2, min_row=1, max_col=chart_data_max_col, max_row=chart_data_max_row), titles_from_data=True)
+        # job_count_chart.set_categories(XlReference(excel_job_stats_ws, min_col=1, min_row=3, max_row=chart_data_max_row))
+        # excel_job_stats_ws.add_chart(job_count_chart, excel_job_stats_ws.cell(row=row, column=1).coordinate)
+
+        # JobCounts Worksheet
+        max_column_widths = {}
+        row = 1
+        column = 1
+        excel_job_counts_ws.cell(row=row, column=1).value = 'Job Counts'
+        row += 1
+        column = 1
+        excel_job_counts_ws.cell(row=row, column=column).value = 'Memory Size (GB)'
+        max_column_widths[column] = len(excel_job_counts_ws.cell(row=row, column=column).value)
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            column += 1
+            excel_job_counts_ws.cell(row=row, column=column).value = f'{runtime} Minutes'
+            excel_job_counts_ws.cell(row=row, column=column).alignment = XlsAlignment(horizontal='center')
+            max_column_widths[column] = len(excel_job_counts_ws.cell(row=row, column=column).value)
+        for ram in self.get_ranges(self.ram_ranges_GB):
+            row += 1
+            column = 1
+            excel_job_counts_ws.cell(row=row, column=column).value = f"{ram} GB"
+            max_column_widths[column] = max(max_column_widths[column], len(excel_job_counts_ws.cell(row=row, column=column).value))
+            for runtime in self.get_ranges(self.runtime_ranges_minutes):
+                summary = self.job_data_collector[ram][runtime]
+                column += 1
+                cell = excel_job_counts_ws.cell(row=row, column=column)
+                cell.value = summary['number_of_jobs']
+                cell.number_format = '#,##0'
+        chart_data_max_row = row
+        chart_data_max_col = column
+        for column, max_column_width in max_column_widths.items():
+            excel_job_counts_ws.column_dimensions[xl_get_column_letter(column)].width = max_column_width + 1
+        # Total each column
+        row += 1
+        column = 1
+        excel_job_counts_ws.cell(row=row, column=column).value = f"Total"
+        first_row = 3
+        last_row = row - 1
+        total_job_count_cells = []
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            # number_of_jobs
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_counts_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = '#,##0'
+            total_job_count_cells.append(cell.coordinate)
+        # Grand totals
+        row += 2
+        excel_job_counts_ws.cell(row=row, column=1).value = 'Total job count'
+        cell = excel_job_counts_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_job_count_cells)}"
+        # Add a chart to show the distribution of jobs
+        row += 2
+        job_count_chart = BarChart3D()
+        job_count_chart.style = 13
+        job_count_chart.title = 'Job Counts by Duration and Memory Size'
+        job_count_chart.x_axis.title = 'Memory Range'
+        job_count_chart.y_axis.title = 'Jobs'
+        job_count_chart.z_axis.title = 'Duration Range'
+        job_count_chart.width = 30
+        job_count_chart.height = 15
+        job_count_chart.add_data(XlReference(excel_job_counts_ws, min_col=2, min_row=2, max_col=chart_data_max_col, max_row=chart_data_max_row), titles_from_data=True)
+        job_count_chart.set_categories(XlReference(excel_job_counts_ws, min_col=1, min_row=3, max_row=chart_data_max_row))
+        excel_job_counts_ws.add_chart(job_count_chart, excel_job_counts_ws.cell(row=row, column=1).coordinate)
+
+        # JobDurations Worksheet
+        max_column_widths = {}
+        row = 1
+        column = 1
+        excel_job_durations_ws.cell(row=row, column=1).value = 'Total Duration'
+        row += 1
+        column = 1
+        excel_job_durations_ws.cell(row=row, column=column).value = 'Memory Size (GB)'
+        max_column_widths[column] = len(excel_job_durations_ws.cell(row=row, column=column).value)
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            column += 1
+            excel_job_durations_ws.cell(row=row, column=column).value = f'{runtime} Minutes'
+            excel_job_durations_ws.cell(row=row, column=column).alignment = XlsAlignment(horizontal='center')
+            max_column_widths[column] = len(excel_job_counts_ws.cell(row=row, column=column).value)
+        for ram in self.get_ranges(self.ram_ranges_GB):
+            row += 1
+            column = 1
+            excel_job_durations_ws.cell(row=row, column=column).value = f"{ram} GB"
+            max_column_widths[column] = max(max_column_widths[column], len(excel_job_durations_ws.cell(row=row, column=column).value))
+            for runtime in self.get_ranges(self.runtime_ranges_minutes):
+                summary = self.job_data_collector[ram][runtime]
+                column += 1
+                cell = excel_job_durations_ws.cell(row=row, column=column)
+                cell.value = summary['total_duration_minutes']
+                cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+        chart_data_max_row = row
+        chart_data_max_col = column
+        for column, max_column_width in max_column_widths.items():
+            excel_job_durations_ws.column_dimensions[xl_get_column_letter(column)].width = max_column_width + 1
+        # Total each column
+        row += 1
+        column = 1
+        excel_job_durations_ws.cell(row=row, column=column).value = f"Total"
+        first_row = 3
+        last_row = row - 1
+        total_duration_cells = []
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            # total_duration_minutes
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_durations_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+            total_duration_cells.append(cell.coordinate)
+        # Grand totals
+        row += 2
+        excel_job_durations_ws.cell(row=row, column=1).value = 'Total job duration'
+        cell = excel_job_durations_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_duration_cells)}"
+        # Add a chart to show the distribution of job durations
+        row += 2
+        job_count_chart = BarChart3D()
+        job_count_chart.style = 13
+        job_count_chart.title = 'Total Job Duration by Duration and Memory Size'
+        job_count_chart.x_axis.title = 'Memory Range'
+        job_count_chart.y_axis.title = 'Total Duration'
+        job_count_chart.z_axis.title = 'Duration Range'
+        job_count_chart.width = 30
+        job_count_chart.height = 15
+        job_count_chart.add_data(XlReference(excel_job_durations_ws, min_col=2, min_row=2, max_col=chart_data_max_col, max_row=chart_data_max_row), titles_from_data=True)
+        job_count_chart.set_categories(XlReference(excel_job_durations_ws, min_col=1, min_row=3, max_row=chart_data_max_row))
+        excel_job_durations_ws.add_chart(job_count_chart, excel_job_durations_ws.cell(row=row, column=1).coordinate)
+
+        # JobWaitTimes Worksheet
+        max_column_widths = {}
+        row = 1
+        column = 1
+        excel_job_wait_times_ws.cell(row=row, column=1).value = 'Total Wait Time'
+        row += 1
+        column = 1
+        excel_job_wait_times_ws.cell(row=row, column=column).value = 'Memory Size (GB)'
+        max_column_widths[column] = len(excel_job_wait_times_ws.cell(row=row, column=column).value)
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            column += 1
+            excel_job_wait_times_ws.cell(row=row, column=column).value = f'{runtime} Minutes'
+            excel_job_wait_times_ws.cell(row=row, column=column).alignment = XlsAlignment(horizontal='center')
+            max_column_widths[column] = len(excel_job_counts_ws.cell(row=row, column=column).value)
+        for ram in self.get_ranges(self.ram_ranges_GB):
+            row += 1
+            column = 1
+            excel_job_wait_times_ws.cell(row=row, column=column).value = f"{ram} GB"
+            max_column_widths[column] = max(max_column_widths[column], len(excel_job_wait_times_ws.cell(row=row, column=column).value))
+            for runtime in self.get_ranges(self.runtime_ranges_minutes):
+                summary = self.job_data_collector[ram][runtime]
+                column += 1
+                cell = excel_job_wait_times_ws.cell(row=row, column=column)
+                cell.value = summary['total_wait_minutes']
+                cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+        chart_data_max_row = row
+        chart_data_max_col = column
+        for column, max_column_width in max_column_widths.items():
+            excel_job_wait_times_ws.column_dimensions[xl_get_column_letter(column)].width = max_column_width + 1
+        # Total each column
+        row += 1
+        column = 1
+        excel_job_wait_times_ws.cell(row=row, column=column).value = f"Total"
+        first_row = 3
+        last_row = row - 1
+        total_wait_time_cells = []
+        for runtime in self.get_ranges(self.runtime_ranges_minutes):
+            # total_wait_minutes
+            column += 1
+            column_letter = xl_get_column_letter(column)
+            cell = excel_job_wait_times_ws.cell(row=row, column=column)
+            cell.value = f"=sum({column_letter}{first_row}:{column_letter}{last_row})"
+            cell.number_format = FORMAT_NUMBER_COMMA_SEPARATED1
+            total_wait_time_cells.append(cell.coordinate)
+        # Grand totals
+        row += 2
+        excel_job_wait_times_ws.cell(row=row, column=1).value = 'Total wait time'
+        cell = excel_job_wait_times_ws.cell(row=row, column=2)
+        cell.value = f"={'+'.join(total_wait_time_cells)}"
+        # Add a chart to show the distribution of jobs
+        row += 2
+        job_count_chart = BarChart3D()
+        job_count_chart.style = 13
+        job_count_chart.title = 'Job Counts by Duration and Memory Size'
+        job_count_chart.x_axis.title = 'Memory Range'
+        job_count_chart.y_axis.title = 'Jobs'
+        job_count_chart.z_axis.title = 'Duration Range'
+        job_count_chart.width = 30
+        job_count_chart.height = 15
+        job_count_chart.add_data(XlReference(excel_job_wait_times_ws, min_col=2, min_row=2, max_col=chart_data_max_col, max_row=chart_data_max_row), titles_from_data=True)
+        job_count_chart.set_categories(XlReference(excel_job_wait_times_ws, min_col=1, min_row=3, max_row=chart_data_max_row))
+        excel_job_wait_times_ws.add_chart(job_count_chart, excel_job_wait_times_ws.cell(row=row, column=1).coordinate)
+
 
         # Config Worksheet
         excel_config_ws.column_dimensions['A'].width = 35
@@ -915,6 +1171,8 @@ class JobAnalyzer(JobAnalyzerBase):
             column = hourly_columns[instance_family][f'{instance_family} CHr']
             data_series = XlReference(excel_hourly_ws, min_col=column, min_row=1, max_col=column, max_row=last_hour_cell.value + 2)
             core_hours_chart.add_data(data_series, titles_from_data=True)
+        for series in core_hours_chart.series:
+            series.graphicalProperties.line.width = pixels_to_EMU(points_to_pixels(1))
         excel_core_hours_chart_ws.add_chart(core_hours_chart, 'A1')
         row += 30
 
@@ -933,6 +1191,8 @@ class JobAnalyzer(JobAnalyzerBase):
             cell = excel_core_hours_chart_ws.cell(row=row, column=1)
             excel_core_hours_chart_ws.add_chart(core_hours_chart, cell.coordinate)
             row += 30
+            for series in core_hours_chart.series:
+                series.graphicalProperties.line.width = pixels_to_EMU(points_to_pixels(1))
 
         excel_wb.save(hourly_stats_xlsx)
 
