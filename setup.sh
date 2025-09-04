@@ -6,7 +6,11 @@ repodir=$scriptdir
 startdir=$(readlink -f .)
 
 # Detect the OS distribution and version
-if [ -e /etc/os-release ]; then
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export distribution=macOS
+    export distribution_version=$(sw_vers -productVersion)
+    export distribution_major_version=$(echo $distribution_version | cut -d '.' -f 1)
+elif [ -e /etc/os-release ]; then
     source /etc/os-release
     if [ $ID == "amzn" ]; then
         export distribution=Amazon
@@ -21,7 +25,7 @@ if [ -e /etc/os-release ]; then
     export distribution_version=$VERSION_ID
     export distribution_major_version=$(echo $distribution_version | cut -d '.' -f 1)
 else
-    echo -e "\nerror: Could not detect the OS distribution. /etc/os-release doesn't exist."
+    echo -e "\nerror: Could not detect the OS distribution."
     return 1
 fi
 echo -e "Setting up for $distribution $distribution_major_version\n"
@@ -40,32 +44,55 @@ if [ -e .venv/bin/activate ]; then
     source .venv/bin/activate
 fi
 
-if ! yum list installed make &> /dev/null; then
-    echo -e "\nInstalling make"
-    if ! sudo --non-interactive yum -y install make; then
-        echo -e "\nerror: Could not install make which is required to install packages in the python virtual environment."
-        return
-    else
-        echo -e "\nInstalled make\n"
+if [[ "$distribution" == "macOS" ]]; then
+    # Check if Homebrew is installed
+    if ! command -v brew &> /dev/null; then
+        echo -e "\nHomebrew not found. Please install Homebrew first: https://brew.sh"
+        return 1
     fi
-fi
-
-if ! yum list installed mkdocs &> /dev/null; then
-    echo -e "\nInstalling mkdocs\n"
-    if ! sudo --non-interactive yum -y install mkdocs; then
-        echo -e "\nwarning: Could not install mkdocs. Will not be able to display docs in your browsers.\n"
-    else
-        echo -e "\nInstalled mkdocs\n"
+    
+    if ! command -v make &> /dev/null; then
+        echo -e "\nInstalling make via Xcode command line tools"
+        xcode-select --install
     fi
-fi
+    
+    if ! command -v python3 &> /dev/null; then
+        echo -e "\nInstalling python3\n"
+        if ! brew install python3; then
+            echo -e "\nerror: Could not install python3. All of the scripts require python 3.6 or later."
+            return
+        else
+            echo -e "\nInstalled python3\n"
+        fi
+    fi
+else
+    if ! yum list installed make &> /dev/null; then
+        echo -e "\nInstalling make"
+        if ! sudo --non-interactive yum -y install make; then
+            echo -e "\nerror: Could not install make which is required to install packages in the python virtual environment."
+            return
+        else
+            echo -e "\nInstalled make\n"
+        fi
+    fi
 
-if ! python3 --version &> /dev/null; then
-    echo -e "\nInstalling python3\n"
-    if ! sudo --non-interactive yum -y install python3; then
-        echo -e "\nerror: Could not install python3. All of the scripts require python 3.6 or later."
-        return
-    else
-        echo -e "\nInstalled python3\n"
+    if ! yum list installed mkdocs &> /dev/null; then
+        echo -e "\nInstalling mkdocs\n"
+        if ! sudo --non-interactive yum -y install mkdocs; then
+            echo -e "\nwarning: Could not install mkdocs. Will not be able to display docs in your browsers.\n"
+        else
+            echo -e "\nInstalled mkdocs\n"
+        fi
+    fi
+
+    if ! python3 --version &> /dev/null; then
+        echo -e "\nInstalling python3\n"
+        if ! sudo --non-interactive yum -y install python3; then
+            echo -e "\nerror: Could not install python3. All of the scripts require python 3.6 or later."
+            return
+        else
+            echo -e "\nInstalled python3\n"
+        fi
     fi
 fi
 # Python version >= 3.6 required

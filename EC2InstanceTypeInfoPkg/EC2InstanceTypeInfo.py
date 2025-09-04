@@ -114,7 +114,7 @@ class EC2InstanceTypeInfo:
 
         self.get_savings_plans = get_savings_plans
 
-        logger.info(f"Getting EC2 pricing info for following regions:\n{pp.pformat(self.regions)}")
+        logger.info(f"Getting EC2 pricing info for following {len(self.regions)} regions:\n{pp.pformat(self.regions)}")
 
         # Endpoints only supported in 2 regions: https://docs.aws.amazon.com/cli/latest/reference/pricing/index.html
         self.pricing_client = boto3.client('pricing', region_name='us-east-1')
