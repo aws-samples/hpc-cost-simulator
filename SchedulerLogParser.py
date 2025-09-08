@@ -140,10 +140,13 @@ class SchedulerLogParser(ABC):
     def _get_job_field_names():
         dummy_job = SchedulerJobInfo(
             job_id = '1',
+            idx = 1,
+            avgMemMB = 0,
             resource_request = 'rusage[mem=6291456,xcelium_sc=1:duration=1m]',
             num_cores = 1,
             max_mem_gb = 1.1,
             num_hosts = 1,
+            addlfield1 = '0',
 
             submit_time = '1970-01-01T00:00:01',
             start_time = '1970-01-01T00:00:02',
