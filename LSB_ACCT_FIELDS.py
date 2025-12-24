@@ -178,8 +178,13 @@ LSB_ACCT_RECORD_FORMATS = {
 
             # finishKVP
             ('numKVP', '%d'), # Number of elements (key-value pairs) in the structure.
-            #('key', '%s'), # Reserved for future use.
-            #('value', '%s'), # Reserved for future use.
+            ('instanceID', '%s'), # Used for populating instance ID.
+            #AGD uncommented - resolved one of 5 unhandedled fields
+            ('key', '%s'), # Reserved for future use.
+            ('value', '%s'), # Reserved for future use.
+            ('addlfield1', '%s'), # Expand exported fields addition - handling additional fields
+            ('addlfield2', '%s'), # Expand exported fields addition - handling additional fields
+            
 
             #('schedulingOverhead', '%f'), # The scheduler overhead for a job, in milliseconds. This is the total time that is taken by the scheduler to dispatch the job and the time that is taken by the scheduler to reallocate resources to a new job.
         ]

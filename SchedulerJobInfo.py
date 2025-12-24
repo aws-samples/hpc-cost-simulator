@@ -52,8 +52,14 @@ class SchedulerJobInfo:
     def __init__(self,
         # Required fields
         job_id:int,
+        #Expand exported fields addition
+        idx:int,
+        #end
         num_cores:int,
         max_mem_gb:float,
+        #Expand exported fields addition
+        avgMemMB:float,
+        #end
         num_hosts:int,
         submit_time:str,
         start_time:str,
@@ -68,6 +74,9 @@ class SchedulerJobInfo:
 
         queue:str=None,
         project:str=None,
+        #Expand exported fields addition
+        userName:str=None,
+
         licenses:str=None,
 
         exit_status:int=None,
@@ -82,6 +91,13 @@ class SchedulerJobInfo:
         ru_oublock:int=None,
         ru_stime:float=None,
         ru_utime:float=None,
+        #Expand exported fields addition
+        instanceID:str=None,
+        cwd:str=None,
+        outfile:str=None,
+        jobgroupname:str=None,
+        jobdescription:str=None,
+        addlfield1:str=None,
 
         # Put resource_request at end because can contain ',' which is also the CSV separator
         resource_request:str='',
@@ -139,8 +155,14 @@ class SchedulerJobInfo:
         '''
         # Required fields
         self.job_id = job_id
+        #Expand exported fields addition
+        self.idx = idx
+        #end
         self.num_cores = num_cores
         self.max_mem_gb = max_mem_gb
+        #Expand exported fields addition
+        self.avgMemMB = avgMemMB
+        #end
         self.num_hosts = num_hosts
         (self.submit_time, self.submit_time_dt) = SchedulerJobInfo.fix_datetime(submit_time)
         (self.start_time, self.start_time_dt) = SchedulerJobInfo.fix_datetime(start_time)
@@ -172,6 +194,8 @@ class SchedulerJobInfo:
             raise ValueError(f"Invalid finish time for job {self.job_id}. Finish time={self.finish_time} < Start time={self.start_time}.")
 
         # Optional fields
+        #Expand exported fields addition - change requeue time back to raw form, not timedelta format; Athena doesn't interpret time delta correctly
+        #self.ineligible_pend_time = ineligible_pend_time
         try:
             (self.ineligible_pend_time, self.ineligible_pend_time_td) = SchedulerJobInfo.fix_duration(ineligible_pend_time)
         except:
@@ -184,11 +208,17 @@ class SchedulerJobInfo:
         except:
             logger.warning(f"Invalid eligible_time for job {self.job_id}: {eligible_time}")
             self.eligible_time = self.eligible_time_dt = None
+        #Expand exported fields addition - change requeue time back to raw form, not timedelta format; Athena doesn't interpret time delta correctly
+        self.requeue_time = requeue_time
+        self.wait_time = wait_time
+        self.run_time = run_time
+        '''
         try:
             (self.requeue_time, self.requeue_time_td) = SchedulerJobInfo.fix_duration(requeue_time)
         except:
             logger.warning(f"Invalid requeue_time for job {self.job_id}: {requeue_time}")
             self.requeue_time = self.requeue_time_td = None
+        
         try:
             (self.wait_time, self.wait_time_td) = SchedulerJobInfo.fix_duration(wait_time)
         except:
@@ -199,9 +229,12 @@ class SchedulerJobInfo:
         except:
             logger.warning(f"Invalid run_time for job {self.job_id}: {run_time}")
             self.run_time = self.run_time_td = None
+        '''
 
         self.queue = queue
         self.project = project
+        #Expand exported fields addition
+        self.userName = userName
         self.licenses = licenses
 
         self.exit_status = SchedulerJobInfo.fix_int(exit_status)
@@ -214,8 +247,22 @@ class SchedulerJobInfo:
         self.ru_msgsnd = SchedulerJobInfo.fix_int(ru_msgsnd)
         self.ru_nswap = SchedulerJobInfo.fix_int(ru_nswap)
         self.ru_oublock = SchedulerJobInfo.fix_int(ru_oublock)
+
+        #Expand exported fields addition - change requeue time back to raw form, not timedelta format; Athena doesn't interpret time delta correctly
+        self.ru_stime = ru_stime
+        self.ru_utime = ru_utime
+
+        '''
         self.ru_stime = SchedulerJobInfo.fix_duration(ru_stime)[0]
         self.ru_utime = SchedulerJobInfo.fix_duration(ru_utime)[0]
+        '''
+
+        #Expand exported fields addition
+        self.instanceID = instanceID
+        self.cwd = cwd
+        self.outfile = outfile
+        self.jobgroupname = jobgroupname
+        self.jobdescription = jobdescription
 
         self.resource_request = resource_request
 
@@ -250,8 +297,14 @@ class SchedulerJobInfo:
     @staticmethod
     def from_dict(field_dict: dict):
         job_id = int(field_dict['job_id'])
+        #Expand exported fields addition
+        idx = int(field_dict['idx'])
+        #end
         num_cores = int(field_dict['num_cores'])
         max_mem_gb = float(field_dict['max_mem_gb'])
+        #Expand exported fields addition
+        avgMemMB = float(field_dict['avgMemMB'])
+        #end
         num_hosts = int(field_dict['num_hosts'])
         submit_time = str(field_dict['submit_time'])
         start_time = str(field_dict['start_time'])
@@ -265,6 +318,8 @@ class SchedulerJobInfo:
 
         queue = field_dict.get('queue', None)
         project = field_dict.get('project', None)
+        #Expand exported fields addition
+        userName = field_dict.get('userName', None)
         licenses = field_dict.get('licensese', None)
 
         exit_status = SchedulerJobInfo.fix_int(field_dict['exit_status'])
@@ -280,12 +335,24 @@ class SchedulerJobInfo:
         ru_stime = str(field_dict['ru_stime'])
         ru_utime = str(field_dict['ru_utime'])
 
+        #Expand exported fields addition
+        instanceID = str(field_dict['instanceID'])
+        cwd = str(field_dict['cwd'])
+        outfile = str(field_dict['outfile'])
+        jobgroupname = str(field_dict['jobgroupname'])
+        jobdescription = str(field_dict['jobdescription'])
+
         resource_request = str(field_dict['resource_request'])
 
         return SchedulerJobInfo(
             job_id = job_id,
+            #Expand exported fields addition
+            idx = idx,
             num_cores = num_cores,
             max_mem_gb = max_mem_gb,
+            #Expand exported fields addition
+            avgMemMB = avgMemMB,
+            #end
             num_hosts = num_hosts,
             submit_time = submit_time,
             start_time = start_time,
@@ -299,6 +366,8 @@ class SchedulerJobInfo:
 
             queue = queue,
             project = project,
+            #Expand exported fields addition
+            userName = userName,
             licenses = licenses,
 
             exit_status = exit_status,
@@ -313,6 +382,12 @@ class SchedulerJobInfo:
             ru_oublock = ru_oublock,
             ru_stime = ru_stime,
             ru_utime = ru_utime,
+            #Expand exported fields addition
+            instanceID = instanceID,
+            cwd = cwd,
+            outfile = outfile,
+            jobgroupname = jobgroupname,
+            jobdescription = jobdescription,
 
             resource_request = resource_request,
         )

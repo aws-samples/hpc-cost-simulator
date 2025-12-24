@@ -10,7 +10,9 @@ https://www.ibm.com/docs/en/spectrum-lsf/10.1.0?topic=reference-bacct
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 SPDX-License-Identifier: MIT-0
 '''
-
+#added OS dependency
+import os
+#end
 import argparse
 from copy import deepcopy
 import csv
@@ -169,7 +171,9 @@ class LSFLogParser(SchedulerLogParser):
                 match = re.search(r'mem=([0-9\.]+)', rusage)
                 if match:
                     max_mem = float(match.groups(0)[0])
-                    max_mem_gb = (max_mem * MEM_KB) / MEM_GB
+                    #GF LSF outputs memory metrics in MB - removing the KB to MB conversion
+                    #max_mem_gb = (max_mem * MEM_KB) / MEM_GB
+                    max_mem_gb = (max_mem * MEM_MB) / MEM_GB
                     logger.debug(f"max_mem_gb: {max_mem_gb}")
                 else:
                     logger.debug(f"No memory request found in rusage")
@@ -199,7 +203,8 @@ class LSFLogParser(SchedulerLogParser):
 
                 queue = record['queue'],
                 project = record['projectName'],
-
+                #Expand exported fields addition
+                userName = record['userName'],
                 exit_status = record['exitStatus'],
 
                 ru_inblock = record['ru_inblock'],
@@ -214,6 +219,14 @@ class LSFLogParser(SchedulerLogParser):
                 ru_utime = record['ru_utime'],
 
                 resource_request = record['effectiveResReq'],
+                #Expand exported fields addition
+                instanceID = record['instanceID'],
+                cwd = record['cwd'],
+                outfile = record['outFile'],
+                jobgroupname = record['jobGroupName'],
+                jobdescription = record['jobDescription'],
+                idx = record['idx'],
+                avgMemMB = record['avgMem'],
             )
             if self._job_in_time_window(job):
                 self._num_input_jobs += 1
@@ -231,20 +244,26 @@ class LSFLogParser(SchedulerLogParser):
             (str): List of filenames
         '''
         lsb_acct_files = []
+        
         try:
             all_files = sorted(listdir(self._logfile_dir))
         except FileNotFoundError as e:
             logger.error(f"Input directory doesn't exist: {self._logfile_dir}: {e}")
+            print(f"Input directory doesn't exist: {self._logfile_dir}: {e}")
             exit(1)
-        for file in all_files:
-            filename = path.join(logfile_dir, file)
-            if path.isdir(filename):
-                logger.debug(f"Skipping {filename} because it's a directory")
-                continue
-            if file.startswith('lsb.acct'):
-                lsb_acct_files.append(filename)
-            else:
-                logger.debug(f"Skipping: {filename} because doesn't start with lsb.acct")
+        
+        for root, dirs, files in os.walk(logfile_dir):
+            #Process files in the current directory
+            for file_name in files:
+                full_file_path = os.path.join(root, file_name)
+                if path.isdir(full_file_path):
+                    logger.debug(f"Skipping {file_name} because it's a directory")
+                    continue
+                if ('lsb.acct' in str(file_name)) and '.txt' not in str(file_name):
+                    lsb_acct_files.append(full_file_path)
+                else:
+                    logger.debug(f"Skipping: {full_file_path} because doesn't start with ipdev.lsb.acct")
+
         return lsb_acct_files
 
     def _parse_record_fields(self, original_fields, record_format: dict) -> dict:
@@ -281,7 +300,10 @@ class LSFLogParser(SchedulerLogParser):
             for field_tuple in record_format[record_type]['fields']:
                 field_name = field_tuple[0]
                 field_format = field_tuple[1]
-                field_str = fields.pop(0).lstrip().rstrip()
+                if fields:
+                    field_str = fields.pop(0).lstrip().rstrip()
+                else:    
+                    continue
                 logger.debug(f"    {field_name}({field_format})={field_str}")
                 if field_format == '%s':
                     field = field_str
@@ -355,7 +377,9 @@ class LSFLogParser(SchedulerLogParser):
                                 logger.debug("        numExHosts is missing so skip field")
                                 fields.insert(0, field_str)
                                 continue
-                record[field_name] = field
+                #Expand exported fields addition - keep extracted instanceID without overwriting from raw fields
+                if field_name != 'instanceID':
+                    record[field_name] = field
                 if record_type == 'JOB_FINISH':
                     if field_name == 'Version Number':
                         lsf_version = parse_version(field)
@@ -426,10 +450,15 @@ class LSFLogParser(SchedulerLogParser):
                             storageInfoV = fields.pop(0)
                             logger.debug(f"        storageInfoV[{idx}]: {storageInfoV}")
                     elif field_name == 'numKVP':
+                        record['instanceID'] = ''
                         for idx in range(0, field):
                             key = fields.pop(0)
                             value = fields.pop(0)
                             logger.debug(f"        KVP[{idx}][{key}]: {value}")
+                            #Expand exported fields addition - log only the InstanceID in the KVP
+                            if idx == 0:
+                                record['instanceID'] = str(value).replace('"','')[:19]
+                        
                 elif record_type == 'JOB_NEW':
                     if field_name == 'numAskedHosts':
                         record['askedHosts'] = []
@@ -485,7 +514,8 @@ class LSFLogParser(SchedulerLogParser):
                             logger.debug(f"        execHosts[{idx}]={execHost}")
                             record['execHosts'][execHost] = record['execHosts'].get(execHost, 0) + 1
         except IndexError:
-            if field_name not in ['ineligiblePendTime', 'indexRangeCnt', 'requeueTime', 'numGPURusages', 'storageInfoC', 'numKVP']:
+            #if field_name not in ['ineligiblePendTime', 'indexRangeCnt', 'requeueTime', 'numGPURusages', 'storageInfoC', 'numKVP']:
+            if field_name not in ['ineligiblePendTime', 'indexRangeCnt', 'requeueTime', 'numGPURusages', 'storageInfoC']:
                 raise ValueError(f"Not enough fields to get value for {field_name}.")
         if fields:
             extra_fields = "'" + ','.join(fields) + "'"
